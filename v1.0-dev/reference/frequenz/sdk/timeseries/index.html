@@ -3249,6 +3249,7 @@ timestamp will be at 1970-01-01 00:00:40 UTC:</p>
 
 
 
+
   <div class="doc doc-children">
 
 
@@ -3434,6 +3435,7 @@ using a source.</p>
     </div>
 
 </div>
+
 <h3 id="frequenz.sdk.timeseries-classes">Classes<a href="#frequenz.sdk.timeseries-classes" class="headerlink" title="Permanent link">¤</a></h3>
 
 <div class="doc doc-object doc-class">
@@ -3460,6 +3462,7 @@ using a source.</p>
 <p>Depending on the genertic type <code>_T</code>, the lower and upper bounds can be <code>None</code>, in
 which case it means that there is no lower or upper bound, respectively.</p>
 <p>When checking if an item is within the bounds, the item must always be not <code>None</code>.</p>
+
 
 
 
@@ -3598,6 +3601,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.Bounds-functions">Functions<a href="#frequenz.sdk.timeseries.Bounds-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -3748,6 +3752,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
 <p>The <code>monotonic_requested_sleep</code> and <code>monotonic_elapsed</code> values must be strictly
 positive, while the <code>wall_clock_elapsed</code> can be negative if the wall clock jumped
 back in time.</p>
+
 
 
 
@@ -4220,6 +4225,7 @@ that both clocks are obtained as slightly different times.</p>
 
 </div>
 
+
 <h5 id="frequenz.sdk.timeseries.ClocksInfo-functions">Functions<a href="#frequenz.sdk.timeseries.ClocksInfo-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
 <div class="doc doc-object doc-function">
@@ -4496,6 +4502,7 @@ or jumps between both.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_fuse.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-12">12</a></span>
@@ -4545,6 +4552,7 @@ or jumps between both.</p>
     </div>
 
 </div>
+
 
 
 
@@ -4664,6 +4672,7 @@ async def run() -&gt; None:
 asyncio.run(run())
 ```
 </code></pre></div>
+
 
 
 
@@ -5972,6 +5981,7 @@ unless the class explicitly documents it is safe to do so.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.MovingWindow-functions">Functions<a href="#frequenz.sdk.timeseries.MovingWindow-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -8181,6 +8191,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-51"> 51</a></span>
@@ -8923,6 +8934,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 
 
 
+
 <h5 id="frequenz.sdk.timeseries.PeriodicFeatureExtractor-functions">Functions<a href="#frequenz.sdk.timeseries.PeriodicFeatureExtractor-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
 <div class="doc doc-object doc-function">
@@ -9292,6 +9304,7 @@ windows fully inside the MovingWindow having the period
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/_internal/_channels.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-21">21</a></span>
@@ -9325,6 +9338,7 @@ windows fully inside the MovingWindow having the period
 
 
   <div class="doc doc-children">
+
 
 
 
@@ -9464,6 +9478,7 @@ windows fully inside the MovingWindow having the period
 
 
         <p>Resampler configuration.</p>
+
 
 
 
@@ -9973,6 +9988,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
 </div>
 
+
 <h5 id="frequenz.sdk.timeseries.ResamplerConfig-functions">Functions<a href="#frequenz.sdk.timeseries.ResamplerConfig-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
 <div class="doc doc-object doc-function">
@@ -10144,6 +10160,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
 
         <p>Resampler configuration.</p>
+
 
 
 
@@ -10694,6 +10711,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
 </div>
 
+
 <h5 id="frequenz.sdk.timeseries.ResamplerConfig2-functions">Functions<a href="#frequenz.sdk.timeseries.ResamplerConfig2-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
 <div class="doc doc-object doc-function">
@@ -10865,6 +10883,7 @@ or sinks.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-33">33</a></span>
@@ -10992,6 +11011,7 @@ exception.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.ResamplingError-functions">Functions<a href="#frequenz.sdk.timeseries.ResamplingError-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -11221,6 +11241,7 @@ timestamp in the input data).</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-47">47</a></span>
@@ -11300,6 +11321,7 @@ timestamp in the input data).</p>
 
 
   <div class="doc doc-children">
+
 
 
 
@@ -11526,6 +11548,7 @@ timestamp in the input data).</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-216">216</a></span>
@@ -11605,6 +11628,7 @@ timestamp in the input data).</p>
 
 
   <div class="doc doc-children">
+
 
 
 
@@ -11839,6 +11863,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19">19</a></span>
@@ -11946,6 +11971,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 </div>
 
+
 <h5 id="frequenz.sdk.timeseries.Sample-functions">Functions<a href="#frequenz.sdk.timeseries.Sample-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
 <div class="doc doc-object doc-function">
@@ -12039,6 +12065,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 or data is lacking for another reason, but a sample still needs to be sent
 to have a coherent view on a group of component metrics for a particular
 timestamp.</p>
+
 
 
 
@@ -12355,6 +12382,7 @@ timestamp.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.Sample3Phase-functions">Functions<a href="#frequenz.sdk.timeseries.Sample3Phase-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -12833,6 +12861,7 @@ phases.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-38">38</a></span>
@@ -12972,6 +13001,7 @@ phases.</p>
 
 
 
+
   </div>
 
     </div>
@@ -12995,6 +13025,7 @@ phases.</p>
 
 
         <p>A timeseries stopped producing samples.</p>
+
 
 
 
@@ -13079,6 +13110,7 @@ phases.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.SourceStoppedError-functions">Functions<a href="#frequenz.sdk.timeseries.SourceStoppedError-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -13256,6 +13288,7 @@ phases.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-300">300</a></span>
@@ -13404,6 +13437,7 @@ this will be empty.</p>
 
 
 
+
   </div>
 
     </div>
@@ -13487,6 +13521,7 @@ blocking or system overload. The tolerance for such deviations is defined by the
       dataclass
   " href="#frequenz.sdk.timeseries.TickInfo"><code>TickInfo</code></a> object, which includes detailed
 information about the clocks and their drift.</p>
+
 
 
 
@@ -14668,6 +14703,7 @@ smaller, bigger, or even <strong>negative</strong> if the wall clock jumped back
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.WallClockTimer-functions">Functions<a href="#frequenz.sdk.timeseries.WallClockTimer-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
@@ -16440,6 +16476,7 @@ selected in <code>select()</code> iteration.</p>
 
 
 
+
               <details class="quote">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-25"> 25</a></span>
@@ -16889,6 +16926,7 @@ time jumps.</p>
     </div>
 
 </div>
+
 
 <h5 id="frequenz.sdk.timeseries.WallClockTimerConfig-functions">Functions<a href="#frequenz.sdk.timeseries.WallClockTimerConfig-functions" class="headerlink" title="Permanent link">¤</a></h5>
 
