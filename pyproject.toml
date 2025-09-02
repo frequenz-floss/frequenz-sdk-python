@@ -68,7 +68,7 @@ dev-mkdocs = [
 ]
 dev-mypy = [
   "mypy == 1.17.1",
-  "types-Markdown == 3.8.0.20250708",
+  "types-Markdown == 3.8.0.20250809",
   "types-protobuf == 6.30.2.20250822",
   "types-setuptools == 80.9.0.20250801",
   # For checking the noxfile, docs/ script, and tests
