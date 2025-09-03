@@ -87,7 +87,7 @@ dev-pytest = [
   "pytest-asyncio == 1.1.0",
   "time-machine == 2.16.0",
   "async-solipsism == 0.8",
-  "hypothesis == 6.138.13",
+  "hypothesis == 6.138.14",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
