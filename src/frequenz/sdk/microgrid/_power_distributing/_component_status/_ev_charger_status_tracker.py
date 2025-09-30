@@ -115,8 +115,8 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
 
         if self._is_working(ev_data):
             if self._last_status == ComponentStatusEnum.NOT_WORKING:
-                _logger.warning(
-                    "EV charger %s is in WORKING state.",
+                _logger.info(
+                    "EV charger %s: state changed to WORKING.",
                     self._component_id,
                 )
             return ComponentStatusEnum.WORKING
