@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- The log level for when components are transitioning to a `WORKING` state is lowered to `INFO`, and the log message has been improved.
