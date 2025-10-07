@@ -26,9 +26,6 @@ from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import ResamplerConfig
 from ..timeseries._voltage_streamer import VoltageStreamer
-from ..timeseries.grid import Grid
-from ..timeseries.grid import get as get_grid
-from ..timeseries.grid import initialize as initialize_grid
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._power_wrapper import PowerWrapper
 
@@ -47,6 +44,7 @@ if typing.TYPE_CHECKING:
     from ..timeseries.ev_charger_pool._ev_charger_pool_reference_store import (
         EVChargerPoolReferenceStore,
     )
+    from ..timeseries.grid import Grid
     from ..timeseries.logical_meter import LogicalMeter
     from ..timeseries.producer import Producer
     from ..timeseries.pv_pool import PVPool
@@ -206,6 +204,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def grid(self) -> Grid:
         """Return the grid measuring point."""
+        from ..timeseries.grid import get as get_grid
+        from ..timeseries.grid import initialize as initialize_grid
+
         if self._grid is None:
             initialize_grid(
                 channel_registry=self._channel_registry,
