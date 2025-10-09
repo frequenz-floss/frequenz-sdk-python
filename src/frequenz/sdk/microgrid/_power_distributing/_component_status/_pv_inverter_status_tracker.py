@@ -125,8 +125,8 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
 
         if self._is_working(pv_data):
             if self._last_status == ComponentStatusEnum.NOT_WORKING:
-                _logger.warning(
-                    "PV inverter %s is in WORKING state.",
+                _logger.info(
+                    "PV inverter %s: state changed to WORKING.",
                     self._component_id,
                 )
             return ComponentStatusEnum.WORKING
