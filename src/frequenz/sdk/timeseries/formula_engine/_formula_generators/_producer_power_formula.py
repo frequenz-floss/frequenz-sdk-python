@@ -6,7 +6,8 @@
 import logging
 from typing import Callable
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -46,7 +47,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 meter.
         """
         builder = self._get_builder(
-            "producer_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "producer_power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         component_graph = connection_manager.get().component_graph

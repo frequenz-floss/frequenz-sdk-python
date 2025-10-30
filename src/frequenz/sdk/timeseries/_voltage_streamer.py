@@ -14,7 +14,8 @@ import logging
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity, Voltage
 
 from .._internal._channels import ChannelRegistry
@@ -137,15 +138,15 @@ class VoltageStreamer:
             ComponentMetricRequest,
         )
 
-        metric_ids = (
-            ComponentMetricId.VOLTAGE_PHASE_1,
-            ComponentMetricId.VOLTAGE_PHASE_2,
-            ComponentMetricId.VOLTAGE_PHASE_3,
+        metrics = (
+            Metric.AC_VOLTAGE_PHASE_1_N,
+            Metric.AC_VOLTAGE_PHASE_2_N,
+            Metric.AC_VOLTAGE_PHASE_3_N,
         )
         phases_rx: list[Receiver[Sample[Quantity]]] = []
-        for metric_id in metric_ids:
+        for metric in metrics:
             req = ComponentMetricRequest(
-                self._namespace, self._source_component.component_id, metric_id, None
+                self._namespace, self._source_component.component_id, metric, None
             )
 
             await self._resampler_subscription_sender.send(req)

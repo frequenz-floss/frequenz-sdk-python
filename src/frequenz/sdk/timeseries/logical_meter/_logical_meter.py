@@ -7,10 +7,11 @@
 import uuid
 
 from frequenz.channels import Sender
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power, Quantity
 
 from ..._internal._channels import ChannelRegistry
-from ...microgrid._data_sourcing import ComponentMetricId, ComponentMetricRequest
+from ...microgrid._data_sourcing import ComponentMetricRequest
 from ..formula_engine import FormulaEngine
 from ..formula_engine._formula_engine_pool import FormulaEnginePool
 from ..formula_engine._formula_generators import CHPPowerFormula
@@ -34,7 +35,7 @@ class LogicalMeter:
 
         from frequenz.sdk import microgrid
         from frequenz.sdk.timeseries import ResamplerConfig2
-        from frequenz.client.microgrid import ComponentMetricId
+        from frequenz.client.microgrid.metrics import Metric
 
 
         await microgrid.initialize(
@@ -44,7 +45,7 @@ class LogicalMeter:
 
         logical_meter = (
             microgrid.logical_meter()
-            .start_formula("#1001 + #1002", ComponentMetricId.ACTIVE_POWER)
+            .start_formula("#1001 + #1002", Metric.AC_ACTIVE_POWER)
             .new_receiver()
         )
 
@@ -88,7 +89,7 @@ class LogicalMeter:
     def start_formula(
         self,
         formula: str,
-        component_metric_id: ComponentMetricId,
+        metric: Metric,
         *,
         nones_are_zeros: bool = False,
     ) -> FormulaEngine[Quantity]:
@@ -102,8 +103,7 @@ class LogicalMeter:
 
         Args:
             formula: formula to execute.
-            component_metric_id: The metric ID to use when fetching receivers from the
-                resampling actor.
+            metric: The metric to use when fetching receivers from the resampling actor.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
 
@@ -111,7 +111,7 @@ class LogicalMeter:
             A FormulaEngine that applies the formula and streams values.
         """
         return self._formula_pool.from_string(
-            formula, component_metric_id, nones_are_zeros=nones_are_zeros
+            formula, metric, nones_are_zeros=nones_are_zeros
         )
 
     @property

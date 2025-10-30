@@ -19,9 +19,9 @@ from frequenz.client.microgrid import (
     BatteryData,
     ComponentCategory,
     ComponentData,
-    ComponentMetricId,
     InverterData,
 )
+from frequenz.client.microgrid.metrics import Metric
 from typing_extensions import override
 
 from ..._internal._asyncio import AsyncConstructible
@@ -30,6 +30,9 @@ from ...microgrid import connection_manager
 from ...microgrid._data_sourcing.microgrid_api_source import (
     _BatteryDataMethods,
     _InverterDataMethods,
+)
+from ...microgrid._old_component_data import (
+    TransitionalMetric,
 )
 from ._component_metrics import ComponentMetricsData
 
@@ -43,11 +46,11 @@ class ComponentMetricFetcher(AsyncConstructible, ABC):
     """Define how to subscribe for and fetch the component metrics data."""
 
     _component_id: ComponentId
-    _metrics: Iterable[ComponentMetricId]
+    _metrics: Iterable[Metric | TransitionalMetric]
 
     @classmethod
     async def async_new(
-        cls, component_id: ComponentId, metrics: Iterable[ComponentMetricId]
+        cls, component_id: ComponentId, metrics: Iterable[Metric | TransitionalMetric]
     ) -> Self:
         """Create an instance of this class.
 
@@ -86,7 +89,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
     async def async_new(
         cls,
         component_id: ComponentId,
-        metrics: Iterable[ComponentMetricId],
+        metrics: Iterable[Metric | TransitionalMetric],
     ) -> Self:
         """Create instance of this class.
 
@@ -142,12 +145,12 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
             )
 
         self._max_waiting_time = MAX_BATTERY_DATA_AGE_SEC
-        metrics = {}
-        for mid in self._metrics:
-            value = self._extract_metric(data, mid)
+        metrics: dict[Metric | TransitionalMetric, float] = {}
+        for metric in self._metrics:
+            value = self._extract_metric(data, metric)
             # There is no guarantee that all fields in component message are populated
             if not math.isnan(value):
-                metrics[mid] = value
+                metrics[metric] = value
 
         return ComponentMetricsData(self._component_id, data.timestamp, metrics)
 
@@ -157,10 +160,12 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         self._receiver.close()
 
     @abstractmethod
-    def _extract_metric(self, data: T, mid: ComponentMetricId) -> float: ...
+    def _extract_metric(
+        self, data: T, metric: Metric | TransitionalMetric
+    ) -> float: ...
 
     @abstractmethod
-    def _supported_metrics(self) -> set[ComponentMetricId]: ...
+    def _supported_metrics(self) -> set[Metric | TransitionalMetric]: ...
 
     @abstractmethod
     def _component_category(self) -> ComponentCategory: ...
@@ -185,7 +190,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly super.async_new)
         cls,
         component_id: ComponentId,
-        metrics: Iterable[ComponentMetricId],
+        metrics: Iterable[Metric | TransitionalMetric],
     ) -> LatestBatteryMetricsFetcher:
         """Create instance of this class.
 
@@ -208,12 +213,14 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         return self
 
     @override
-    def _supported_metrics(self) -> set[ComponentMetricId]:
+    def _supported_metrics(self) -> set[Metric | TransitionalMetric]:
         return set(_BatteryDataMethods.keys())
 
     @override
-    def _extract_metric(self, data: BatteryData, mid: ComponentMetricId) -> float:
-        return _BatteryDataMethods[mid](data)
+    def _extract_metric(
+        self, data: BatteryData, metric: Metric | TransitionalMetric
+    ) -> float:
+        return _BatteryDataMethods[metric](data)
 
     @override
     async def _subscribe(self) -> Receiver[BatteryData]:
@@ -241,7 +248,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly by super.async_new)
         cls,
         component_id: ComponentId,
-        metrics: Iterable[ComponentMetricId],
+        metrics: Iterable[Metric | TransitionalMetric],
     ) -> LatestInverterMetricsFetcher:
         """Create instance of this class.
 
@@ -264,12 +271,14 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         return self
 
     @override
-    def _supported_metrics(self) -> set[ComponentMetricId]:
+    def _supported_metrics(self) -> set[Metric | TransitionalMetric]:
         return set(_InverterDataMethods.keys())
 
     @override
-    def _extract_metric(self, data: InverterData, mid: ComponentMetricId) -> float:
-        return _InverterDataMethods[mid](data)
+    def _extract_metric(
+        self, data: InverterData, metric: Metric | TransitionalMetric
+    ) -> float:
+        return _InverterDataMethods[metric](data)
 
     @override
     async def _subscribe(self) -> Receiver[InverterData]:

@@ -20,7 +20,6 @@ from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
     ComponentData,
-    ComponentMetricId,
     EVChargerCableState,
     EVChargerComponentState,
     EVChargerData,
@@ -28,6 +27,7 @@ from frequenz.client.microgrid import (
     InverterData,
     MeterData,
 )
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
 from frequenz.sdk._internal._channels import ChannelRegistry
@@ -86,7 +86,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
 
     async with DataSourcingActor(req_chan.new_receiver(), registry):
         active_power_request_4 = ComponentMetricRequest(
-            "test-namespace", ComponentId(4), ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(4), Metric.AC_ACTIVE_POWER, None
         )
         active_power_recv_4 = registry.get_or_create(
             Sample[Quantity], active_power_request_4.get_channel_name()
@@ -94,7 +94,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(active_power_request_4)
 
         reactive_power_request_4 = ComponentMetricRequest(
-            "test-namespace", ComponentId(4), ComponentMetricId.REACTIVE_POWER, None
+            "test-namespace", ComponentId(4), Metric.AC_REACTIVE_POWER, None
         )
         reactive_power_recv_4 = registry.get_or_create(
             Sample[Quantity], reactive_power_request_4.get_channel_name()
@@ -102,7 +102,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(reactive_power_request_4)
 
         active_power_request_6 = ComponentMetricRequest(
-            "test-namespace", ComponentId(6), ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(6), Metric.AC_ACTIVE_POWER, None
         )
         active_power_recv_6 = registry.get_or_create(
             Sample[Quantity], active_power_request_6.get_channel_name()
@@ -110,7 +110,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(active_power_request_6)
 
         soc_request_9 = ComponentMetricRequest(
-            "test-namespace", ComponentId(9), ComponentMetricId.SOC, None
+            "test-namespace", ComponentId(9), Metric.BATTERY_SOC_PCT, None
         )
         soc_recv_9 = registry.get_or_create(
             Sample[Quantity], soc_request_9.get_channel_name()
@@ -118,7 +118,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(soc_request_9)
 
         soc2_request_9 = ComponentMetricRequest(
-            "test-namespace", ComponentId(9), ComponentMetricId.SOC, None
+            "test-namespace", ComponentId(9), Metric.BATTERY_SOC_PCT, None
         )
         soc2_recv_9 = registry.get_or_create(
             Sample[Quantity], soc2_request_9.get_channel_name()
@@ -126,7 +126,7 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         await req_sender.send(soc2_request_9)
 
         active_power_request_12 = ComponentMetricRequest(
-            "test-namespace", ComponentId(12), ComponentMetricId.ACTIVE_POWER, None
+            "test-namespace", ComponentId(12), Metric.AC_ACTIVE_POWER, None
         )
         active_power_recv_12 = registry.get_or_create(
             Sample[Quantity], active_power_request_12.get_channel_name()

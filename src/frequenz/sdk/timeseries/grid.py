@@ -13,7 +13,8 @@ import uuid
 from dataclasses import dataclass
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid._component import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid._component import ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, ReactivePower
 
 from .._internal._channels import ChannelRegistry
@@ -112,7 +113,7 @@ class Grid:
             A FormulaEngine that will calculate and stream grid reactive power.
         """
         engine = self._formula_pool.from_reactive_power_formula_generator(
-            f"grid-{ComponentMetricId.REACTIVE_POWER.value}",
+            f"grid-{Metric.AC_REACTIVE_POWER.value}",
             GridReactivePowerFormula,
         )
         assert isinstance(engine, FormulaEngine)

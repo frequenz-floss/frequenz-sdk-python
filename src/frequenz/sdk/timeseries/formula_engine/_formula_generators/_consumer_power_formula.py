@@ -5,7 +5,8 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -63,7 +64,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 meter.
         """
         builder = self._get_builder(
-            "consumer-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "consumer-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         grid_successors = self._get_grid_component_successors()

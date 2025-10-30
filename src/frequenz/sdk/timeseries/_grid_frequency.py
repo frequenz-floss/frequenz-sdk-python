@@ -10,7 +10,8 @@ import logging
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Frequency, Quantity
 
 from .._internal._channels import ChannelRegistry
@@ -31,7 +32,7 @@ def create_request(component_id: ComponentId) -> ComponentMetricRequest:
         A component metric request for grid frequency.
     """
     return ComponentMetricRequest(
-        "grid-frequency", component_id, ComponentMetricId.FREQUENCY, None
+        "grid-frequency", component_id, Metric.AC_FREQUENCY, None
     )
 
 

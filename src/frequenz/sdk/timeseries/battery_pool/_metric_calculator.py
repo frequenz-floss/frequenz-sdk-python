@@ -12,9 +12,11 @@ from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 from typing_extensions import override
+
+from frequenz.sdk.microgrid._old_component_data import TransitionalMetric
 
 from ... import timeseries
 from ..._internal import _math
@@ -80,7 +82,9 @@ class MetricCalculator(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def battery_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each battery.
 
         Returns:
@@ -89,7 +93,9 @@ class MetricCalculator(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def inverter_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each inverter.
 
         Returns:
@@ -131,10 +137,10 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         """
         super().__init__(batteries)
 
-        self._metrics = [
-            ComponentMetricId.CAPACITY,
-            ComponentMetricId.SOC_LOWER_BOUND,
-            ComponentMetricId.SOC_UPPER_BOUND,
+        self._metrics: list[Metric | TransitionalMetric] = [
+            Metric.BATTERY_CAPACITY,
+            TransitionalMetric.SOC_LOWER_BOUND,
+            TransitionalMetric.SOC_UPPER_BOUND,
         ]
 
     @classmethod
@@ -149,7 +155,9 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
 
     @property
     @override
-    def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def battery_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each battery.
 
         Returns:
@@ -159,7 +167,9 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
 
     @property
     @override
-    def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def inverter_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each inverter.
 
         Returns:
@@ -198,9 +208,9 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
 
             metrics = metrics_data[battery_id]
 
-            capacity = metrics.get(ComponentMetricId.CAPACITY)
-            soc_upper_bound = metrics.get(ComponentMetricId.SOC_UPPER_BOUND)
-            soc_lower_bound = metrics.get(ComponentMetricId.SOC_LOWER_BOUND)
+            capacity = metrics.get(Metric.BATTERY_CAPACITY)
+            soc_upper_bound = metrics.get(TransitionalMetric.SOC_UPPER_BOUND)
+            soc_lower_bound = metrics.get(TransitionalMetric.SOC_LOWER_BOUND)
 
             # All metrics are related so if any is missing then we skip the component.
             if capacity is None or soc_lower_bound is None or soc_upper_bound is None:
@@ -227,8 +237,8 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         """
         super().__init__(batteries)
 
-        self._metrics = [
-            ComponentMetricId.TEMPERATURE,
+        self._metrics: list[Metric | TransitionalMetric] = [
+            Metric.BATTERY_TEMPERATURE,
         ]
 
     @classmethod
@@ -243,7 +253,9 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
 
     @property
     @override
-    def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def battery_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each battery.
 
         Returns:
@@ -253,7 +265,9 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
 
     @property
     @override
-    def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def inverter_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each inverter.
 
         Returns:
@@ -290,7 +304,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
             if battery_id not in metrics_data:
                 continue
             metrics = metrics_data[battery_id]
-            temperature = metrics.get(ComponentMetricId.TEMPERATURE)
+            temperature = metrics.get(Metric.BATTERY_TEMPERATURE)
             if temperature is None:
                 continue
             timestamp = max(timestamp, metrics.timestamp)
@@ -318,11 +332,11 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         """
         super().__init__(batteries)
 
-        self._metrics = [
-            ComponentMetricId.CAPACITY,
-            ComponentMetricId.SOC_LOWER_BOUND,
-            ComponentMetricId.SOC_UPPER_BOUND,
-            ComponentMetricId.SOC,
+        self._metrics: list[Metric | TransitionalMetric] = [
+            Metric.BATTERY_CAPACITY,
+            TransitionalMetric.SOC_LOWER_BOUND,
+            TransitionalMetric.SOC_UPPER_BOUND,
+            Metric.BATTERY_SOC_PCT,
         ]
 
     @classmethod
@@ -337,7 +351,9 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
 
     @property
     @override
-    def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def battery_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each battery.
 
         Returns:
@@ -347,7 +363,9 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
 
     @property
     @override
-    def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def inverter_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each inverter.
 
         Returns:
@@ -388,10 +406,10 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
 
             metrics = metrics_data[battery_id]
 
-            capacity = metrics.get(ComponentMetricId.CAPACITY)
-            soc_upper_bound = metrics.get(ComponentMetricId.SOC_UPPER_BOUND)
-            soc_lower_bound = metrics.get(ComponentMetricId.SOC_LOWER_BOUND)
-            soc = metrics.get(ComponentMetricId.SOC)
+            capacity = metrics.get(Metric.BATTERY_CAPACITY)
+            soc_upper_bound = metrics.get(TransitionalMetric.SOC_UPPER_BOUND)
+            soc_lower_bound = metrics.get(TransitionalMetric.SOC_LOWER_BOUND)
+            soc = metrics.get(Metric.BATTERY_SOC_PCT)
 
             # All metrics are related so if any is missing then we skip the component.
             if (
@@ -483,18 +501,18 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
             )
 
         super().__init__(used_batteries)
-        self._battery_metrics = [
-            ComponentMetricId.POWER_INCLUSION_LOWER_BOUND,
-            ComponentMetricId.POWER_EXCLUSION_LOWER_BOUND,
-            ComponentMetricId.POWER_EXCLUSION_UPPER_BOUND,
-            ComponentMetricId.POWER_INCLUSION_UPPER_BOUND,
+        self._battery_metrics: list[Metric | TransitionalMetric] = [
+            TransitionalMetric.POWER_INCLUSION_LOWER_BOUND,
+            TransitionalMetric.POWER_EXCLUSION_LOWER_BOUND,
+            TransitionalMetric.POWER_EXCLUSION_UPPER_BOUND,
+            TransitionalMetric.POWER_INCLUSION_UPPER_BOUND,
         ]
 
-        self._inverter_metrics = [
-            ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND,
-            ComponentMetricId.ACTIVE_POWER_EXCLUSION_LOWER_BOUND,
-            ComponentMetricId.ACTIVE_POWER_EXCLUSION_UPPER_BOUND,
-            ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND,
+        self._inverter_metrics: list[Metric | TransitionalMetric] = [
+            TransitionalMetric.ACTIVE_POWER_INCLUSION_LOWER_BOUND,
+            TransitionalMetric.ACTIVE_POWER_EXCLUSION_LOWER_BOUND,
+            TransitionalMetric.ACTIVE_POWER_EXCLUSION_UPPER_BOUND,
+            TransitionalMetric.ACTIVE_POWER_INCLUSION_UPPER_BOUND,
         ]
 
     @classmethod
@@ -509,7 +527,9 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
 
     @property
     @override
-    def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def battery_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each battery.
 
         Returns:
@@ -519,7 +539,9 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
 
     @property
     @override
-    def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
+    def inverter_metrics(
+        self,
+    ) -> Mapping[ComponentId, list[Metric | TransitionalMetric]]:
         """Return what metrics are needed for each inverter.
 
         Returns:
@@ -564,7 +586,7 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         }
 
         def get_validated_bounds(
-            comp_id: ComponentId, comp_metric_ids: list[ComponentMetricId]
+            comp_id: ComponentId, comp_metric_ids: list[Metric | TransitionalMetric]
         ) -> PowerBounds | None:
             results: list[float] = []
             # Make timestamp accessible
@@ -590,7 +612,8 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
             )
 
         def get_bounds_list(
-            comp_ids: frozenset[ComponentId], comp_metric_ids: list[ComponentMetricId]
+            comp_ids: frozenset[ComponentId],
+            comp_metric_ids: list[Metric | TransitionalMetric],
         ) -> list[PowerBounds]:
             return list(
                 x

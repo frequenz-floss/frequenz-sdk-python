@@ -17,7 +17,7 @@ from time import perf_counter
 from typing import Any
 
 from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._channels import ChannelRegistry
@@ -37,9 +37,9 @@ except ImportError:
     sys.exit(1)
 
 COMPONENT_METRIC_IDS = [
-    ComponentMetricId.CURRENT_PHASE_1,
-    ComponentMetricId.CURRENT_PHASE_2,
-    ComponentMetricId.CURRENT_PHASE_3,
+    Metric.AC_CURRENT_PHASE_1,
+    Metric.AC_CURRENT_PHASE_2,
+    Metric.AC_CURRENT_PHASE_3,
 ]
 
 

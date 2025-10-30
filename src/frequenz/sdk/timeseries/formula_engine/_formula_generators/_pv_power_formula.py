@@ -5,7 +5,8 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -39,7 +40,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
                 successors.
         """
         builder = self._get_builder(
-            "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "pv-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         component_graph = connection_manager.get().component_graph

@@ -8,7 +8,7 @@ import logging
 from collections import abc
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current
 
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -38,7 +38,7 @@ class EVChargerCurrentFormula(FormulaGenerator[Current]):
             # frequency as the other streams.  So we subscribe with a non-existing
             # component id, just to get a `None` message at the resampling interval.
             builder = self._get_builder(
-                "ev-current", ComponentMetricId.ACTIVE_POWER, Current.from_amperes
+                "ev-current", Metric.AC_ACTIVE_POWER, Current.from_amperes
             )
             builder.push_component_metric(
                 NON_EXISTING_COMPONENT_ID, nones_are_zeros=True
@@ -54,30 +54,18 @@ class EVChargerCurrentFormula(FormulaGenerator[Current]):
             "ev-current",
             Current.from_amperes,
             (
-                (
-                    self._gen_phase_formula(
-                        component_ids, ComponentMetricId.CURRENT_PHASE_1
-                    )
-                ),
-                (
-                    self._gen_phase_formula(
-                        component_ids, ComponentMetricId.CURRENT_PHASE_2
-                    )
-                ),
-                (
-                    self._gen_phase_formula(
-                        component_ids, ComponentMetricId.CURRENT_PHASE_3
-                    )
-                ),
+                (self._gen_phase_formula(component_ids, Metric.AC_CURRENT_PHASE_1)),
+                (self._gen_phase_formula(component_ids, Metric.AC_CURRENT_PHASE_2)),
+                (self._gen_phase_formula(component_ids, Metric.AC_CURRENT_PHASE_3)),
             ),
         )
 
     def _gen_phase_formula(
         self,
         component_ids: abc.Set[ComponentId],
-        metric_id: ComponentMetricId,
+        metric: Metric,
     ) -> FormulaEngine[Current]:
-        builder = self._get_builder("ev-current", metric_id, Current.from_amperes)
+        builder = self._get_builder("ev-current", metric, Current.from_amperes)
 
         # generate a formula that just adds values from all EV Chargers.
         for idx, component_id in enumerate(component_ids):

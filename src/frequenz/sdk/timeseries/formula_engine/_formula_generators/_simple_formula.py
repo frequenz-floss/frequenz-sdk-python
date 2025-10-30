@@ -3,7 +3,8 @@
 
 """Formula generator from component graph."""
 
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power, ReactivePower
 
 from ....microgrid import connection_manager
@@ -78,7 +79,7 @@ class SimplePowerFormula(SimpleFormulaBase[Power]):
         """
         builder = self._get_builder(
             "simple_power_formula",
-            ComponentMetricId.ACTIVE_POWER,
+            Metric.AC_ACTIVE_POWER,
             Power.from_watts,
         )
         return self._generate(builder)
@@ -103,7 +104,7 @@ class SimpleReactivePowerFormula(SimpleFormulaBase[ReactivePower]):
         """
         builder = self._get_builder(
             "simple_reactive_power_formula",
-            ComponentMetricId.REACTIVE_POWER,
+            Metric.AC_REACTIVE_POWER,
             ReactivePower.from_volt_amperes_reactive,
         )
         return self._generate(builder)

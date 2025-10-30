@@ -14,7 +14,8 @@ from typing import Generic
 
 from frequenz.channels import Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager
@@ -88,7 +89,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
     def _get_builder(
         self,
         name: str,
-        component_metric_id: ComponentMetricId,
+        metric: Metric,
         create_method: Callable[[float], QuantityT],
     ) -> ResampledFormulaBuilder[QuantityT]:
         builder = ResampledFormulaBuilder(
@@ -96,7 +97,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             formula_name=name,
             channel_registry=self._channel_registry,
             resampler_subscription_sender=self._resampler_subscription_sender,
-            metric_id=component_metric_id,
+            metric=metric,
             create_method=create_method,
         )
         return builder

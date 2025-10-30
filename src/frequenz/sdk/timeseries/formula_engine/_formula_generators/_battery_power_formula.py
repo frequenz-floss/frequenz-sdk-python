@@ -6,7 +6,8 @@
 import itertools
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -48,7 +49,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 inverters have been requested.
         """
         builder = self._get_builder(
-            "battery-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "battery-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         if not self._config.component_ids:

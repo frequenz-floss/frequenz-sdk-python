@@ -8,7 +8,8 @@ import logging
 from collections import abc
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -41,7 +42,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
 
         """
         builder = self._get_builder(
-            "chp-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "chp-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         chp_meter_ids = self._get_chp_meters()

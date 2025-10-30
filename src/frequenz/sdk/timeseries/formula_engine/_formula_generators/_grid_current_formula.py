@@ -3,7 +3,8 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current
 
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -31,24 +32,18 @@ class GridCurrentFormula(FormulaGenerator[Current]):
             "grid-current",
             Current.from_amperes,
             (
-                self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.CURRENT_PHASE_1
-                ),
-                self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.CURRENT_PHASE_2
-                ),
-                self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.CURRENT_PHASE_3
-                ),
+                self._gen_phase_formula(grid_successors, Metric.AC_CURRENT_PHASE_1),
+                self._gen_phase_formula(grid_successors, Metric.AC_CURRENT_PHASE_2),
+                self._gen_phase_formula(grid_successors, Metric.AC_CURRENT_PHASE_3),
             ),
         )
 
     def _gen_phase_formula(
         self,
         grid_successors: set[Component],
-        metric_id: ComponentMetricId,
+        metric: Metric,
     ) -> FormulaEngine[Current]:
-        builder = self._get_builder("grid-current", metric_id, Current.from_amperes)
+        builder = self._get_builder("grid-current", metric, Current.from_amperes)
 
         # generate a formula that just adds values from all components that are
         # directly connected to the grid.

@@ -4,7 +4,8 @@
 """Formula generator from component graph for Grid Reactive Power."""
 
 
-from frequenz.client.microgrid import Component, ComponentMetricId
+from frequenz.client.microgrid import Component
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import ReactivePower
 
 from .._formula_engine import FormulaEngine
@@ -31,7 +32,7 @@ class GridReactivePowerFormula(GridPowerFormulaBase[ReactivePower]):
         """
         builder = self._get_builder(
             "grid_reactive_power_formula",
-            ComponentMetricId.REACTIVE_POWER,
+            Metric.AC_REACTIVE_POWER,
             ReactivePower.from_volt_amperes_reactive,
         )
         return self._generate(builder)

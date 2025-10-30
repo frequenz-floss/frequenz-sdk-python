@@ -8,6 +8,7 @@ from contextlib import AsyncExitStack
 import frequenz.client.microgrid as client
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 
@@ -94,7 +95,7 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
         grid_meter_recv = get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
-            client.ComponentMetricId.ACTIVE_POWER,
+            Metric.AC_ACTIVE_POWER,
             Power.from_watts,
         )
 
@@ -138,7 +139,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
             get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
-                client.ComponentMetricId.ACTIVE_POWER,
+                Metric.AC_ACTIVE_POWER,
                 Power.from_watts,
             )
             for component_id in [
@@ -188,7 +189,7 @@ async def test_grid_reactive_power_1(mocker: MockerFixture) -> None:
         grid_meter_recv = get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
-            client.ComponentMetricId.REACTIVE_POWER,
+            Metric.AC_REACTIVE_POWER,
             ReactivePower.from_volt_amperes_reactive,
         )
 
@@ -232,7 +233,7 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
             get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
-                client.ComponentMetricId.REACTIVE_POWER,
+                Metric.AC_REACTIVE_POWER,
                 ReactivePower.from_volt_amperes_reactive,
             )
             for component_id in [
