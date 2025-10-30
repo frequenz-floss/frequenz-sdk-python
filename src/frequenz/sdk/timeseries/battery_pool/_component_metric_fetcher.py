@@ -82,6 +82,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
     _max_waiting_time: float
 
     @classmethod
+    @override
     async def async_new(
         cls,
         component_id: ComponentId,
@@ -115,6 +116,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
         # pylint: enable=protected-access
         return self
 
+    @override
     async def fetch_next(self) -> ComponentMetricsData | None:
         """Fetch the latest component metrics.
 
@@ -179,6 +181,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
     """Subscribe for the latest battery data using MicrogridApiClient."""
 
     @classmethod
+    @override
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly super.async_new)
         cls,
         component_id: ComponentId,
@@ -204,12 +207,15 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         )
         return self
 
+    @override
     def _supported_metrics(self) -> set[ComponentMetricId]:
         return set(_BatteryDataMethods.keys())
 
+    @override
     def _extract_metric(self, data: BatteryData, mid: ComponentMetricId) -> float:
         return _BatteryDataMethods[mid](data)
 
+    @override
     async def _subscribe(self) -> Receiver[BatteryData]:
         """Subscribe for this component data.
 
@@ -222,6 +228,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         api = connection_manager.get().api_client
         return await api.battery_data(self._component_id, maxsize=1)
 
+    @override
     def _component_category(self) -> ComponentCategory:
         return ComponentCategory.BATTERY
 
@@ -230,6 +237,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
     """Subscribe for the latest inverter data using MicrogridApiClient."""
 
     @classmethod
+    @override
     async def async_new(  # noqa: DOC502 (ValueError is raised indirectly by super.async_new)
         cls,
         component_id: ComponentId,
@@ -255,12 +263,15 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         )
         return self
 
+    @override
     def _supported_metrics(self) -> set[ComponentMetricId]:
         return set(_InverterDataMethods.keys())
 
+    @override
     def _extract_metric(self, data: InverterData, mid: ComponentMetricId) -> float:
         return _InverterDataMethods[mid](data)
 
+    @override
     async def _subscribe(self) -> Receiver[InverterData]:
         """Subscribe for this component data.
 
@@ -273,5 +284,6 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         api = connection_manager.get().api_client
         return await api.inverter_data(self._component_id, maxsize=1)
 
+    @override
     def _component_category(self) -> ComponentCategory:
         return ComponentCategory.INVERTER

@@ -35,6 +35,7 @@ from frequenz.client.microgrid import (
     InverterType,
     MicrogridApiClient,
 )
+from typing_extensions import override
 
 _logger = logging.getLogger(__name__)
 
@@ -372,6 +373,7 @@ class _MicrogridComponentGraph(
         self.refresh_from(components, connections)
         self.validate()
 
+    @override
     def components(
         self,
         component_ids: set[ComponentId] | None = None,
@@ -401,6 +403,7 @@ class _MicrogridComponentGraph(
 
         return set(selection)
 
+    @override
     def connections(
         self,
         start: set[ComponentId] | None = None,
@@ -430,6 +433,7 @@ class _MicrogridComponentGraph(
 
         return set(self._graph.edges[i][_DATA_KEY] for i in selection_ids)
 
+    @override
     def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
@@ -454,6 +458,7 @@ class _MicrogridComponentGraph(
 
         return set(map(lambda idx: self._graph.nodes[idx][_DATA_KEY], predecessors_ids))
 
+    @override
     def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
@@ -567,6 +572,7 @@ class _MicrogridComponentGraph(
         self._validate_intermediary_components()
         self._validate_leaf_components()
 
+    @override
     def is_grid_meter(self, component: Component) -> bool:
         """Check if the specified component is a grid meter.
 
@@ -593,6 +599,7 @@ class _MicrogridComponentGraph(
         grid_successors = self.successors(predecessor.component_id)
         return len(grid_successors) == 1
 
+    @override
     def is_pv_inverter(self, component: Component) -> bool:
         """Check if the specified component is a PV inverter.
 
@@ -607,6 +614,7 @@ class _MicrogridComponentGraph(
             and component.type == InverterType.SOLAR
         )
 
+    @override
     def is_pv_meter(self, component: Component) -> bool:
         """Check if the specified component is a PV meter.
 
@@ -630,6 +638,7 @@ class _MicrogridComponentGraph(
             )
         )
 
+    @override
     def is_pv_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a PV chain.
 
@@ -644,6 +653,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_pv_inverter(component) or self.is_pv_meter(component)
 
+    @override
     def is_ev_charger(self, component: Component) -> bool:
         """Check if the specified component is an EV charger.
 
@@ -655,6 +665,7 @@ class _MicrogridComponentGraph(
         """
         return component.category == ComponentCategory.EV_CHARGER
 
+    @override
     def is_ev_charger_meter(self, component: Component) -> bool:
         """Check if the specified component is an EV charger meter.
 
@@ -675,6 +686,7 @@ class _MicrogridComponentGraph(
             and all(self.is_ev_charger(successor) for successor in successors)
         )
 
+    @override
     def is_ev_charger_chain(self, component: Component) -> bool:
         """Check if the specified component is part of an EV charger chain.
 
@@ -689,6 +701,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_ev_charger(component) or self.is_ev_charger_meter(component)
 
+    @override
     def is_battery_inverter(self, component: Component) -> bool:
         """Check if the specified component is a battery inverter.
 
@@ -703,6 +716,7 @@ class _MicrogridComponentGraph(
             and component.type == InverterType.BATTERY
         )
 
+    @override
     def is_battery_meter(self, component: Component) -> bool:
         """Check if the specified component is a battery meter.
 
@@ -723,6 +737,7 @@ class _MicrogridComponentGraph(
             and all(self.is_battery_inverter(successor) for successor in successors)
         )
 
+    @override
     def is_battery_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a battery chain.
 
@@ -737,6 +752,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_battery_inverter(component) or self.is_battery_meter(component)
 
+    @override
     def is_chp(self, component: Component) -> bool:
         """Check if the specified component is a CHP.
 
@@ -748,6 +764,7 @@ class _MicrogridComponentGraph(
         """
         return component.category == ComponentCategory.CHP
 
+    @override
     def is_chp_meter(self, component: Component) -> bool:
         """Check if the specified component is a CHP meter.
 
@@ -768,6 +785,7 @@ class _MicrogridComponentGraph(
             and all(self.is_chp(successor) for successor in successors)
         )
 
+    @override
     def is_chp_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a CHP chain.
 
@@ -781,6 +799,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_chp(component) or self.is_chp_meter(component)
 
+    @override
     def dfs(
         self,
         current_node: Component,
@@ -816,6 +835,7 @@ class _MicrogridComponentGraph(
 
         return component
 
+    @override
     def find_first_descendant_component(
         self,
         *,

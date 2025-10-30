@@ -14,6 +14,7 @@ from typing import Generic, TypeVar
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import ComponentMetricId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
+from typing_extensions import override
 
 from ... import timeseries
 from ..._internal import _math
@@ -137,6 +138,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         ]
 
     @classmethod
+    @override
     def name(cls) -> str:
         """Return name of the calculator.
 
@@ -146,6 +148,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         return "Capacity"
 
     @property
+    @override
     def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each battery.
 
@@ -155,6 +158,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         return {bid: self._metrics for bid in self._batteries}
 
     @property
+    @override
     def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each inverter.
 
@@ -163,6 +167,7 @@ class CapacityCalculator(MetricCalculator[Sample[Energy]]):
         """
         return {}
 
+    @override
     def calculate(
         self,
         metrics_data: dict[ComponentId, ComponentMetricsData],
@@ -227,6 +232,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         ]
 
     @classmethod
+    @override
     def name(cls) -> str:
         """Return name of the calculator.
 
@@ -236,6 +242,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         return "temperature"
 
     @property
+    @override
     def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each battery.
 
@@ -245,6 +252,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         return {bid: self._metrics for bid in self._batteries}
 
     @property
+    @override
     def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each inverter.
 
@@ -253,6 +261,7 @@ class TemperatureCalculator(MetricCalculator[Sample[Temperature]]):
         """
         return {}
 
+    @override
     def calculate(
         self,
         metrics_data: dict[ComponentId, ComponentMetricsData],
@@ -317,6 +326,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         ]
 
     @classmethod
+    @override
     def name(cls) -> str:
         """Return name of the calculator.
 
@@ -326,6 +336,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         return "SoC"
 
     @property
+    @override
     def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each battery.
 
@@ -335,6 +346,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         return {bid: self._metrics for bid in self._batteries}
 
     @property
+    @override
     def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each inverter.
 
@@ -343,6 +355,7 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
         """
         return {}
 
+    @override
     def calculate(
         self,
         metrics_data: dict[ComponentId, ComponentMetricsData],
@@ -485,6 +498,7 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         ]
 
     @classmethod
+    @override
     def name(cls) -> str:
         """Return name of the calculator.
 
@@ -494,6 +508,7 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         return "PowerBounds"
 
     @property
+    @override
     def battery_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each battery.
 
@@ -503,6 +518,7 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         return {bid: self._battery_metrics for bid in set(self._bat_inv_map.keys())}
 
     @property
+    @override
     def inverter_metrics(self) -> Mapping[ComponentId, list[ComponentMetricId]]:
         """Return what metrics are needed for each inverter.
 
@@ -516,6 +532,7 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
         }
 
     # pylint: disable=too-many-locals
+    @override
     def calculate(
         self,
         metrics_data: dict[ComponentId, ComponentMetricsData],
