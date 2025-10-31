@@ -26,13 +26,10 @@ from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
-    BatteryData,
     BatteryRelayState,
     ComponentCategory,
-    ComponentData,
     ErrorLevel,
     InverterComponentState,
-    InverterData,
 )
 from typing_extensions import override
 
@@ -40,6 +37,7 @@ from frequenz.sdk._internal._asyncio import run_forever
 
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
+from ..._old_component_data import BatteryData, ComponentData, InverterData
 from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,
@@ -255,8 +253,10 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         """
         api_client = connection_manager.get().api_client
 
-        battery_receiver = await api_client.battery_data(self._battery.component_id)
-        inverter_receiver = await api_client.inverter_data(self._inverter.component_id)
+        battery_receiver = BatteryData.subscribe(api_client, self._battery.component_id)
+        inverter_receiver = InverterData.subscribe(
+            api_client, self._inverter.component_id
+        )
 
         battery = battery_receiver
         battery_timer = self._battery.data_recv_timer

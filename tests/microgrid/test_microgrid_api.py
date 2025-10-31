@@ -5,6 +5,7 @@
 
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
+from datetime import datetime, timezone
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
@@ -121,9 +122,9 @@ class TestMicrogridApi:
             metadata: the metadata of the microgrid
         """
         microgrid_client = MagicMock()
-        microgrid_client.components = AsyncMock(side_effect=components)
-        microgrid_client.connections = AsyncMock(side_effect=connections)
-        microgrid_client.metadata = AsyncMock(return_value=metadata)
+        microgrid_client.list_components = AsyncMock(side_effect=components)
+        microgrid_client.list_connections = AsyncMock(side_effect=connections)
+        microgrid_client.get_microgrid_info = AsyncMock(return_value=microgrid)
 
         with mock.patch(
             "frequenz.sdk.microgrid.connection_manager.MicrogridApiClient",

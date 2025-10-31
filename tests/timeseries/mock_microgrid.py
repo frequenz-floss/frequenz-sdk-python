@@ -15,7 +15,6 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    ComponentData,
     Connection,
     EVChargerCableState,
     EVChargerComponentState,
@@ -28,6 +27,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid import _data_pipeline
+from frequenz.sdk.microgrid._old_component_data import ComponentData
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 from frequenz.sdk.timeseries import ResamplerConfig2
 
@@ -265,12 +265,16 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             # for inverters with component_id > 100, send only half the messages.
             if int(comp_id) % 10 == self.inverter_id_suffix:
                 if int(comp_id) < 100 or value <= 5:
-                    await self.mock_client.send(make_comp_data(val_to_send, timestamp))
+                    await self.mock_client.send(
+                        make_comp_data(val_to_send, timestamp).to_samples()
+                    )
             else:
-                await self.mock_client.send(make_comp_data(val_to_send, timestamp))
+                await self.mock_client.send(
+                    make_comp_data(val_to_send, timestamp).to_samples()
+                )
             await asyncio.sleep(self._sample_rate_s)
 
-        await self.mock_client.close_channel(comp_id)
+        await self.mock_client.close_channels(comp_id)
 
     def _start_meter_streaming(self, meter_id: ComponentId) -> None:
         if not self._api_client_streaming:
@@ -532,7 +536,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         value + 199.8,
                         value + 200.2,
                     ),
-                )
+                ).to_samples()
             )
 
     async def send_battery_data(self, socs: list[float]) -> None:
@@ -545,7 +549,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         timestamp = datetime.now(tz=timezone.utc)
         for comp_id, value in zip(self.battery_ids, socs):
             await self.mock_client.send(
-                BatteryDataWrapper(component_id=comp_id, timestamp=timestamp, soc=value)
+                BatteryDataWrapper(
+                    component_id=comp_id, timestamp=timestamp, soc=value
+                ).to_samples()
             )
 
     async def send_battery_inverter_data(self, values: list[float]) -> None:
@@ -560,7 +566,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             await self.mock_client.send(
                 InverterDataWrapper(
                     component_id=comp_id, timestamp=timestamp, active_power=value
-                )
+                ).to_samples()
             )
 
     async def send_pv_inverter_data(self, values: list[float]) -> None:
@@ -575,7 +581,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             await self.mock_client.send(
                 InverterDataWrapper(
                     component_id=comp_id, timestamp=timestamp, active_power=value
-                )
+                ).to_samples()
             )
 
     async def send_ev_charger_data(self, values: list[float]) -> None:
@@ -599,7 +605,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                     ),
                     component_state=self.evc_component_states[comp_id],
                     cable_state=self.evc_cable_states[comp_id],
-                )
+                ).to_samples()
             )
 
     async def cleanup(self) -> None:

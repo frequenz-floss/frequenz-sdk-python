@@ -18,19 +18,18 @@ from frequenz.channels import Broadcast, Receiver
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
-    BatteryData,
     BatteryError,
     BatteryErrorCode,
     BatteryRelayState,
     ErrorLevel,
     InverterComponentState,
-    InverterData,
     InverterError,
     InverterErrorCode,
 )
 from pytest_mock import MockerFixture
 from time_machine import TimeMachineFixture
 
+from frequenz.sdk.microgrid._old_component_data import BatteryData, InverterData
 from frequenz.sdk.microgrid._power_distributing._component_status import (
     BatteryStatusTracker,
     ComponentStatus,
@@ -666,10 +665,10 @@ class TestBatteryStatus:
 
             with time_machine.travel("2022-01-01 00:00 UTC", tick=False) as time:
                 await mock_microgrid.mock_client.send(
-                    inverter_data(component_id=INVERTER_ID)
+                    inverter_data(component_id=INVERTER_ID).to_samples()
                 )
                 await mock_microgrid.mock_client.send(
-                    battery_data(component_id=BATTERY_ID)
+                    battery_data(component_id=BATTERY_ID).to_samples()
                 )
                 status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
                 assert status.value is ComponentStatusEnum.WORKING
@@ -683,7 +682,7 @@ class TestBatteryStatus:
                 time.shift(2)
 
                 await mock_microgrid.mock_client.send(
-                    battery_data(component_id=BATTERY_ID)
+                    battery_data(component_id=BATTERY_ID).to_samples()
                 )
                 status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
                 assert status.value is ComponentStatusEnum.WORKING
@@ -692,7 +691,7 @@ class TestBatteryStatus:
                     inverter_data(
                         component_id=INVERTER_ID,
                         timestamp=datetime.now(tz=timezone.utc) - timedelta(seconds=7),
-                    )
+                    ).to_samples()
                 )
                 status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
                 assert status.value is ComponentStatusEnum.NOT_WORKING
@@ -706,7 +705,7 @@ class TestBatteryStatus:
                     await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
 
                 await mock_microgrid.mock_client.send(
-                    inverter_data(component_id=INVERTER_ID)
+                    inverter_data(component_id=INVERTER_ID).to_samples()
                 )
                 status = await asyncio.wait_for(status_receiver.receive(), timeout=0.1)
                 assert status.value is ComponentStatusEnum.WORKING
@@ -760,7 +759,7 @@ class TestBatteryStatusRecovery:
                 component_id=BATTERY_ID,
                 component_state=BatteryComponentState.IDLE,
                 relay_state=BatteryRelayState.CLOSED,
-            )
+            ).to_samples()
         )
 
     async def _send_battery_missing_capacity(
@@ -772,7 +771,7 @@ class TestBatteryStatusRecovery:
                 component_state=BatteryComponentState.IDLE,
                 relay_state=BatteryRelayState.CLOSED,
                 capacity=math.nan,
-            )
+            ).to_samples()
         )
 
     async def _send_healthy_inverter(
@@ -783,7 +782,7 @@ class TestBatteryStatusRecovery:
                 timestamp=timestamp,
                 component_id=INVERTER_ID,
                 component_state=InverterComponentState.IDLE,
-            )
+            ).to_samples()
         )
 
     async def _send_bad_state_battery(self, mock_microgrid: MockMicrogrid) -> None:
@@ -792,7 +791,7 @@ class TestBatteryStatusRecovery:
                 component_id=BATTERY_ID,
                 component_state=BatteryComponentState.ERROR,
                 relay_state=BatteryRelayState.CLOSED,
-            )
+            ).to_samples()
         )
 
     async def _send_bad_state_inverter(self, mock_microgrid: MockMicrogrid) -> None:
@@ -800,7 +799,7 @@ class TestBatteryStatusRecovery:
             inverter_data(
                 component_id=INVERTER_ID,
                 component_state=InverterComponentState.ERROR,
-            )
+            ).to_samples()
         )
 
     async def _send_critical_error_battery(self, mock_microgrid: MockMicrogrid) -> None:
@@ -815,7 +814,7 @@ class TestBatteryStatusRecovery:
                 component_state=BatteryComponentState.IDLE,
                 relay_state=BatteryRelayState.CLOSED,
                 errors=[battery_critical_error],
-            )
+            ).to_samples()
         )
 
     async def _send_warning_error_battery(self, mock_microgrid: MockMicrogrid) -> None:
@@ -830,7 +829,7 @@ class TestBatteryStatusRecovery:
                 component_state=BatteryComponentState.IDLE,
                 relay_state=BatteryRelayState.CLOSED,
                 errors=[battery_warning_error],
-            )
+            ).to_samples()
         )
 
     async def _send_critical_error_inverter(
@@ -846,7 +845,7 @@ class TestBatteryStatusRecovery:
                 component_id=INVERTER_ID,
                 component_state=InverterComponentState.IDLE,
                 errors=[inverter_critical_error],
-            )
+            ).to_samples()
         )
 
     async def _send_warning_error_inverter(self, mock_microgrid: MockMicrogrid) -> None:
@@ -860,7 +859,7 @@ class TestBatteryStatusRecovery:
                 component_id=INVERTER_ID,
                 component_state=InverterComponentState.IDLE,
                 errors=[inverter_warning_error],
-            )
+            ).to_samples()
         )
 
     async def test_missing_data(

@@ -16,10 +16,7 @@ from typing import Any, Generic, Self, TypeVar
 from frequenz.channels import ChannelClosedError, Receiver
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
-    BatteryData,
     ComponentCategory,
-    ComponentData,
-    InverterData,
 )
 from frequenz.client.microgrid.metrics import Metric
 from typing_extensions import override
@@ -32,6 +29,9 @@ from ...microgrid._data_sourcing.microgrid_api_source import (
     _InverterDataMethods,
 )
 from ...microgrid._old_component_data import (
+    BatteryData,
+    ComponentData,
+    InverterData,
     TransitionalMetric,
 )
 from ._component_metrics import ComponentMetricsData
@@ -114,7 +114,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
                 category = self._component_category()
                 raise ValueError(f"Metric {metric} not supported for {category}")
 
-        self._receiver = await self._subscribe()
+        self._receiver = self._subscribe()
         self._max_waiting_time = MAX_BATTERY_DATA_AGE_SEC
         # pylint: enable=protected-access
         return self
@@ -171,7 +171,7 @@ class LatestMetricsFetcher(ComponentMetricFetcher, Generic[T], ABC):
     def _component_category(self) -> ComponentCategory: ...
 
     @abstractmethod
-    async def _subscribe(self) -> Receiver[Any]:
+    def _subscribe(self) -> Receiver[Any]:
         """Subscribe for this component data.
 
         Size of the receiver buffer should should be 1 to make sure we receive only
@@ -223,7 +223,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
         return _BatteryDataMethods[metric](data)
 
     @override
-    async def _subscribe(self) -> Receiver[BatteryData]:
+    def _subscribe(self) -> Receiver[BatteryData]:
         """Subscribe for this component data.
 
         Size of the receiver buffer should should be 1 to make sure we receive only
@@ -233,7 +233,7 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
             Receiver for this component metrics.
         """
         api = connection_manager.get().api_client
-        return await api.battery_data(self._component_id, maxsize=1)
+        return BatteryData.subscribe(api, self._component_id, buffer_size=1)
 
     @override
     def _component_category(self) -> ComponentCategory:
@@ -281,7 +281,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
         return _InverterDataMethods[metric](data)
 
     @override
-    async def _subscribe(self) -> Receiver[InverterData]:
+    def _subscribe(self) -> Receiver[InverterData]:
         """Subscribe for this component data.
 
         Size of the receiver buffer should should be 1 to make sure we receive only
@@ -291,7 +291,7 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
             Receiver for this component metrics.
         """
         api = connection_manager.get().api_client
-        return await api.inverter_data(self._component_id, maxsize=1)
+        return InverterData.subscribe(api, self._component_id, buffer_size=1)
 
     @override
     def _component_category(self) -> ComponentCategory:

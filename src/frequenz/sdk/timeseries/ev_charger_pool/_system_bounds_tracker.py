@@ -9,12 +9,12 @@ from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import EVChargerData
 from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
+from ...microgrid._old_component_data import EVChargerData
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .._base_types import Bounds, SystemBounds
 
@@ -108,11 +108,7 @@ class EVCSystemBoundsTracker(BackgroundService):
         api_client = connection_manager.get().api_client
         status_rx = self._status_receiver
         ev_data_rx = merge(
-            *(
-                await asyncio.gather(
-                    *[api_client.ev_charger_data(cid) for cid in self._component_ids]
-                )
-            )
+            *(EVChargerData.subscribe(api_client, cid) for cid in self._component_ids)
         )
 
         async for selected in select(status_rx, ev_data_rx):

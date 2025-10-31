@@ -68,7 +68,7 @@ class TestBatteryPoolStatus:
             batteries_list = list(batteries)
 
             await mock_microgrid.mock_client.send(
-                battery_data(component_id=batteries_list[0])
+                battery_data(component_id=batteries_list[0]).to_samples()
             )
             await asyncio.sleep(0.1)
             assert (
@@ -77,7 +77,9 @@ class TestBatteryPoolStatus:
 
             expected_working.add(batteries_list[0])
             await mock_microgrid.mock_client.send(
-                inverter_data(component_id=ComponentId(int(batteries_list[0]) - 1))
+                inverter_data(
+                    component_id=ComponentId(int(batteries_list[0]) - 1)
+                ).to_samples()
             )
             await asyncio.sleep(0.1)
             assert (
@@ -87,17 +89,21 @@ class TestBatteryPoolStatus:
             assert msg == batteries_status._current_status
 
             await mock_microgrid.mock_client.send(
-                inverter_data(component_id=ComponentId(int(batteries_list[1]) - 1))
+                inverter_data(
+                    component_id=ComponentId(int(batteries_list[1]) - 1)
+                ).to_samples()
             )
             await mock_microgrid.mock_client.send(
-                battery_data(component_id=batteries_list[1])
+                battery_data(component_id=batteries_list[1]).to_samples()
             )
 
             await mock_microgrid.mock_client.send(
-                inverter_data(component_id=ComponentId(int(batteries_list[2]) - 1))
+                inverter_data(
+                    component_id=ComponentId(int(batteries_list[2]) - 1)
+                ).to_samples()
             )
             await mock_microgrid.mock_client.send(
-                battery_data(component_id=batteries_list[2])
+                battery_data(component_id=batteries_list[2]).to_samples()
             )
 
             expected_working = set(batteries_list)

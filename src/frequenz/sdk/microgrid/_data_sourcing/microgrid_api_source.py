@@ -11,11 +11,7 @@ from typing import Any
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
-    BatteryData,
     ComponentCategory,
-    EVChargerData,
-    InverterData,
-    MeterData,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
@@ -25,6 +21,10 @@ from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
 from .._old_component_data import (
+    BatteryData,
+    EVChargerData,
+    InverterData,
+    MeterData,
     TransitionalMetric,
 )
 from ._component_metric_request import ComponentMetricRequest
@@ -169,7 +169,7 @@ class MicrogridApiSource:
             return self._comp_categories_cache[comp_id]
 
         api = connection_manager.get().api_client
-        for comp in await api.components():
+        for comp in await api.list_components():
             self._comp_categories_cache[comp.component_id] = comp.category
 
         if comp_id in self._comp_categories_cache:
@@ -198,8 +198,8 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.battery_data(comp_id)
+            self.comp_data_receivers[comp_id] = BatteryData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_ev_charger_request(
@@ -223,8 +223,8 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.ev_charger_data(comp_id)
+            self.comp_data_receivers[comp_id] = EVChargerData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_inverter_request(
@@ -248,8 +248,8 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.inverter_data(comp_id)
+            self.comp_data_receivers[comp_id] = InverterData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_meter_request(
@@ -273,8 +273,8 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.meter_data(comp_id)
+            self.comp_data_receivers[comp_id] = MeterData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_requested_component_and_metrics(

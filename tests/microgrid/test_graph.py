@@ -959,9 +959,11 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
         client = mock.MagicMock(name="client", spec=MicrogridApiClient)
-        client.components = mock.AsyncMock(name="client.components()", return_value=[])
-        client.connections = mock.AsyncMock(
-            name="client.connections()", return_value=[]
+        client.list_components = mock.AsyncMock(
+            name="client.list_components()", return_value=[]
+        )
+        client.list_connections = mock.AsyncMock(
+            name="client.list_connections()", return_value=[]
         )
 
         # both components and connections must be non-empty
@@ -972,7 +974,7 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        client.components.return_value = [
+        client.list_components.return_value = [
             Component(ComponentId(1), ComponentCategory.GRID)
         ]
         with pytest.raises(gr.InvalidGraphError):
@@ -982,8 +984,8 @@ class Test_MicrogridComponentGraph:
         with pytest.raises(gr.InvalidGraphError):
             graph.validate()
 
-        client.components.return_value = []
-        client.connections.return_value = [Connection(ComponentId(1), ComponentId(2))]
+        client.list_components.return_value = []
+        client.list_connections.return_value = [Connection(ComponentId(1), ComponentId(2))]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_api(client)
         assert graph.components() == set()
@@ -994,7 +996,7 @@ class Test_MicrogridComponentGraph:
         # if both are provided, valid graph data must be present
 
         # valid graph with meter, and EV charger
-        client.components.return_value = [
+        client.list_components.return_value = [
             Component(
                 ComponentId(101),
                 ComponentCategory.GRID,
@@ -1003,7 +1005,7 @@ class Test_MicrogridComponentGraph:
             Component(ComponentId(111), ComponentCategory.METER),
             Component(ComponentId(131), ComponentCategory.EV_CHARGER),
         ]
-        client.connections.return_value = [
+        client.list_connections.return_value = [
             Connection(ComponentId(101), ComponentId(111)),
             Connection(ComponentId(111), ComponentId(131)),
         ]
@@ -1032,7 +1034,7 @@ class Test_MicrogridComponentGraph:
 
         # if valid graph data is provided, then the existing graph
         # contents will be overwritten
-        client.components.return_value = [
+        client.list_components.return_value = [
             Component(
                 ComponentId(707),
                 ComponentCategory.GRID,
@@ -1045,7 +1047,7 @@ class Test_MicrogridComponentGraph:
             Component(ComponentId(737), ComponentCategory.BATTERY),
             Component(ComponentId(747), ComponentCategory.METER),
         ]
-        client.connections.return_value = [
+        client.list_connections.return_value = [
             Connection(ComponentId(707), ComponentId(717)),
             Connection(ComponentId(717), ComponentId(727)),
             Connection(ComponentId(727), ComponentId(737)),

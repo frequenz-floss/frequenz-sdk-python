@@ -151,7 +151,8 @@ class TestPVPoolControl:
     ) -> None:
         """Test setting power."""
         set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
 
         await self._init_pv_inverters(mocks)

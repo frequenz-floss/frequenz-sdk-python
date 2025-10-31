@@ -6,6 +6,7 @@
 import asyncio
 import typing
 from datetime import datetime, timedelta, timezone
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism
@@ -197,8 +198,9 @@ class TestEVChargerPoolControl:
         traveller = time_machine.travel(datetime(2012, 12, 12))
         mock_time = traveller.start()
 
-        set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
         await self._init_ev_chargers(mocks)
         ev_charger_pool = microgrid.new_ev_charger_pool(priority=5)

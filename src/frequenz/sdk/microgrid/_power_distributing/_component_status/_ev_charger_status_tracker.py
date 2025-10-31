@@ -14,13 +14,13 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     EVChargerCableState,
     EVChargerComponentState,
-    EVChargerData,
 )
 from typing_extensions import override
 
 from ...._internal._asyncio import run_forever
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
+from ..._old_component_data import EVChargerData
 from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,
@@ -149,8 +149,9 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
 
     async def _run(self) -> None:
         """Run the status tracker."""
-        api_client = connection_manager.get().api_client
-        ev_data_rx = await api_client.ev_charger_data(self._component_id)
+        ev_data_rx = EVChargerData.subscribe(
+            connection_manager.get().api_client, self._component_id
+        )
         set_power_result_rx = self._set_power_result_receiver
         missing_data_timer = Timer(self._max_data_age, SkipMissedAndDrift())
 

@@ -7,6 +7,7 @@ import asyncio
 import dataclasses
 import typing
 from datetime import datetime, timedelta, timezone
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism
@@ -190,8 +191,9 @@ class TestBatteryPoolControl:
         - single battery pool with all batteries.
         - all batteries are working, then one battery stops working.
         """
-        set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
 
         await self._patch_battery_pool_status(mocks, mocker)
@@ -293,8 +295,9 @@ class TestBatteryPoolControl:
         - two battery pools with different batteries.
         - all batteries are working.
         """
-        set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
 
         await self._patch_battery_pool_status(mocks, mocker)
@@ -350,8 +353,9 @@ class TestBatteryPoolControl:
         - two battery pools with same batteries, but different priorities.
         - all batteries are working.
         """
-        set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
 
         await self._patch_battery_pool_status(mocks, mocker)
@@ -414,8 +418,9 @@ class TestBatteryPoolControl:
         - single battery pool with all batteries.
         - all batteries are working, but have exclusion bounds.
         """
-        set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
         await self._patch_battery_pool_status(mocks, mocker)
         await self._init_data_for_batteries(mocks, exclusion_bounds=(-100.0, 100.0))
@@ -555,7 +560,8 @@ class TestBatteryPoolControl:
     async def test_no_resend_0w(self, mocks: Mocks, mocker: MockerFixture) -> None:
         """Test that 0W command is not resent unnecessarily."""
         set_power = typing.cast(
-            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
         )
         await self._patch_battery_pool_status(mocks, mocker)
         await self._init_data_for_batteries(mocks)

@@ -62,7 +62,7 @@ class TestEVChargerStatusTracker:
                     active_power=0.0,
                     component_state=EVChargerComponentState.READY,
                     cable_state=EVChargerCableState.EV_PLUGGED,
-                )
+                ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
                 _EV_CHARGER_ID, ComponentStatusEnum.WORKING
@@ -76,7 +76,7 @@ class TestEVChargerStatusTracker:
                     active_power=0.0,
                     component_state=EVChargerComponentState.READY,
                     cable_state=EVChargerCableState.EV_LOCKED,
-                )
+                ).to_samples()
             )
             assert await receive_timeout(status_receiver) is Timeout
 
@@ -88,7 +88,7 @@ class TestEVChargerStatusTracker:
                     active_power=0.0,
                     component_state=EVChargerComponentState.READY,
                     cable_state=EVChargerCableState.UNPLUGGED,
-                )
+                ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
                 _EV_CHARGER_ID, ComponentStatusEnum.NOT_WORKING
@@ -102,7 +102,7 @@ class TestEVChargerStatusTracker:
                     active_power=0.0,
                     component_state=EVChargerComponentState.READY,
                     cable_state=EVChargerCableState.EV_LOCKED,
-                )
+                ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
                 _EV_CHARGER_ID, ComponentStatusEnum.WORKING
@@ -123,7 +123,7 @@ class TestEVChargerStatusTracker:
                     active_power=0.0,
                     component_state=EVChargerComponentState.READY,
                     cable_state=EVChargerCableState.EV_LOCKED,
-                )
+                ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
                 _EV_CHARGER_ID, ComponentStatusEnum.WORKING
@@ -138,7 +138,7 @@ class TestEVChargerStatusTracker:
                             active_power=0.0,
                             component_state=EVChargerComponentState.READY,
                             cable_state=EVChargerCableState.EV_LOCKED,
-                        )
+                        ).to_samples()
                     )
                     await asyncio.sleep(0.1)
 

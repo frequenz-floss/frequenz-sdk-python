@@ -159,7 +159,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await self._initialize()
 
     async def _initialize(self) -> None:
-        self._metadata = await self._api.metadata()
+        self._metadata = await self._api.get_microgrid_info()
         await self._graph.refresh_from_api(self._api)
 
 

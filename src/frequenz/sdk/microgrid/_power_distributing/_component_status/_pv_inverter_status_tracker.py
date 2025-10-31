@@ -10,12 +10,13 @@ from datetime import datetime, timedelta, timezone
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import InverterComponentState, InverterData
+from frequenz.client.microgrid import ComponentStateCode
 from typing_extensions import override
 
 from ...._internal._asyncio import run_forever
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
+from ..._old_component_data import InverterData
 from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,
@@ -141,8 +142,9 @@ class PVInverterStatusTracker(ComponentStatusTracker, BackgroundService):
 
     async def _run(self) -> None:
         """Run the status tracker."""
-        api_client = connection_manager.get().api_client
-        pv_data_rx = await api_client.inverter_data(self._component_id)
+        pv_data_rx = InverterData.subscribe(
+            connection_manager.get().api_client, self._component_id
+        )
         set_power_result_rx = self._set_power_result_receiver
         missing_data_timer = Timer(self._max_data_age, SkipMissedAndDrift())
 

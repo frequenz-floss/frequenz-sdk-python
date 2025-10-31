@@ -15,17 +15,12 @@ from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
-    BatteryData,
     BatteryRelayState,
     Component,
     ComponentCategory,
-    ComponentData,
     EVChargerCableState,
     EVChargerComponentState,
-    EVChargerData,
     InverterComponentState,
-    InverterData,
-    MeterData,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
@@ -34,6 +29,13 @@ from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.microgrid._data_sourcing import (
     ComponentMetricRequest,
     DataSourcingActor,
+)
+from frequenz.sdk.microgrid._old_component_data import (
+    BatteryData,
+    ComponentData,
+    EVChargerData,
+    InverterData,
+    MeterData,
 )
 from frequenz.sdk.timeseries import Sample
 
@@ -44,8 +46,8 @@ T = TypeVar("T", bound=ComponentData)
 def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     """Fixture for getting a mock connection manager."""
     mock_client = mock.MagicMock(name="connection_manager.get().api_client")
-    mock_client.components = mock.AsyncMock(
-        name="components()",
+    mock_client.list_components = mock.AsyncMock(
+        name="list_components()",
         return_value=[
             Component(component_id=ComponentId(4), category=ComponentCategory.METER),
             Component(component_id=ComponentId(6), category=ComponentCategory.INVERTER),
@@ -55,16 +57,24 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
             ),
         ],
     )
-    mock_client.meter_data = _new_meter_data_mock(ComponentId(4), starting_value=100.0)
-    mock_client.inverter_data = _new_inverter_data_mock(
-        ComponentId(6), starting_value=0.0
+
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_sourcing.microgrid_api_source.MeterData.subscribe",
+        side_effect=_new_meter_data_mock(ComponentId(4), starting_value=100.0),
     )
-    mock_client.battery_data = _new_battery_data_mock(
-        ComponentId(9), starting_value=9.0
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_sourcing.microgrid_api_source.InverterData.subscribe",
+        side_effect=_new_inverter_data_mock(ComponentId(6), starting_value=0.0),
     )
-    mock_client.ev_charger_data = _new_ev_charger_data_mock(
-        ComponentId(12), starting_value=-13.0
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_sourcing.microgrid_api_source.BatteryData.subscribe",
+        side_effect=_new_battery_data_mock(ComponentId(9), starting_value=9.0),
     )
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_sourcing.microgrid_api_source.EVChargerData.subscribe",
+        side_effect=_new_ev_charger_data_mock(ComponentId(12), starting_value=-13.0),
+    )
+
     mock_conn_manager = mock.MagicMock(name="connection_manager")
     mocker.patch(
         "frequenz.sdk.microgrid._data_sourcing"
@@ -245,7 +255,7 @@ def _new_streamer_mock(
     constructor: Callable[[ComponentId, datetime, float], T],
     component_id: ComponentId,
     starting_value: float,
-) -> mock.AsyncMock:
+) -> mock.Mock:
     """Get a mock streamer."""
 
     async def generate_data(starting_value: float) -> AsyncIterator[T]:
@@ -255,12 +265,10 @@ def _new_streamer_mock(
             await asyncio.sleep(0)  # Let other tasks run
             value += 1.0
 
-    return mock.AsyncMock(name=name, return_value=generate_data(starting_value))
+    return mock.Mock(name=name, return_value=generate_data(starting_value))
 
 
-def _new_meter_data_mock(
-    component_id: ComponentId, starting_value: float
-) -> mock.AsyncMock:
+def _new_meter_data_mock(component_id: ComponentId, starting_value: float) -> mock.Mock:
     """Get a mock streamer for meter data."""
     return _new_streamer_mock(
         f"meter_data_mock(id={component_id}, starting_value={starting_value})",
@@ -272,7 +280,7 @@ def _new_meter_data_mock(
 
 def _new_inverter_data_mock(
     component_id: ComponentId, starting_value: float
-) -> mock.AsyncMock:
+) -> mock.Mock:
     """Get a mock streamer for inverter data."""
     return _new_streamer_mock(
         f"inverter_data_mock(id={component_id}, starting_value={starting_value})",
@@ -284,7 +292,7 @@ def _new_inverter_data_mock(
 
 def _new_battery_data_mock(
     component_id: ComponentId, starting_value: float
-) -> mock.AsyncMock:
+) -> mock.Mock:
     """Get a mock streamer for battery data."""
     return _new_streamer_mock(
         f"battery_data_mock(id={component_id}, starting_value={starting_value})",
@@ -296,7 +304,7 @@ def _new_battery_data_mock(
 
 def _new_ev_charger_data_mock(
     component_id: ComponentId, starting_value: float
-) -> mock.AsyncMock:
+) -> mock.Mock:
     """Get a mock streamer for EV charger data."""
     return _new_streamer_mock(
         f"ev_charger_data_mock(id={component_id}, starting_value={starting_value})",

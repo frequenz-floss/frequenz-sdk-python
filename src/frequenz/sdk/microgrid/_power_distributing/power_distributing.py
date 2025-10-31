@@ -12,7 +12,7 @@ distributing the power between the components and sends the results back to it.
 
 import asyncio
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
@@ -101,7 +101,9 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
         self._result_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
 
-        self._processing_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
+        self._processing_tasks: dict[
+            frozenset[ComponentId], asyncio.Task[datetime | None]
+        ] = {}
         """Track the power request tasks currently being processed."""
 
         self._pending_requests: dict[frozenset[ComponentId], Request] = {}
@@ -176,7 +178,7 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
         self,
         req_id: frozenset[ComponentId],
         request: Request,
-        task: asyncio.Task[None],
+        task: asyncio.Task[datetime | None],
     ) -> None:
         """Handle the completion of a power request task.
 

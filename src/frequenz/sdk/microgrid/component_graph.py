@@ -558,8 +558,8 @@ class _MicrogridComponentGraph(
                 correct the errors by inferring what the correct data should be).
         """
         components, connections = await asyncio.gather(
-            api.components(),
-            api.connections(),
+            api.list_components(),
+            api.list_connections(),
         )
 
         self.refresh_from(set(components), set(connections), correct_errors)
