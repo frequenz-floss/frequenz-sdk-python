@@ -146,7 +146,7 @@ class VoltageStreamer:
         phases_rx: list[Receiver[Sample[Quantity]]] = []
         for metric in metrics:
             req = ComponentMetricRequest(
-                self._namespace, self._source_component.component_id, metric, None
+                self._namespace, self._source_component.id, metric, None
             )
 
             await self._resampler_subscription_sender.send(req)

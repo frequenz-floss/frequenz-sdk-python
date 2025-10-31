@@ -137,7 +137,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         grid_component = self._get_grid_component()
         component_graph = connection_manager.get().component_graph
-        grid_successors = component_graph.successors(grid_component.component_id)
+        grid_successors = component_graph.successors(grid_component.id)
 
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
@@ -187,7 +187,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             if component.category == ComponentCategory.METER:
                 fallbacks[component] = self._get_meter_fallback_components(component)
             else:
-                predecessors = graph.predecessors(component.component_id)
+                predecessors = graph.predecessors(component.id)
                 if len(predecessors) == 1:
                     predecessor = predecessors.pop()
                     if self._is_primary_fallback_pair(predecessor, component):
@@ -213,7 +213,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         assert meter.category == ComponentCategory.METER
 
         graph = connection_manager.get().component_graph
-        successors = graph.successors(meter.component_id)
+        successors = graph.successors(meter.id)
 
         # All fallbacks has to be of the same type and category.
         if (

@@ -68,7 +68,7 @@ class GridFrequency:
         self._channel_registry: ChannelRegistry = channel_registry
         self._source_component: Component = source
         self._component_metric_request: ComponentMetricRequest = create_request(
-            self._source_component.component_id
+            self._source_component.id
         )
 
         self._task: None | asyncio.Task[None] = None

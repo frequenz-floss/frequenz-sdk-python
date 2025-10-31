@@ -78,7 +78,7 @@ class PVPoolReferenceStore:
             graph = connection_manager.get().component_graph
             self.component_ids = frozenset(
                 {
-                    inv.component_id
+                    inv.id
                     for inv in graph.components(
                         component_categories={ComponentCategory.INVERTER}
                     )

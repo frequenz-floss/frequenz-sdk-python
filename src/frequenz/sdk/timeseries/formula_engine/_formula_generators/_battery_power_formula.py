@@ -84,15 +84,13 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                 )
 
             for inverter in inverters:
-                all_connected_batteries = component_graph.successors(
-                    inverter.component_id
-                )
+                all_connected_batteries = component_graph.successors(inverter.id)
                 battery_ids = set(
-                    map(lambda battery: battery.component_id, all_connected_batteries)
+                    map(lambda battery: battery.id, all_connected_batteries)
                 )
                 if not battery_ids.issubset(component_ids):
                     raise FormulaGenerationError(
-                        f"Not all batteries behind inverter {inverter.component_id} "
+                        f"Not all batteries behind {inverter} "
                         f"are requested. Missing: {battery_ids - component_ids}"
                     )
 
@@ -108,7 +106,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=(
                         primary_component.category != ComponentCategory.METER
                     ),
@@ -118,7 +116,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
             for idx, comp in enumerate(inv_bat_mapping.keys()):
                 if idx > 0:
                     builder.push_oper("+")
-                builder.push_component_metric(comp.component_id, nones_are_zeros=True)
+                builder.push_component_metric(comp.id, nones_are_zeros=True)
 
         return builder.build()
 
@@ -150,7 +148,7 @@ class BatteryPowerFormula(FormulaGenerator[Power]):
 
             battery_ids = set(
                 map(
-                    lambda battery: battery.component_id,
+                    lambda battery: battery.id,
                     itertools.chain.from_iterable(
                         inv_bat_mapping[inv] for inv in fallback_components
                     ),

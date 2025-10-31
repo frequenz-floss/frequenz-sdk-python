@@ -142,12 +142,10 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         """
         graph = connection_manager.get().component_graph
         return frozenset(
-            {
-                battery.component_id
-                for battery in graph.components(
-                    component_categories={ComponentCategory.BATTERY}
-                )
-            }
+            battery.id
+            for battery in graph.components(
+                component_categories={ComponentCategory.BATTERY}
+            )
         )
 
     async def _update_battery_status(

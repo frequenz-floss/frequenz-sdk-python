@@ -512,7 +512,7 @@ class _MicrogridComponentGraph(
 
         new_graph = nx.DiGraph()
         for component in components:
-            new_graph.add_node(component.component_id, **{_DATA_KEY: component})
+            new_graph.add_node(component.id, **{_DATA_KEY: component})
 
         # Store the original connection object in the edge data (third item in the
         # tuple) so that we can retrieve it later.
@@ -588,7 +588,7 @@ class _MicrogridComponentGraph(
         if component.category != ComponentCategory.METER:
             return False
 
-        predecessors = self.predecessors(component.component_id)
+        predecessors = self.predecessors(component.id)
         if len(predecessors) != 1:
             return False
 
@@ -596,7 +596,7 @@ class _MicrogridComponentGraph(
         if predecessor.category != ComponentCategory.GRID:
             return False
 
-        grid_successors = self.successors(predecessor.component_id)
+        grid_successors = self.successors(predecessor.id)
         return len(grid_successors) == 1
 
     @override
@@ -627,14 +627,14 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a PV meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
             component.category == ComponentCategory.METER
             and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(
                 self.is_pv_inverter(successor)
-                for successor in self.successors(component.component_id)
+                for successor in self.successors(component.id)
             )
         )
 
@@ -678,7 +678,7 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is an EV charger meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
             component.category == ComponentCategory.METER
             and not self.is_grid_meter(component)
@@ -729,7 +729,7 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a battery meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
             component.category == ComponentCategory.METER
             and not self.is_grid_meter(component)
@@ -777,7 +777,7 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a CHP meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
             component.category == ComponentCategory.METER
             and not self.is_grid_meter(component)
@@ -830,7 +830,7 @@ class _MicrogridComponentGraph(
 
         component: set[Component] = set()
 
-        for successor in self.successors(current_node.component_id):
+        for successor in self.successors(current_node.id):
             component.update(self.dfs(successor, visited, condition))
 
         return component
@@ -876,8 +876,8 @@ class _MicrogridComponentGraph(
 
         # Sort by component ID to ensure consistent results.
         successors = sorted(
-            self.successors(root_component.component_id),
-            key=lambda comp: comp.component_id,
+            self.successors(root_component.id),
+            key=lambda comp: comp.id,
         )
 
         def find_component(component_category: ComponentCategory) -> Component | None:
@@ -933,9 +933,7 @@ class _MicrogridComponentGraph(
 
         # should be true as a consequence of the tree property:
         # there should be no unconnected components
-        unconnected = filter(
-            lambda c: self._graph.degree(c.component_id) == 0, self.components()
-        )
+        unconnected = filter(lambda c: self._graph.degree(c.id) == 0, self.components())
         if sum(1 for _ in unconnected) != 0:
             raise InvalidGraphError(
                 "Every component must have at least one connection!"
@@ -949,7 +947,7 @@ class _MicrogridComponentGraph(
                 or if there is a single such node that is not one of NONE or GRID.
         """
         no_predecessors = filter(
-            lambda c: self._graph.in_degree(c.component_id) == 0,
+            lambda c: self._graph.in_degree(c.id) == 0,
             self.components(),
         )
 
@@ -969,7 +967,7 @@ class _MicrogridComponentGraph(
             raise InvalidGraphError(f"Multiple potential root nodes: {valid_roots}")
 
         root = valid_roots[0]
-        if self._graph.out_degree(root.component_id) == 0:
+        if self._graph.out_degree(root.id) == 0:
             raise InvalidGraphError(f"Graph root {root} has no successors!")
 
     def _validate_grid_endpoint(self) -> None:
@@ -994,7 +992,7 @@ class _MicrogridComponentGraph(
                 f"Multiple grid endpoints in component graph: {grid}"
             )
 
-        grid_id = grid[0].component_id
+        grid_id = grid[0].id
         if self._graph.in_degree(grid_id) > 0:
             grid_predecessors = list(self.predecessors(grid_id))
             raise InvalidGraphError(
@@ -1022,7 +1020,7 @@ class _MicrogridComponentGraph(
 
         missing_predecessors = list(
             filter(
-                lambda c: sum(1 for _ in self.predecessors(c.component_id)) == 0,
+                lambda c: sum(1 for _ in self.predecessors(c.id)) == 0,
                 intermediary_components,
             )
         )
@@ -1054,7 +1052,7 @@ class _MicrogridComponentGraph(
 
         missing_predecessors = list(
             filter(
-                lambda c: sum(1 for _ in self.predecessors(c.component_id)) == 0,
+                lambda c: sum(1 for _ in self.predecessors(c.id)) == 0,
                 leaf_components,
             )
         )
@@ -1065,7 +1063,7 @@ class _MicrogridComponentGraph(
 
         with_successors = list(
             filter(
-                lambda c: sum(1 for _ in self.successors(c.component_id)) > 0,
+                lambda c: sum(1 for _ in self.successors(c.id)) > 0,
                 leaf_components,
             )
         )

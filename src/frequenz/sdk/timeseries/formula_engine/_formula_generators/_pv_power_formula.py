@@ -79,7 +79,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=(
                         primary_component.category != ComponentCategory.METER
                     ),
@@ -91,7 +91,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    component.component_id,
+                    component.id,
                     nones_are_zeros=component.category != ComponentCategory.METER,
                 )
 
@@ -123,7 +123,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
             if len(fallback_components) == 0:
                 fallback_formulas[primary_component] = None
                 continue
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
 
             generator = PVPowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",

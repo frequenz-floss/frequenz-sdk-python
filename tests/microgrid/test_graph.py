@@ -31,7 +31,7 @@ def _add_components(graph: gr._MicrogridComponentGraph, *components: Component) 
         graph: The graph to add the components to.
         *components: The components to add.
     """
-    graph._graph.add_nodes_from((c.component_id, {gr._DATA_KEY: c}) for c in components)
+    graph._graph.add_nodes_from((c.id, {gr._DATA_KEY: c}) for c in components)
 
 
 def _add_connections(
@@ -53,7 +53,7 @@ def _check_predecessors_and_successors(graph: gr.ComponentGraph) -> None:
     expected_successors: dict[ComponentId, set[Component]] = {}
 
     components: dict[ComponentId, Component] = {
-        component.component_id: component for component in graph.components()
+        component.id: component for component in graph.components()
     }
 
     for conn in graph.connections():

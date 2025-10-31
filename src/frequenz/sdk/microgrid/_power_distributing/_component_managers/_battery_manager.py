@@ -83,7 +83,7 @@ def _get_battery_inverter_mappings(
 
     for battery_id in battery_ids:
         inverters: set[ComponentId] = set(
-            component.component_id
+            component.id
             for component in component_graph.predecessors(battery_id)
             if component.category == ComponentCategory.INVERTER
         )
@@ -96,7 +96,7 @@ def _get_battery_inverter_mappings(
         if bat_bats_map is not None:
             bat_bats_map.setdefault(battery_id, set()).update(
                 set(
-                    component.component_id
+                    component.id
                     for inverter in inverters
                     for component in component_graph.successors(inverter)
                 )
@@ -149,7 +149,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self._batteries = connection_manager.get().component_graph.components(
             component_categories={ComponentCategory.BATTERY}
         )
-        self._battery_ids = {battery.component_id for battery in self._batteries}
+        self._battery_ids = {battery.id for battery in self._batteries}
 
         maps = _get_battery_inverter_mappings(self._battery_ids)
 

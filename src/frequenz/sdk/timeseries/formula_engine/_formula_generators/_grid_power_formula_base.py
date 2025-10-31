@@ -69,7 +69,7 @@ class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=(
                         primary_component.category != ComponentCategory.METER
                     ),
@@ -81,7 +81,7 @@ class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    comp.component_id,
+                    comp.id,
                     nones_are_zeros=(comp.category != ComponentCategory.METER),
                 )
 

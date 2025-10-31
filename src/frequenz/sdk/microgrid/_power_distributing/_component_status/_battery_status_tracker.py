@@ -484,7 +484,7 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         graph = connection_manager.get().component_graph
         return next(
             (
-                comp.component_id
+                comp.id
                 for comp in graph.predecessors(battery_id)
                 if comp.category == ComponentCategory.INVERTER
             ),

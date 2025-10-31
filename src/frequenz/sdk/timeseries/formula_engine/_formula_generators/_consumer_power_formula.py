@@ -124,9 +124,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         for idx, grid_meter in enumerate(grid_meters):
             if idx > 0:
                 builder.push_oper("+")
-            builder.push_component_metric(
-                grid_meter.component_id, nones_are_zeros=False
-            )
+            builder.push_component_metric(grid_meter.id, nones_are_zeros=False)
 
         if self._config.allow_fallback:
             fallbacks = self._get_fallback_formulas(non_consumer_components)
@@ -138,7 +136,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=(
                         primary_component.category != ComponentCategory.METER
                     ),
@@ -149,7 +147,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             for component in non_consumer_components:
                 builder.push_oper("-")
                 builder.push_component_metric(
-                    component.component_id,
+                    component.id,
                     nones_are_zeros=component.category != ComponentCategory.METER,
                 )
 
@@ -219,7 +217,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=(
                         primary_component.category != ComponentCategory.METER
                     ),
@@ -231,7 +229,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    component.component_id,
+                    component.id,
                     nones_are_zeros=component.category != ComponentCategory.METER,
                 )
 
@@ -265,7 +263,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 fallback_formulas[primary_component] = None
                 continue
 
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
             generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,

@@ -256,7 +256,7 @@ class PVManager(ComponentManager):
     def _get_pv_inverter_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all PV inverters present in the component graph."""
         return {
-            inv.component_id
+            inv.id
             for inv in connection_manager.get().component_graph.components(
                 component_categories={ComponentCategory.INVERTER}
             )

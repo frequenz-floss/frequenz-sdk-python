@@ -79,23 +79,23 @@ class CHPPowerFormula(FormulaGenerator[Power]):
 
         chp_meters: set[ComponentId] = set()
         for chp in chps:
-            predecessors = component_graph.predecessors(chp.component_id)
+            predecessors = component_graph.predecessors(chp.id)
             if len(predecessors) != 1:
                 raise FormulaGenerationError(
-                    f"CHP {chp.component_id} has {len(predecessors)} predecessors. "
+                    f"CHP {chp.id} has {len(predecessors)} predecessors. "
                     " Expected exactly one."
                 )
             meter = next(iter(predecessors))
             if meter.category != ComponentCategory.METER:
                 raise FormulaGenerationError(
-                    f"CHP {chp.component_id} has a predecessor of category "
+                    f"CHP {chp.id} has a predecessor of category "
                     f"{meter.category}. Expected ComponentCategory.METER."
                 )
-            meter_successors = component_graph.successors(meter.component_id)
+            meter_successors = component_graph.successors(meter.id)
             if not all(successor in chps for successor in meter_successors):
                 raise FormulaGenerationError(
-                    f"Meter {meter.component_id} connected to CHP {chp.component_id}"
+                    f"Meter {meter.id} connected to CHP {chp.id}"
                     "has non-chp successors."
                 )
-            chp_meters.add(meter.component_id)
+            chp_meters.add(meter.id)
         return chp_meters

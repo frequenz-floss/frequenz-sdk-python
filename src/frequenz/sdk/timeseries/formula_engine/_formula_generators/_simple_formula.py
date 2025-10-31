@@ -40,9 +40,7 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
             component_ids=set(self._config.component_ids)
         )
 
-        not_found_components = self._config.component_ids - {
-            c.component_id for c in components
-        }
+        not_found_components = self._config.component_ids - {c.id for c in components}
         if not_found_components:
             raise RuntimeError(
                 f"Unable to find {not_found_components} components in the component graph. ",
@@ -53,7 +51,7 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
                 builder.push_oper("+")
 
             builder.push_component_metric(
-                component.component_id,
+                component.id,
                 nones_are_zeros=component.category != ComponentCategory.METER,
             )
 

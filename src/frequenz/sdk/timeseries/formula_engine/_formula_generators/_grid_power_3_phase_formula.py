@@ -86,7 +86,7 @@ class GridPower3PhaseFormula(FormulaGenerator[Power]):
                 formula_builder.push_oper("+")
 
             formula_builder.push_component_metric(
-                comp.component_id, nones_are_zeros=nones_are_zeros
+                comp.id, nones_are_zeros=nones_are_zeros
             )
 
         return formula_builder.build()

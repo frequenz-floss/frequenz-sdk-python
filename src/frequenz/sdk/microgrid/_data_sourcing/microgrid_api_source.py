@@ -170,7 +170,7 @@ class MicrogridApiSource:
 
         api = connection_manager.get().api_client
         for comp in await api.list_components():
-            self._comp_categories_cache[comp.component_id] = comp.category
+            self._comp_categories_cache[comp.id] = comp.category
 
         if comp_id in self._comp_categories_cache:
             return self._comp_categories_cache[comp_id]

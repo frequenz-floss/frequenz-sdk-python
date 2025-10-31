@@ -64,7 +64,7 @@ class GridPowerFormula(GridPowerFormulaBase[Power]):
                 fallback_formulas[primary_component] = None
                 continue
 
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
             generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,

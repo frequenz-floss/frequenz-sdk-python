@@ -73,7 +73,7 @@ def get_components(
         Components of this category.
     """
     return {
-        component.component_id
+        component.id
         for component in mock_microgrid.component_graph.components(
             component_categories={component_category}
         )
@@ -744,7 +744,7 @@ async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) 
     with pytest.raises(FormulaGenerationError):
         # Request only two of the three batteries behind the inverters
         battery_pool = microgrid.new_battery_pool(
-            priority=5, component_ids=set([bats[1].component_id, bats[0].component_id])
+            priority=5, component_ids=set([bats[1].id, bats[0].id])
         )
         power_receiver = battery_pool.power.new_receiver()
         await mockgrid.mock_resampler.send_bat_inverter_power([2.0])

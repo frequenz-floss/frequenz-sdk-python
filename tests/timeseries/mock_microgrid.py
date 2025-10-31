@@ -119,7 +119,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             return sorted(
                 list(
                     map(
-                        lambda c: c.component_id,
+                        lambda c: c.id,
                         graph.components(component_categories={category}),
                     )
                 )
@@ -131,7 +131,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
             return sorted(
                 [
-                    c.component_id
+                    c.id
                     for c in graph.components(
                         component_categories={ComponentCategory.INVERTER}
                     )
@@ -152,7 +152,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             if graph is None
             else {
                 # Hacky, ignores multiple batteries behind one inverter
-                list(graph.successors(c.component_id))[0].component_id: c.component_id
+                list(graph.successors(c.id))[0].id: c.id
                 for c in graph.components(
                     component_categories={ComponentCategory.INVERTER}
                 )

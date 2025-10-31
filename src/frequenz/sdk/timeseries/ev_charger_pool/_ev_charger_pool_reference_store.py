@@ -77,7 +77,7 @@ class EVChargerPoolReferenceStore:
             graph = connection_manager.get().component_graph
             self.component_ids = frozenset(
                 {
-                    evc.component_id
+                    evc.id
                     for evc in graph.components(
                         component_categories={ComponentCategory.EV_CHARGER}
                     )

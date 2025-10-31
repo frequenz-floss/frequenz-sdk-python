@@ -146,7 +146,7 @@ async def run() -> None:
     all_batteries: set[Component] = connection_manager.get().component_graph.components(
         component_categories={ComponentCategory.BATTERY}
     )
-    batteries_ids = {c.component_id for c in all_batteries}
+    batteries_ids = {c.id for c in all_batteries}
     # Take some time to get data from components
     await asyncio.sleep(4)
     with open("/dev/stdout", "w", encoding="utf-8") as csvfile:

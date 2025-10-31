@@ -285,13 +285,13 @@ class GraphGenerator:
         if isinstance(children, (Component, ComponentCategory)):
             rhs = self.component(children)
             update_inverter_type(rhs)
-            return [parent, rhs], [Connection(parent.component_id, rhs.component_id)]
+            return [parent, rhs], [Connection(source=parent.id, destination=rhs.id)]
         if isinstance(children, tuple):
             assert len(children) == 2
             comp, con = self._to_graph(self.component(children[0]), children[1])
             update_inverter_type(comp[0])
             return [parent] + comp, con + [
-                Connection(parent.component_id, comp[0].component_id)
+                Connection(source=parent.id, destination=comp[0].id)
             ]
         if isinstance(children, list):
             comp = []
@@ -312,7 +312,7 @@ class GraphGenerator:
                 update_inverter_type(sub_components[0])
                 comp += sub_components
                 con += sub_con + [
-                    Connection(parent.component_id, sub_components[0].component_id)
+                    Connection(source=parent.id, destination=sub_components[0].id)
                 ]
             return [parent] + comp, con
 
@@ -347,26 +347,26 @@ def test_graph_generator_simple() -> None:
     )
 
     meters = list(graph.components(component_categories={ComponentCategory.METER}))
-    meters.sort(key=lambda x: x.component_id)
+    meters.sort(key=lambda x: x.id)
     assert len(meters) == 4
-    assert len(graph.successors(meters[0].component_id)) == 4
-    assert graph.predecessors(meters[1].component_id) == {meters[0]}
-    assert graph.predecessors(meters[2].component_id) == {meters[0]}
-    assert graph.predecessors(meters[3].component_id) == {meters[0]}
+    assert len(graph.successors(meters[0].id)) == 4
+    assert graph.predecessors(meters[1].id) == {meters[0]}
+    assert graph.predecessors(meters[2].id) == {meters[0]}
+    assert graph.predecessors(meters[3].id) == {meters[0]}
 
     inverters = list(
         graph.components(component_categories={ComponentCategory.INVERTER})
     )
-    inverters.sort(key=lambda x: x.component_id)
+    inverters.sort(key=lambda x: x.id)
     assert len(inverters) == 3
 
-    assert len(graph.successors(inverters[0].component_id)) == 0
+    assert len(graph.successors(inverters[0].id)) == 0
     assert inverters[0].type == InverterType.SOLAR
 
-    assert len(graph.successors(inverters[1].component_id)) == 1
+    assert len(graph.successors(inverters[1].id)) == 1
     assert inverters[1].type == InverterType.BATTERY
 
-    assert len(graph.successors(inverters[2].component_id)) == 1
+    assert len(graph.successors(inverters[2].id)) == 1
     assert inverters[2].type == InverterType.BATTERY
 
     assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
@@ -398,15 +398,15 @@ def test_graph_generator_no_grid_meter() -> None:
 
     meters = list(graph.components(component_categories={ComponentCategory.METER}))
     assert len(meters) == 1
-    assert len(graph.successors(meters[0].component_id)) == 1
+    assert len(graph.successors(meters[0].id)) == 1
 
     inverters = list(
         graph.components(component_categories={ComponentCategory.INVERTER})
     )
     assert len(inverters) == 2
 
-    assert len(graph.successors(inverters[0].component_id)) == 1
-    assert len(graph.successors(inverters[1].component_id)) == 1
+    assert len(graph.successors(inverters[0].id)) == 1
+    assert len(graph.successors(inverters[1].id)) == 1
 
     assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
 

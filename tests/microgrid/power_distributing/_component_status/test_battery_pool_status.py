@@ -41,7 +41,7 @@ class TestBatteryPoolStatus:
         async with AsyncExitStack() as stack:
             await stack.enter_async_context(mock_microgrid)
             batteries = {
-                battery.component_id
+                battery.id
                 for battery in mock_microgrid.mock_client.component_graph.components(
                     component_categories={ComponentCategory.BATTERY}
                 )

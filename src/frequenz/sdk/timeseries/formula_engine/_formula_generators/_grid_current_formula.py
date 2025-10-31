@@ -67,8 +67,6 @@ class GridCurrentFormula(FormulaGenerator[Current]):
             if idx > 0:
                 builder.push_oper("+")
 
-            builder.push_component_metric(
-                comp.component_id, nones_are_zeros=nones_are_zeros
-            )
+            builder.push_component_metric(comp.id, nones_are_zeros=nones_are_zeros)
 
         return builder.build()

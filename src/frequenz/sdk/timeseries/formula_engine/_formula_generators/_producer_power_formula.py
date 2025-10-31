@@ -88,7 +88,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=is_not_meter(primary_component),
                     fallback=fallback_formula,
                 )
@@ -98,7 +98,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    component.component_id,
+                    component.id,
                     nones_are_zeros=is_not_meter(component),
                 )
 
@@ -131,7 +131,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 fallback_formulas[primary_component] = None
                 continue
 
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
             generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,
