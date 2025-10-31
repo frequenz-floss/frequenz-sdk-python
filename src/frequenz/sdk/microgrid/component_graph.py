@@ -544,22 +544,22 @@ class _MicrogridComponentGraph(
         self._graph = new_graph
         old_graph.clear()  # just in case any references remain, but should not
 
-    async def refresh_from_api(
+    async def refresh_from_client(
         self,
-        api: MicrogridApiClient,
+        client: MicrogridApiClient,
         correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the contents of a component graph from the remote API.
 
         Args:
-            api: The API client from which to fetch graph data.
+            client: The API client from which to fetch graph data
             correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
                 correct the errors by inferring what the correct data should be).
         """
         components, connections = await asyncio.gather(
-            api.list_components(),
-            api.list_connections(),
+            client.list_components(),
+            client.list_connections(),
         )
 
         self.refresh_from(set(components), set(connections), correct_errors)

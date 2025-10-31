@@ -950,8 +950,8 @@ class Test_MicrogridComponentGraph:
         assert graph.connections() == {Connection(ComponentId(10), ComponentId(11))}
         graph.validate()
 
-    async def test_refresh_from_api(self) -> None:
-        """Test the refresh_from_api method."""
+    async def test_refresh_from_client(self) -> None:
+        """Test the refresh_from_client method."""
         graph = gr._MicrogridComponentGraph()
         assert graph.components() == set()
         assert graph.connections() == set()
@@ -968,7 +968,7 @@ class Test_MicrogridComponentGraph:
 
         # both components and connections must be non-empty
         with pytest.raises(gr.InvalidGraphError):
-            await graph.refresh_from_api(client)
+            await graph.refresh_from_client(client)
         assert graph.components() == set()
         assert graph.connections() == set()
         with pytest.raises(gr.InvalidGraphError):
@@ -978,7 +978,7 @@ class Test_MicrogridComponentGraph:
             Component(ComponentId(1), ComponentCategory.GRID)
         ]
         with pytest.raises(gr.InvalidGraphError):
-            await graph.refresh_from_api(client)
+            await graph.refresh_from_client(client)
         assert graph.components() == set()
         assert graph.connections() == set()
         with pytest.raises(gr.InvalidGraphError):
@@ -987,7 +987,7 @@ class Test_MicrogridComponentGraph:
         client.list_components.return_value = []
         client.list_connections.return_value = [Connection(ComponentId(1), ComponentId(2))]
         with pytest.raises(gr.InvalidGraphError):
-            await graph.refresh_from_api(client)
+            await graph.refresh_from_client(client)
         assert graph.components() == set()
         assert graph.connections() == set()
         with pytest.raises(gr.InvalidGraphError):
@@ -1009,7 +1009,7 @@ class Test_MicrogridComponentGraph:
             Connection(ComponentId(101), ComponentId(111)),
             Connection(ComponentId(111), ComponentId(131)),
         ]
-        await graph.refresh_from_api(client)
+        await graph.refresh_from_client(client)
 
         # Note: we need to add GriMetadata as a dict here, because that's what
         # the ComponentGraph does too, and we need to be able to compare the
@@ -1053,7 +1053,7 @@ class Test_MicrogridComponentGraph:
             Connection(ComponentId(727), ComponentId(737)),
             Connection(ComponentId(717), ComponentId(747)),
         ]
-        await graph.refresh_from_api(client)
+        await graph.refresh_from_client(client)
 
         expected = {
             Component(
