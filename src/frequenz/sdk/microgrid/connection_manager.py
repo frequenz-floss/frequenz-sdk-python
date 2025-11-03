@@ -12,7 +12,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from frequenz.client.common.microgrid import MicrogridId
-from frequenz.client.microgrid import Location, Metadata, MicrogridApiClient
+from frequenz.client.microgrid import Location, MicrogridApiClient, MicrogridInfo
 
 from .component_graph import ComponentGraph, _MicrogridComponentGraph
 
@@ -103,8 +103,8 @@ class _InsecureConnectionManager(ConnectionManager):
         # So create empty graph here, and update it in `run` method.
         self._graph = _MicrogridComponentGraph()
 
-        self._metadata: Metadata
-        """The metadata of the microgrid."""
+        self._microgrid: MicrogridInfo
+        """The microgrid information."""
 
     @property
     def api_client(self) -> MicrogridApiClient:
@@ -118,7 +118,7 @@ class _InsecureConnectionManager(ConnectionManager):
         Returns:
             the ID of the microgrid if available, None otherwise.
         """
-        return self._metadata.microgrid_id
+        return self._microgrid.id
 
     @property
     def location(self) -> Location | None:
@@ -127,7 +127,7 @@ class _InsecureConnectionManager(ConnectionManager):
         Returns:
             the location of the microgrid if available, None otherwise.
         """
-        return self._metadata.location
+        return self._microgrid.location
 
     @property
     def component_graph(self) -> ComponentGraph:
@@ -155,7 +155,7 @@ class _InsecureConnectionManager(ConnectionManager):
         await self._initialize()
 
     async def _initialize(self) -> None:
-        self._metadata = await self._client.get_microgrid_info()
+        self._microgrid = await self._client.get_microgrid_info()
         await self._graph.refresh_from_client(self._client)
 
 

@@ -17,10 +17,12 @@ from frequenz.client.microgrid import (
     ComponentCategory,
     Connection,
     Location,
-    Metadata,
+    MicrogridInfo,
 )
 
 from frequenz.sdk.microgrid import connection_manager
+
+_MICROGRID_ID = MicrogridId(1)
 
 
 class TestMicrogridApi:
@@ -91,17 +93,25 @@ class TestMicrogridApi:
         return connections
 
     @pytest.fixture
-    def metadata(self) -> Metadata:
-        """Fetch the microgrid metadata.
+    def microgrid(self) -> MicrogridInfo:
+        """Fetch the microgrid information.
 
         Returns:
-            the microgrid metadata.
+            the information about the microgrid
         """
-        return Metadata(
-            microgrid_id=MicrogridId(8),
+        return MicrogridInfo(
+            id=_MICROGRID_ID,
+            enterprise_id=EnterpriseId(1),
+            name="test",
+            delivery_area=DeliveryArea(
+                code="test", code_type=EnergyMarketCodeType.EUROPE_EIC
+            ),
+            status=MicrogridStatus.ACTIVE,
+            create_timestamp=datetime.now(tz=timezone.utc),
             location=Location(
                 latitude=52.520008,
                 longitude=13.404954,
+                country_code="DE",
             ),
         )
 
@@ -111,7 +121,7 @@ class TestMicrogridApi:
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
-        metadata: Metadata,
+        microgrid: MicrogridInfo,
     ) -> None:
         """Test microgrid api.
 
@@ -119,7 +129,7 @@ class TestMicrogridApi:
             _insecure_channel_mock: insecure channel mock from `mock.patch`
             components: components
             connections: connections
-            metadata: the metadata of the microgrid
+            microgrid: the information about the microgrid
         """
         microgrid_client = MagicMock()
         microgrid_client.list_components = AsyncMock(side_effect=components)
@@ -167,8 +177,8 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
-            assert api.microgrid_id == metadata.microgrid_id
-            assert api.location == metadata.location
+            assert api.microgrid_id == microgrid.id
+            assert api.location == microgrid.location
 
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
@@ -181,8 +191,8 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
-            assert api.microgrid_id == metadata.microgrid_id
-            assert api.location == metadata.location
+            assert api.microgrid_id == microgrid.id
+            assert api.location == microgrid.location
 
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
@@ -190,7 +200,7 @@ class TestMicrogridApi:
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
         connections: list[list[Connection]],
-        metadata: Metadata,
+        microgrid: MicrogridInfo,
     ) -> None:
         """Test if the api was not deallocated.
 
@@ -198,7 +208,7 @@ class TestMicrogridApi:
             _insecure_channel_mock: insecure channel mock
             components: components
             connections: connections
-            metadata: the metadata of the microgrid
+            microgrid: the information about the microgrid
         """
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(return_value=[])
@@ -210,5 +220,5 @@ class TestMicrogridApi:
         assert set(graph.components()) == set(components[0])
         assert set(graph.connections()) == set(connections[0])
 
-        assert api.microgrid_id == metadata.microgrid_id
-        assert api.location == metadata.location
+        assert api.microgrid_id == microgrid.id
+        assert api.location == microgrid.location
