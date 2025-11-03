@@ -74,7 +74,7 @@ dev-mypy = [
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2025.5.1", "frequenz-repo-config[lib] == 0.13.6"]
+dev-noxfile = ["nox == 2025.10.16", "frequenz-repo-config[lib] == 0.13.6"]
 dev-pylint = [
   "pylint == 3.3.8",
   # For checking the noxfile, docs/ script, and tests
@@ -87,7 +87,7 @@ dev-pytest = [
   "pytest-asyncio == 1.2.0",
   "time-machine == 2.16.0",
   "async-solipsism == 0.8",
-  "hypothesis == 6.140.2",
+  "hypothesis == 6.144.1",
 ]
 dev = [
   "frequenz-sdk[dev-mkdocs,dev-flake8,dev-formatting,dev-mkdocs,dev-mypy,dev-noxfile,dev-pylint,dev-pytest]",
