@@ -12,11 +12,8 @@ from datetime import datetime, timedelta
 
 from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    OperationOutOfRange,
-)
+from frequenz.client.microgrid import ApiClientError, OperationOutOfRange
+from frequenz.client.microgrid.component import Battery, Inverter
 from frequenz.quantities import Power
 from typing_extensions import override
 
@@ -85,7 +82,9 @@ def _get_battery_inverter_mappings(
         inverters: set[ComponentId] = set(
             component.id
             for component in component_graph.predecessors(battery_id)
-            if component.category == ComponentCategory.INVERTER
+            # Using Inverter is way too general, see
+            # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
+            if isinstance(component, Inverter)
         )
 
         if len(inverters) == 0:
@@ -147,7 +146,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._batteries = connection_manager.get().component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
+            matching_types={Battery}
         )
         self._battery_ids = {battery.id for battery in self._batteries}
 

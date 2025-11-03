@@ -6,7 +6,7 @@
 import logging
 from typing import Callable
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
@@ -73,8 +73,8 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
-        is_not_meter: Callable[[Component], bool] = (
-            lambda component: component.category != ComponentCategory.METER
+        is_not_meter: Callable[[Component], bool] = lambda component: not isinstance(
+            component, Meter
         )
 
         if self._config.allow_fallback:

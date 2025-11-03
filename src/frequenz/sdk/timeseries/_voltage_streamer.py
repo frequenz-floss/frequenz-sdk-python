@@ -14,7 +14,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Receiver, Sender
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity, Voltage
 
@@ -82,11 +82,7 @@ class VoltageStreamer:
         if not source_component:
             component_graph = connection_manager.get().component_graph
             source_component = component_graph.find_first_descendant_component(
-                descendant_categories=[
-                    ComponentCategory.METER,
-                    ComponentCategory.INVERTER,
-                    ComponentCategory.EV_CHARGER,
-                ],
+                descendants=[Meter, Inverter, EvCharger],
             )
 
         self._source_component = source_component

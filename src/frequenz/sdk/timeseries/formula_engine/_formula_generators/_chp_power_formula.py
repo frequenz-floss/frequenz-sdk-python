@@ -8,7 +8,7 @@ import logging
 from collections import abc
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.component import Chp, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
@@ -71,11 +71,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
         """
         component_graph = connection_manager.get().component_graph
-        chps = list(
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.CHP
-        )
+        chps = component_graph.components(matching_types={Chp})
 
         chp_meters: set[ComponentId] = set()
         for chp in chps:
@@ -86,7 +82,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
                     " Expected exactly one."
                 )
             meter = next(iter(predecessors))
-            if meter.category != ComponentCategory.METER:
+            if not isinstance(meter, Meter):
                 raise FormulaGenerationError(
                     f"CHP {chp.id} has a predecessor of category "
                     f"{meter.category}. Expected ComponentCategory.METER."

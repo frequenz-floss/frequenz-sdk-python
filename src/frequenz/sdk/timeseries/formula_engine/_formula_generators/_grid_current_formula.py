@@ -3,7 +3,7 @@
 
 """Formula generator from component graph for 3-phase Grid Current."""
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current
 
@@ -54,15 +54,13 @@ class GridCurrentFormula(FormulaGenerator[Current]):
             #
             # This is not possible for Meters, so when they produce `None`
             # values, those values get propagated as the output.
-            if comp.category in (
-                ComponentCategory.INVERTER,
-                ComponentCategory.EV_CHARGER,
-            ):
-                nones_are_zeros = True
-            elif comp.category == ComponentCategory.METER:
-                nones_are_zeros = False
-            else:
-                continue
+            match comp:
+                case Inverter() | EvCharger():
+                    nones_are_zeros = True
+                case Meter():
+                    nones_are_zeros = False
+                case _:
+                    continue
 
             if idx > 0:
                 builder.push_oper("+")

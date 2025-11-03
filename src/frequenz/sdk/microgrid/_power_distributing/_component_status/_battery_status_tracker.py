@@ -27,10 +27,10 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryRelayState,
-    ComponentCategory,
     ErrorLevel,
     InverterComponentState,
 )
+from frequenz.client.microgrid.component import Inverter
 from typing_extensions import override
 
 from frequenz.sdk._internal._asyncio import run_forever
@@ -486,7 +486,9 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             (
                 comp.id
                 for comp in graph.predecessors(battery_id)
-                if comp.category == ComponentCategory.INVERTER
+                # Using Inverter is way too general, see
+                # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
+                if isinstance(comp, Inverter)
             ),
             None,
         )

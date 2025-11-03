@@ -4,7 +4,7 @@
 """Formula generator from component graph for Grid Power."""
 
 
-from frequenz.client.microgrid import Component
+from frequenz.client.microgrid.component import Component
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 

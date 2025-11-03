@@ -17,11 +17,8 @@ from frequenz.channels import (
     selected_from,
 )
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    MicrogridApiClient,
-)
+from frequenz.client.microgrid import ApiClientError, MicrogridApiClient
+from frequenz.client.microgrid.component import EvCharger
 from frequenz.quantities import Power, Voltage
 from typing_extensions import override
 
@@ -115,7 +112,7 @@ class EVChargerManager(ComponentManager):
         return {
             evc.id
             for evc in connection_manager.get().component_graph.components(
-                component_categories={ComponentCategory.EV_CHARGER}
+                matching_types={EvCharger}
             )
         }
 

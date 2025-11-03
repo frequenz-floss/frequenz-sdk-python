@@ -9,7 +9,7 @@ from collections import abc
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.component import EvCharger
 
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher
 from ...microgrid import connection_manager
@@ -76,12 +76,7 @@ class EVChargerPoolReferenceStore:
         else:
             graph = connection_manager.get().component_graph
             self.component_ids = frozenset(
-                {
-                    evc.id
-                    for evc in graph.components(
-                        component_categories={ComponentCategory.EV_CHARGER}
-                    )
-                }
+                {evc.id for evc in graph.components(matching_types={EvCharger})}
             )
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}

@@ -14,7 +14,7 @@ from typing import Generic
 
 from frequenz.channels import Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, GridConnectionPoint, Meter
 from frequenz.client.microgrid.metrics import Metric
 
 from ...._internal._channels import ChannelRegistry
@@ -114,11 +114,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         component_graph = connection_manager.get().component_graph
         grid_component = next(
-            iter(
-                component_graph.components(
-                    component_categories={ComponentCategory.GRID}
-                )
-            ),
+            iter(component_graph.components(matching_types={GridConnectionPoint})),
             None,
         )
         if grid_component is None:
@@ -184,7 +180,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         fallbacks: dict[Component, set[Component]] = {}
 
         for component in components:
-            if component.category == ComponentCategory.METER:
+            if isinstance(component, Meter):
                 fallbacks[component] = self._get_meter_fallback_components(component)
             else:
                 predecessors = graph.predecessors(component.id)
@@ -210,7 +206,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             A set of fallback components for the given meter.
             An empty set is returned if the meter has no fallbacks.
         """
-        assert meter.category == ComponentCategory.METER
+        assert isinstance(meter, Meter)
 
         graph = connection_manager.get().component_graph
         successors = graph.successors(meter.id)

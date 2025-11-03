@@ -10,11 +10,8 @@ from datetime import datetime, timedelta
 
 from frequenz.channels import LatestValueCache, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    InverterType,
-)
+from frequenz.client.microgrid import ApiClientError
+from frequenz.client.microgrid.component import SolarInverter
 from frequenz.quantities import Power
 from typing_extensions import override
 
@@ -258,7 +255,6 @@ class PVManager(ComponentManager):
         return {
             inv.id
             for inv in connection_manager.get().component_graph.components(
-                component_categories={ComponentCategory.INVERTER}
+                matching_types={SolarInverter}
             )
-            if inv.type == InverterType.SOLAR
         }

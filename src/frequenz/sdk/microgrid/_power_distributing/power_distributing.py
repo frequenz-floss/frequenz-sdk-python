@@ -13,10 +13,11 @@ distributing the power between the components and sends the results back to it.
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import assert_never
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 from typing_extensions import override
 
 from ...actor._actor import Actor
@@ -60,18 +61,19 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        component_type: type[Battery | EvCharger | SolarInverter],
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
         *,
         api_power_request_timeout: timedelta,
-        component_category: ComponentCategory,
-        component_type: ComponentType | None = None,
         name: str | None = None,
     ) -> None:
         """Create actor instance.
 
         Args:
+            component_type: The class of the components that this actor is
+                responsible for.
             requests_receiver: Receiver for receiving power requests from the power
                 manager.
             results_sender: Sender for sending results to the power manager.
@@ -79,24 +81,11 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
                 components are expected to be working.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
-            component_category: The category of the components that this actor is
-                responsible for.
-            component_type: The type of the component of the given category that this
-                actor is responsible for.  This is used only when the component category
-                is not enough to uniquely identify the component.  For example, when the
-                category is `ComponentCategory.INVERTER`, the type is needed to identify
-                the inverter as a solar inverter or a battery inverter.  This can be
-                `None` when the component category is enough to uniquely identify the
-                component.
             name: The name of the actor. If `None`, `str(id(self))` will be used. This
                 is used mostly for debugging purposes.
-
-        Raises:
-            ValueError: If the given component category is not supported.
         """
         super().__init__(name=name)
-        self._component_category = component_category
-        self._component_type = component_type
+        self._component_class = component_type
         self._requests_receiver = requests_receiver
         self._result_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
@@ -114,25 +103,20 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
         """
 
         self._component_manager: ComponentManager
-        if component_category == ComponentCategory.BATTERY:
+        if issubclass(component_type, Battery):
             self._component_manager = BatteryManager(
                 component_pool_status_sender, results_sender, api_power_request_timeout
             )
-        elif component_category == ComponentCategory.EV_CHARGER:
+        elif issubclass(component_type, EvCharger):
             self._component_manager = EVChargerManager(
                 component_pool_status_sender, results_sender, api_power_request_timeout
             )
-        elif (
-            component_category == ComponentCategory.INVERTER
-            and component_type == InverterType.SOLAR
-        ):
+        elif issubclass(component_type, SolarInverter):
             self._component_manager = PVManager(
                 component_pool_status_sender, results_sender, api_power_request_timeout
             )
         else:
-            raise ValueError(
-                f"PowerDistributor doesn't support controlling: {component_category}"
-            )
+            assert_never(component_type)
 
     @override
     async def _run(self) -> None:

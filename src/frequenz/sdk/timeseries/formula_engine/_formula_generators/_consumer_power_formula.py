@@ -5,7 +5,7 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
@@ -42,7 +42,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         """
         component_graph = connection_manager.get().component_graph
         return all(
-            successor.category == ComponentCategory.METER
+            isinstance(successor, Meter)
             and not component_graph.is_battery_chain(successor)
             and not component_graph.is_chp_chain(successor)
             and not component_graph.is_pv_chain(successor)
@@ -137,9 +137,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
                     primary_component.id,
-                    nones_are_zeros=(
-                        primary_component.category != ComponentCategory.METER
-                    ),
+                    nones_are_zeros=not isinstance(primary_component, Meter),
                     fallback=fallback_formula,
                 )
         else:
@@ -148,7 +146,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 builder.push_oper("-")
                 builder.push_component_metric(
                     component.id,
-                    nones_are_zeros=component.category != ComponentCategory.METER,
+                    nones_are_zeros=not isinstance(component, Meter),
                 )
 
         return builder.build()
@@ -181,8 +179,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             # If the component graph supports additional types of grid successors in the
             # future, additional checks need to be added here.
             return (
-                component.category
-                in {ComponentCategory.METER, ComponentCategory.INVERTER}
+                isinstance(component, (Meter, Inverter))
                 and not component_graph.is_battery_chain(component)
                 and not component_graph.is_chp_chain(component)
                 and not component_graph.is_pv_chain(component)
@@ -218,9 +215,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
                     primary_component.id,
-                    nones_are_zeros=(
-                        primary_component.category != ComponentCategory.METER
-                    ),
+                    nones_are_zeros=not isinstance(primary_component, Meter),
                     fallback=fallback_formula,
                 )
         else:
@@ -230,7 +225,7 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
 
                 builder.push_component_metric(
                     component.id,
-                    nones_are_zeros=component.category != ComponentCategory.METER,
+                    nones_are_zeros=not isinstance(component, Meter),
                 )
 
         return builder.build()

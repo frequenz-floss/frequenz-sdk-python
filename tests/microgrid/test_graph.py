@@ -125,12 +125,12 @@ class TestComponentGraph:
         assert graph.connections() == set()
         with pytest.raises(
             KeyError,
-            match="Component with CID1 not in graph, cannot get predecessors!",
+            match="Component CID1 not in graph, cannot get predecessors!",
         ):
             graph.predecessors(ComponentId(1))
         with pytest.raises(
             KeyError,
-            match="Component with CID1 not in graph, cannot get successors!",
+            match="Component CID1 not in graph, cannot get successors!",
         ):
             graph.successors(ComponentId(1))
 
@@ -160,12 +160,12 @@ class TestComponentGraph:
         assert graph.successors(ComponentId(3)) == set()
         with pytest.raises(
             KeyError,
-            match="Component with CID2 not in graph, cannot get predecessors!",
+            match="Component CID2 not in graph, cannot get predecessors!",
         ):
             graph.predecessors(ComponentId(2))
         with pytest.raises(
             KeyError,
-            match="Component with CID2 not in graph, cannot get successors!",
+            match="Component CID2 not in graph, cannot get successors!",
         ):
             graph.successors(ComponentId(2))
 
@@ -198,12 +198,12 @@ class TestComponentGraph:
 
         with pytest.raises(
             KeyError,
-            match="Component with CID9 not in graph, cannot get predecessors!",
+            match="Component CID9 not in graph, cannot get predecessors!",
         ):
             graph.predecessors(ComponentId(9))
         with pytest.raises(
             KeyError,
-            match="Component with CID99 not in graph, cannot get successors!",
+            match="Component CID99 not in graph, cannot get successors!",
         ):
             graph.successors(ComponentId(99))
 
@@ -234,18 +234,17 @@ class TestComponentGraph:
             ),
         ],
     )
-    def test_filter_graph_components_by_id(
+    def test_matching_ids(
         self,
         sample_graph: gr.ComponentGraph,
         int_ids: set[int],
         expected: set[Component],
     ) -> None:
         """Test the graph component query with component ID filter."""
-        ids = set(ComponentId(id) for id in int_ids)
-        # with component_id filter specified, we get back only components whose ID
-        # matches one of the specified values
-        assert len(sample_graph.components(component_ids=ids)) == len(expected)
-        assert sample_graph.components(component_ids=ids) == expected
+        components = sample_graph.components(
+            matching_ids=(ComponentId(id) for id in int_ids)
+        )
+        assert components == expected
 
     @pytest.mark.parametrize(
         "types, expected",
@@ -295,17 +294,14 @@ class TestComponentGraph:
             ),
         ],
     )
-    def test_filter_graph_components_by_type(
+    def test_matching_types(
         self,
         sample_graph: gr.ComponentGraph,
-        types: set[ComponentCategory],
+        types: set[type[Component]],
         expected: set[Component],
     ) -> None:
-        """Test the graph component query with component category filter."""
-        # with component_id filter specified, we get back only components whose ID
-        # matches one of the specified values
-        assert len(sample_graph.components(component_categories=types)) == len(expected)
-        assert sample_graph.components(component_categories=types) == expected
+        """Test the graph component query with component type filter."""
+        assert sample_graph.components(matching_types=types) == expected
 
     @pytest.mark.parametrize(
         "int_ids, types, expected",
@@ -331,25 +327,21 @@ class TestComponentGraph:
             ),
         ],
     )
-    def test_filter_graph_components_with_composite_filter(
+    def test_matching_ids_and_types(
         self,
         sample_graph: gr.ComponentGraph,
         int_ids: set[int],
-        types: set[ComponentCategory],
+        types: set[type[Component]],
         expected: set[Component],
     ) -> None:
         """Test the graph component query with composite filter."""
-        ids = set(ComponentId(id) for id in int_ids)
         # when both filters are applied, they are combined via AND logic, i.e.
         # the component must have one of the specified IDs and be of one of
         # the specified types
-        assert len(
-            sample_graph.components(component_ids=ids, component_categories=types)
-        ) == len(expected)
-        assert (
-            set(sample_graph.components(component_ids=ids, component_categories=types))
-            == expected
+        components = sample_graph.components(
+            matching_ids=(ComponentId(id) for id in int_ids), matching_types=types
         )
+        assert components == expected
 
     def test_components_without_filters(
         self, sample_input_components: set[Component], sample_graph: gr.ComponentGraph
@@ -985,7 +977,9 @@ class Test_MicrogridComponentGraph:
             graph.validate()
 
         client.list_components.return_value = []
-        client.list_connections.return_value = [Connection(ComponentId(1), ComponentId(2))]
+        client.list_connections.return_value = [
+            Connection(ComponentId(1), ComponentId(2))
+        ]
         with pytest.raises(gr.InvalidGraphError):
             await graph.refresh_from_client(client)
         assert graph.components() == set()

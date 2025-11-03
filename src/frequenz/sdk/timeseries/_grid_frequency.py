@@ -10,7 +10,7 @@ import logging
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Frequency, Quantity
 
@@ -55,11 +55,7 @@ class GridFrequency:
         if not source:
             component_graph = connection_manager.get().component_graph
             source = component_graph.find_first_descendant_component(
-                descendant_categories=(
-                    ComponentCategory.METER,
-                    ComponentCategory.INVERTER,
-                    ComponentCategory.EV_CHARGER,
-                ),
+                descendants=[Meter, Inverter, EvCharger],
             )
 
         self._request_sender: Sender[ComponentMetricRequest] = (

@@ -3,7 +3,7 @@
 
 """Formula generator from component graph."""
 
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.component import Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power, ReactivePower
 
@@ -37,7 +37,7 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
             raise RuntimeError("Power formula without component ids is not supported.")
 
         components = component_graph.components(
-            component_ids=set(self._config.component_ids)
+            matching_ids=set(self._config.component_ids)
         )
 
         not_found_components = self._config.component_ids - {c.id for c in components}
@@ -52,7 +52,7 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
 
             builder.push_component_metric(
                 component.id,
-                nones_are_zeros=component.category != ComponentCategory.METER,
+                nones_are_zeros=not isinstance(component, Meter),
             )
 
         return builder.build()

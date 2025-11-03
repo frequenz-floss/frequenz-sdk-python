@@ -5,7 +5,7 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
@@ -80,9 +80,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
                 builder.push_component_metric(
                     primary_component.id,
-                    nones_are_zeros=(
-                        primary_component.category != ComponentCategory.METER
-                    ),
+                    nones_are_zeros=not isinstance(primary_component, Meter),
                     fallback=fallback_formula,
                 )
         else:
@@ -92,7 +90,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
 
                 builder.push_component_metric(
                     component.id,
-                    nones_are_zeros=component.category != ComponentCategory.METER,
+                    nones_are_zeros=not isinstance(component, Meter),
                 )
 
         return builder.build()

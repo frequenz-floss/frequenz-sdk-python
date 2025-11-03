@@ -8,7 +8,7 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.component import Battery
 from pytest_mock import MockerFixture
 
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
@@ -43,7 +43,7 @@ class TestBatteryPoolStatus:
             batteries = {
                 battery.id
                 for battery in mock_microgrid.mock_client.component_graph.components(
-                    component_categories={ComponentCategory.BATTERY}
+                    matching_types={Battery}
                 )
             }
             battery_status_channel = Broadcast[ComponentPoolStatus](

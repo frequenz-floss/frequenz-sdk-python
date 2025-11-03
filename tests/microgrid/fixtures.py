@@ -12,7 +12,7 @@ from datetime import timedelta
 from typing import AsyncIterator
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid import ComponentCategory
+from frequenz.client.microgrid.component import ComponentCategory
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
