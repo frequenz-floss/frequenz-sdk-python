@@ -10,9 +10,7 @@ from typing import Any
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ComponentCategory,
-)
+from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
@@ -140,7 +138,7 @@ class MicrogridApiSource:
             registry: A channel registry.  To be replaced by a singleton
                 instance.
         """
-        self._comp_categories_cache: dict[ComponentId, ComponentCategory] = {}
+        self._comp_categories_cache: dict[ComponentId, ComponentCategory | int] = {}
 
         self.comp_data_receivers: dict[ComponentId, Receiver[Any]] = {}
         """The dictionary of component IDs to data receivers."""
@@ -155,7 +153,7 @@ class MicrogridApiSource:
 
     async def _get_component_category(
         self, comp_id: ComponentId
-    ) -> ComponentCategory | None:
+    ) -> ComponentCategory | int | None:
         """Get the component category of the given component.
 
         Args:
@@ -280,7 +278,7 @@ class MicrogridApiSource:
     async def _check_requested_component_and_metrics(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requested component and metrics are valid.
@@ -312,7 +310,7 @@ class MicrogridApiSource:
             raise ValueError(err)
 
     def _get_data_extraction_method(
-        self, category: ComponentCategory, metric: Metric | TransitionalMetric
+        self, category: ComponentCategory | int, metric: Metric | TransitionalMetric
     ) -> Callable[[Any], float]:
         """Get the data extraction method for the given metric.
 
@@ -341,7 +339,7 @@ class MicrogridApiSource:
 
     def _get_metric_senders(
         self,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
@@ -371,7 +369,7 @@ class MicrogridApiSource:
     async def _handle_data_stream(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
     ) -> None:
         """Stream component data and send the requested metrics out.
 
@@ -436,14 +434,14 @@ class MicrogridApiSource:
                 "Unexpected error while handling data stream for component %d (%s), "
                 "component data is not being streamed anymore",
                 comp_id,
-                category.name,
+                category,
             )
             raise
 
     async def _update_streams(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
     ) -> None:
         """Update the requested metric streams for the given component.
 
@@ -456,7 +454,7 @@ class MicrogridApiSource:
 
         self.comp_data_tasks[comp_id] = asyncio.create_task(
             run_forever(lambda: self._handle_data_stream(comp_id, category)),
-            name=f"{type(self).__name__}._update_stream({comp_id=}, {category.name})",
+            name=f"{type(self).__name__}._update_stream({comp_id=}, {category})",
         )
 
     async def add_metric(self, request: ComponentMetricRequest) -> None:
