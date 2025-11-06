@@ -125,13 +125,13 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         def filter_comp(component_type: type[Component]) -> list[ComponentId]:
             if graph is None:
                 return []
-            components = graph.components(matching_types={component_type})
+            components = graph.components(matching_types=component_type)
             return sorted(map(lambda c: c.id, components), key=int)
 
         def inverters(component_type: type[Inverter]) -> list[ComponentId]:
             if graph is None:
                 return []
-            components = graph.components(matching_types={component_type})
+            components = graph.components(matching_types=component_type)
             return sorted(map(lambda c: c.id, components), key=int)
 
         self.chp_ids: list[ComponentId] = filter_comp(Chp)
@@ -148,7 +148,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             else {
                 # Hacky, ignores multiple batteries behind one inverter
                 list(graph.successors(c.id))[0].id: c.id
-                for c in graph.components(matching_types={BatteryInverter})
+                for c in graph.components(matching_types=BatteryInverter)
             }
         )
 

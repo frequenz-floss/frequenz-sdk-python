@@ -43,7 +43,7 @@ class TestBatteryPoolStatus:
             batteries = {
                 battery.id
                 for battery in mock_microgrid.mock_client.component_graph.components(
-                    matching_types={Battery}
+                    matching_types=Battery
                 )
             }
             battery_status_channel = Broadcast[ComponentPoolStatus](

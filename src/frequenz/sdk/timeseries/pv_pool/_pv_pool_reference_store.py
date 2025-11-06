@@ -77,7 +77,7 @@ class PVPoolReferenceStore:
         else:
             graph = connection_manager.get().component_graph
             self.component_ids = frozenset(
-                {inv.id for inv in graph.components(matching_types={SolarInverter})}
+                {inv.id for inv in graph.components(matching_types=SolarInverter)}
             )
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}

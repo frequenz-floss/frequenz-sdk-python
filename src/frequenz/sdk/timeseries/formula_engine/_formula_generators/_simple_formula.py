@@ -36,9 +36,7 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
         if self._config.component_ids is None:
             raise RuntimeError("Power formula without component ids is not supported.")
 
-        components = component_graph.components(
-            matching_ids=set(self._config.component_ids)
-        )
+        components = component_graph.components(matching_ids=self._config.component_ids)
 
         not_found_components = self._config.component_ids - {c.id for c in components}
         if not_found_components:

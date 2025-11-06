@@ -160,7 +160,7 @@ class ComponentData(ABC):
         from .. import microgrid
 
         components = microgrid.connection_manager.get().component_graph.components(
-            matching_ids={component_id}
+            matching_ids=component_id
         )
         if not components:
             raise ValueError(f"Unable to find component with {component_id}")

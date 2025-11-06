@@ -112,7 +112,7 @@ class EVChargerManager(ComponentManager):
         return {
             evc.id
             for evc in connection_manager.get().component_graph.components(
-                matching_types={EvCharger}
+                matching_types=EvCharger
             )
         }
 

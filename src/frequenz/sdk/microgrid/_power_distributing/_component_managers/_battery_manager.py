@@ -146,7 +146,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._batteries = connection_manager.get().component_graph.components(
-            matching_types={Battery}
+            matching_types=Battery
         )
         self._battery_ids = {battery.id for battery in self._batteries}
 

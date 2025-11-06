@@ -143,7 +143,7 @@ async def run() -> None:
     )
 
     all_batteries = connection_manager.get().component_graph.components(
-        matching_types={Battery},
+        matching_types=Battery
     )
     batteries_ids = {c.id for c in all_batteries}
     # Take some time to get data from components

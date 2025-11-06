@@ -76,7 +76,7 @@ class EVChargerPoolReferenceStore:
         else:
             graph = connection_manager.get().component_graph
             self.component_ids = frozenset(
-                {evc.id for evc in graph.components(matching_types={EvCharger})}
+                {evc.id for evc in graph.components(matching_types=EvCharger)}
             )
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}

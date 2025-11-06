@@ -71,7 +71,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
         """
         component_graph = connection_manager.get().component_graph
-        chps = component_graph.components(matching_types={Chp})
+        chps = component_graph.components(matching_types=Chp)
 
         chp_meters: set[ComponentId] = set()
         for chp in chps:

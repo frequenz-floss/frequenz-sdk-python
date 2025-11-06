@@ -75,7 +75,7 @@ def get_components(
     return {
         component.id
         for component in mock_microgrid.component_graph.components(
-            matching_types={component_type}
+            matching_types=component_type
         )
     }
 

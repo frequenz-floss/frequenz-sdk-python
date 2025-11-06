@@ -187,7 +187,7 @@ def initialize(
 
     grid_connections = list(
         connection_manager.get().component_graph.components(
-            matching_types={GridConnectionPoint}
+            matching_types=GridConnectionPoint
         )
     )
 

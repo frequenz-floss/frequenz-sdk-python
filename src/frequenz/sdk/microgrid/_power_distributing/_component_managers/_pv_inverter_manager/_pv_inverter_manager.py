@@ -255,6 +255,6 @@ class PVManager(ComponentManager):
         return {
             inv.id
             for inv in connection_manager.get().component_graph.components(
-                matching_types={SolarInverter}
+                matching_types=SolarInverter
             )
         }

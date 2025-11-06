@@ -114,7 +114,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         component_graph = connection_manager.get().component_graph
         grid_component = next(
-            iter(component_graph.components(matching_types={GridConnectionPoint})),
+            iter(component_graph.components(matching_types=GridConnectionPoint)),
             None,
         )
         if grid_component is None:

@@ -24,7 +24,7 @@ flow of power.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Set
 
 import networkx as nx
 from frequenz.client.common.microgrid.components import ComponentId
@@ -66,8 +66,8 @@ class ComponentGraph(ABC):
     @abstractmethod
     def components(
         self,
-        matching_ids: set[ComponentId] | None = None,
-        matching_types: set[type[Component]] | None = None,
+        matching_ids: Iterable[ComponentId] | ComponentId | None = None,
+        matching_types: Iterable[type[Component]] | type[Component] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
@@ -386,8 +386,8 @@ class _MicrogridComponentGraph(
     @override
     def components(
         self,
-        matching_ids: set[ComponentId] | None = None,
-        matching_types: set[type[Component]] | None = None,
+        matching_ids: Iterable[ComponentId] | ComponentId | None = None,
+        matching_types: Iterable[type[Component]] | type[Component] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
@@ -399,6 +399,22 @@ class _MicrogridComponentGraph(
             The set of components currently connected to the microgrid, filtered by
                 the provided `matching_ids` and `matching_types` values.
         """
+        match matching_ids:
+            case ComponentId():
+                matching_ids = {matching_ids}
+            case Set():
+                pass
+            case Iterable():
+                matching_ids = set(matching_ids)
+
+        match matching_types:
+            case type():
+                matching_types = {matching_types}
+            case Set():
+                pass
+            case Iterable():
+                matching_types = set(matching_types)
+
         selection: Iterable[Component]
         selection_ids = (
             self._graph.nodes
