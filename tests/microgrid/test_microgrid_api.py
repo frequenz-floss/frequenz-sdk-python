@@ -15,9 +15,11 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    Connection,
     Location,
     MicrogridInfo,
+)
+from frequenz.client.microgrid.component import (
+    ComponentConnection,
 )
 
 from frequenz.sdk.microgrid import connection_manager
@@ -63,7 +65,7 @@ class TestMicrogridApi:
 
     # ignore mypy: Untyped decorator makes function "components" untyped
     @pytest.fixture
-    def connections(self) -> list[list[Connection]]:
+    def connections(self) -> list[list[ComponentConnection]]:
         """Get connections between components in the graph.
 
         Override this method to create a graph with different connections.
@@ -74,20 +76,24 @@ class TestMicrogridApi:
         """
         connections = [
             [
-                Connection(ComponentId(1), ComponentId(4)),
-                Connection(ComponentId(1), ComponentId(5)),
-                Connection(ComponentId(1), ComponentId(7)),
-                Connection(ComponentId(7), ComponentId(8)),
-                Connection(ComponentId(8), ComponentId(9)),
-                Connection(ComponentId(1), ComponentId(10)),
-                Connection(ComponentId(10), ComponentId(11)),
-                Connection(ComponentId(11), ComponentId(12)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(4)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(5)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(7)),
+                ComponentConnection(source=ComponentId(7), destination=ComponentId(8)),
+                ComponentConnection(source=ComponentId(8), destination=ComponentId(9)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(10)),
+                ComponentConnection(
+                    source=ComponentId(10), destination=ComponentId(11)
+                ),
+                ComponentConnection(
+                    source=ComponentId(11), destination=ComponentId(12)
+                ),
             ],
             [
-                Connection(ComponentId(1), ComponentId(4)),
-                Connection(ComponentId(1), ComponentId(7)),
-                Connection(ComponentId(7), ComponentId(8)),
-                Connection(ComponentId(8), ComponentId(9)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(4)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(7)),
+                ComponentConnection(source=ComponentId(7), destination=ComponentId(8)),
+                ComponentConnection(source=ComponentId(8), destination=ComponentId(9)),
             ],
         ]
         return connections
@@ -120,7 +126,7 @@ class TestMicrogridApi:
         self,
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
-        connections: list[list[Connection]],
+        connections: list[list[ComponentConnection]],
         microgrid: MicrogridInfo,
     ) -> None:
         """Test microgrid api.
@@ -199,7 +205,7 @@ class TestMicrogridApi:
         self,
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
-        connections: list[list[Connection]],
+        connections: list[list[ComponentConnection]],
         microgrid: MicrogridInfo,
     ) -> None:
         """Test if the api was not deallocated.

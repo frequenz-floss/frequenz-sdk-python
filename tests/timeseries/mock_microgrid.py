@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from types import TracebackType
 from typing import Coroutine
 
-from frequenz.client.common.microgrid import Connection, MicrogridId
+from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
     AcEvCharger,
@@ -19,6 +19,7 @@ from frequenz.client.microgrid.component import (
     BatteryInverter,
     Chp,
     Component,
+    ComponentConnection,
     ComponentStateCode,
     EvCharger,
     GridConnectionPoint,
@@ -110,7 +111,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             else graph.components()
         )
 
-        self._connections: set[Connection] = (
+        self._connections: set[ComponentConnection] = (
             set() if graph is None else graph.connections()
         )
 
@@ -172,7 +173,11 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         if grid_meter:
             self._connect_to = self._grid_meter_id
-            self._connections.add(Connection(self.grid_id, self._grid_meter_id))
+            self._connections.add(
+                ComponentConnection(
+                    source=self.grid_id, destination=self._grid_meter_id
+                )
+            )
             self._components.add(
                 Meter(
                     id=self._grid_meter_id,
@@ -362,7 +367,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._id_increment += 1
             self.meter_ids.append(meter_id)
             self._components.add(Meter(id=meter_id, microgrid_id=_MICROGRID_ID))
-            self._connections.add(Connection(self._connect_to, meter_id))
+            self._connections.add(
+                ComponentConnection(source=self._connect_to, destination=meter_id)
+            )
             self._start_meter_streaming(meter_id)
 
     def add_chps(self, count: int, no_meters: bool = False) -> None:
@@ -377,14 +384,20 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self.chp_ids.append(chp_id)
             self._components.add(Chp(id=chp_id, microgrid_id=_MICROGRID_ID))
             if no_meters:
-                self._connections.add(Connection(self._connect_to, chp_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=chp_id)
+                )
             else:
                 meter_id = ComponentId(self._id_increment * 10 + self.meter_id_suffix)
                 self.meter_ids.append(meter_id)
                 self._components.add(Meter(id=meter_id, microgrid_id=_MICROGRID_ID))
                 self._start_meter_streaming(meter_id)
-                self._connections.add(Connection(self._connect_to, meter_id))
-                self._connections.add(Connection(meter_id, chp_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=meter_id)
+                )
+                self._connections.add(
+                    ComponentConnection(source=meter_id, destination=chp_id)
+                )
 
             self._id_increment += 1
 
@@ -411,14 +424,22 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_inverter_streaming(inv_id)
 
             if no_meter:
-                self._connections.add(Connection(self._connect_to, inv_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=inv_id)
+                )
             else:
                 self.meter_ids.append(meter_id)
                 self._components.add(Meter(id=meter_id, microgrid_id=_MICROGRID_ID))
                 self._start_meter_streaming(meter_id)
-                self._connections.add(Connection(self._connect_to, meter_id))
-                self._connections.add(Connection(meter_id, inv_id))
-            self._connections.add(Connection(inv_id, bat_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=meter_id)
+                )
+                self._connections.add(
+                    ComponentConnection(source=meter_id, destination=inv_id)
+                )
+            self._connections.add(
+                ComponentConnection(source=inv_id, destination=bat_id)
+            )
 
     def add_solar_inverters(self, count: int, no_meter: bool = False) -> None:
         """Add pv inverters and connected pv meters to the microgrid.
@@ -438,13 +459,19 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_inverter_streaming(inv_id)
 
             if no_meter:
-                self._connections.add(Connection(self._connect_to, inv_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=inv_id)
+                )
             else:
                 self.meter_ids.append(meter_id)
                 self._components.add(Meter(id=meter_id, microgrid_id=_MICROGRID_ID))
                 self._start_meter_streaming(meter_id)
-                self._connections.add(Connection(self._connect_to, meter_id))
-                self._connections.add(Connection(meter_id, inv_id))
+                self._connections.add(
+                    ComponentConnection(source=self._connect_to, destination=meter_id)
+                )
+                self._connections.add(
+                    ComponentConnection(source=meter_id, destination=inv_id)
+                )
 
     def add_ev_chargers(self, count: int) -> None:
         """Add EV Chargers to the microgrid.
@@ -462,7 +489,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
             self._components.add(AcEvCharger(id=evc_id, microgrid_id=_MICROGRID_ID))
             self._start_ev_charger_streaming(evc_id)
-            self._connections.add(Connection(self._connect_to, evc_id))
+            self._connections.add(
+                ComponentConnection(source=self._connect_to, destination=evc_id)
+            )
 
     async def send_meter_data(self, values: list[float]) -> None:
         """Send raw meter data from the mock microgrid.

@@ -7,11 +7,11 @@ from dataclasses import replace
 from typing import Any, overload
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
+from frequenz.client.microgrid.component import (
     Component,
     ComponentCategory,
+    ComponentConnection,
     ComponentType,
-    Connection,
     GridMetadata,
     InverterType,
 )
@@ -257,7 +257,7 @@ class GraphGenerator:
 
     def _to_graph(
         self, parent: Component, children: Any
-    ) -> tuple[list[Component], list[Connection]]:
+    ) -> tuple[list[Component], list[ComponentConnection]]:
         """Convert a list of components to a graph.
 
         Args:
@@ -285,20 +285,22 @@ class GraphGenerator:
         if isinstance(children, (Component, ComponentCategory)):
             rhs = self.component(children)
             update_inverter_type(rhs)
-            return [parent, rhs], [Connection(source=parent.id, destination=rhs.id)]
+            return [parent, rhs], [
+                ComponentConnection(source=parent.id, destination=rhs.id)
+            ]
         if isinstance(children, tuple):
             assert len(children) == 2
             comp, con = self._to_graph(self.component(children[0]), children[1])
             update_inverter_type(comp[0])
             return [parent] + comp, con + [
-                Connection(source=parent.id, destination=comp[0].id)
+                ComponentConnection(source=parent.id, destination=comp[0].id)
             ]
         if isinstance(children, list):
             comp = []
             con = []
             for _component in children:
                 sub_components: list[Component]
-                sub_con: list[Connection]
+                sub_con: list[ComponentConnection]
 
                 if isinstance(_component, tuple):
                     sub_parent = self.component(_component[0])
@@ -312,7 +314,9 @@ class GraphGenerator:
                 update_inverter_type(sub_components[0])
                 comp += sub_components
                 con += sub_con + [
-                    Connection(source=parent.id, destination=sub_components[0].id)
+                    ComponentConnection(
+                        source=parent.id, destination=sub_components[0].id
+                    )
                 ]
             return [parent] + comp, con
 

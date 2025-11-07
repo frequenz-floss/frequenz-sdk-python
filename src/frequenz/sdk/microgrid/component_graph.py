@@ -35,7 +35,7 @@ from frequenz.client.microgrid.component import (
     Chp,
     Component,
     ComponentCategory,
-    Connection,
+    ComponentConnection,
     EvCharger,
     GridConnectionPoint,
     Inverter,
@@ -83,18 +83,18 @@ class ComponentGraph(ABC):
     @abstractmethod
     def connections(
         self,
-        start: set[ComponentId] | None = None,
-        end: set[ComponentId] | None = None,
-    ) -> set[Connection]:
+        matching_sources: set[ComponentId] | None = None,
+        matching_destinations: set[ComponentId] | None = None,
+    ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
         Args:
-            start: The component IDs that the connections' start must match.
-            end: The component IDs that the connections' end must match.
+            matching_sources: The component IDs the connections' source must match.
+            matching_destinations: The component IDs the connections' destination must match.
 
         Returns:
             The set of connections between components in the microgrid, filtered by
-                the provided `start`/`end` choices.
+                the provided `matching_sources` and `matching_destinations` choices.
         """
 
     @abstractmethod
@@ -355,7 +355,7 @@ class _MicrogridComponentGraph(
     def __init__(
         self,
         components: set[Component] | None = None,
-        connections: set[Connection] | None = None,
+        connections: set[ComponentConnection] | None = None,
     ) -> None:
         """Initialize the component graph.
 
@@ -433,32 +433,33 @@ class _MicrogridComponentGraph(
     @override
     def connections(
         self,
-        start: set[ComponentId] | None = None,
-        end: set[ComponentId] | None = None,
-    ) -> set[Connection]:
+        matching_sources: set[ComponentId] | None = None,
+        matching_destinations: set[ComponentId] | None = None,
+    ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
         Args:
-            start: The component IDs that the connections' start must match.
-            end: The component IDs that the connections' end must match.
+            matching_sources: The component IDs that the connections' source must match.
+            matching_destinations: The component IDs that the connections' destination
+                must match.
 
         Returns:
             The set of connections between components in the microgrid, filtered by
-                the provided `start`/`end` choices.
+                the provided `matching_sources` and `matching_destinations` choices.
         """
-        match (start, end):
+        match (matching_sources, matching_destinations):
             case (None, None):
-                selection_ids = self._graph.edges
+                selection = self._graph.edges
             case (None, _):
-                selection_ids = self._graph.in_edges(end)
+                selection = self._graph.in_edges(matching_destinations)
             case (_, None):
-                selection_ids = self._graph.out_edges(start)
+                selection = self._graph.out_edges(matching_sources)
             case (_, _):
-                start_edges = self._graph.out_edges(start)
-                end_edges = self._graph.in_edges(end)
-                selection_ids = set(start_edges).intersection(end_edges)
+                source_edges = self._graph.out_edges(matching_sources)
+                destination_edges = self._graph.in_edges(matching_destinations)
+                selection = set(source_edges).intersection(destination_edges)
 
-        return set(self._graph.edges[i][_DATA_KEY] for i in selection_ids)
+        return set(self._graph.edges[i][_DATA_KEY] for i in selection)
 
     @override
     def predecessors(self, component_id: ComponentId) -> set[Component]:
@@ -512,7 +513,7 @@ class _MicrogridComponentGraph(
     def refresh_from(
         self,
         components: set[Component],
-        connections: set[Connection],
+        connections: set[ComponentConnection],
         correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the graph from the provided list of components and connections.
@@ -523,7 +524,8 @@ class _MicrogridComponentGraph(
         Args:
             components: The components to initialize the graph with. If set, must
                 provide `connections` as well.
-            connections: The connections to include in the graph.
+            connections: The connections to initialize the graph with. If set, must
+                provide `components` as well.
             correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
                 correct the errors by inferring what the correct data should be).
@@ -534,9 +536,9 @@ class _MicrogridComponentGraph(
                 not fix it.
         """
         issues: list[str] = []
-        if not all(connection.is_valid() for connection in connections):
-            raise InvalidGraphError(f"Invalid connections in input: {connections}")
 
+        for connection in connections:
+            issues.extend((self._validate_connection(connection)))
         for component in components:
             issues.extend((self._validate_component(component)))
 
@@ -550,10 +552,10 @@ class _MicrogridComponentGraph(
 
         # Store the original connection object in the edge data (third item in the
         # tuple) so that we can retrieve it later.
-        for connection in connections:
-            new_graph.add_edge(
-                connection.start, connection.end, **{_DATA_KEY: connection}
-            )
+        new_graph.add_edges_from(
+            (connection.source, connection.destination, {_DATA_KEY: connection})
+            for connection in connections
+        )
 
         # check if we can construct a valid ComponentGraph
         # from the new NetworkX graph data
@@ -577,6 +579,20 @@ class _MicrogridComponentGraph(
         old_graph = self._graph
         self._graph = new_graph
         old_graph.clear()  # just in case any references remain, but should not
+
+    def _validate_connection(self, connection: ComponentConnection) -> list[str]:
+        """Check that the connection is valid.
+
+        Args:
+            connection: connection to validate.
+
+        Returns:
+            List of issues found with the connection.
+        """
+        issues: list[str] = []
+        if connection.source == connection.destination:
+            issues.append(f"Connection {connection} has same source and destination!")
+        return issues
 
     def _validate_component(self, component: Component) -> list[str]:
         """Check that the component is valid.

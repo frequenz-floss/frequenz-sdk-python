@@ -13,8 +13,10 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Component,
     ComponentCategory,
-    Connection,
     InverterType,
+)
+from frequenz.client.microgrid.component import (
+    ComponentConnection,
 )
 from pytest_mock import MockerFixture
 
@@ -66,8 +68,8 @@ async def test_actors_started(
             Component(ComponentId(15), ComponentCategory.BATTERY),
         },
         connections={
-            Connection(ComponentId(1), ComponentId(4)),
-            Connection(ComponentId(4), ComponentId(15)),
+            ComponentConnection(source=ComponentId(1), destination=ComponentId(4)),
+            ComponentConnection(source=ComponentId(4), destination=ComponentId(15)),
         },
     )
     mock_client.initialize(mocker)

@@ -7,10 +7,10 @@
 from dataclasses import dataclass
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
+from frequenz.client.microgrid.component import (
     Component,
     ComponentCategory,
-    Connection,
+    ComponentConnection,
     InverterType,
 )
 
@@ -40,7 +40,7 @@ class ComponentGraphConfig:
 
 def create_component_graph_structure(
     component_graph_config: ComponentGraphConfig,
-) -> tuple[set[Component], set[Connection]]:
+) -> tuple[set[Component], set[ComponentConnection]]:
     """Create structure of components graph.
 
     Args:
@@ -56,7 +56,7 @@ def create_component_graph_structure(
         Component(grid_id, ComponentCategory.GRID),
         Component(main_meter_id, ComponentCategory.METER),
     }
-    connections = {Connection(grid_id, main_meter_id)}
+    connections = {ComponentConnection(source=grid_id, destination=main_meter_id)}
 
     junction_id = grid_id
     if component_graph_config.grid_side_meter:
@@ -75,9 +75,9 @@ def create_component_graph_structure(
             Component(inv_id, ComponentCategory.INVERTER, InverterType.BATTERY)
         )
 
-        connections.add(Connection(junction_id, meter_id))
-        connections.add(Connection(meter_id, inv_id))
-        connections.add(Connection(inv_id, battery_id))
+        connections.add(ComponentConnection(source=junction_id, destination=meter_id))
+        connections.add(ComponentConnection(source=meter_id, destination=inv_id))
+        connections.add(ComponentConnection(source=inv_id, destination=battery_id))
 
     for _ in range(component_graph_config.solar_inverters_num):
         meter_id = ComponentId(start_idx)
@@ -88,13 +88,13 @@ def create_component_graph_structure(
         components.add(
             Component(inv_id, ComponentCategory.INVERTER, InverterType.SOLAR)
         )
-        connections.add(Connection(junction_id, meter_id))
-        connections.add(Connection(meter_id, inv_id))
+        connections.add(ComponentConnection(source=junction_id, destination=meter_id))
+        connections.add(ComponentConnection(source=meter_id, destination=inv_id))
 
     for _ in range(component_graph_config.ev_chargers):
         ev_id = ComponentId(start_idx)
         start_idx += 1
 
         components.add(Component(ev_id, ComponentCategory.EV_CHARGER))
-        connections.add(Connection(junction_id, ev_id))
+        connections.add(ComponentConnection(source=junction_id, destination=ev_id))
     return components, connections
