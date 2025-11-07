@@ -14,15 +14,9 @@ import pytest_mock
 from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    BatteryComponentState,
-    BatteryRelayState,
-    EVChargerCableState,
-    EVChargerComponentState,
-    InverterComponentState,
-)
 from frequenz.client.microgrid.component import (
     BatteryInverter,
+    ComponentStateCode,
     DcEvCharger,
     LiIonBattery,
     Meter,
@@ -187,6 +181,9 @@ def _new_meter_data(
         reactive_power=value,
         reactive_power_per_phase=(value, value, value),
         voltage_per_phase=(value, value, value),
+        states=frozenset(),
+        warnings=frozenset(),
+        errors=frozenset(),
     )
 
 
@@ -207,8 +204,9 @@ def _new_inverter_data(
         active_power_exclusion_upper_bound=value,
         active_power_inclusion_lower_bound=value,
         active_power_inclusion_upper_bound=value,
-        component_state=InverterComponentState.UNSPECIFIED,
-        errors=[],
+        states={ComponentStateCode.UNSPECIFIED},
+        errors=frozenset(),
+        warnings=frozenset(),
     )
 
 
@@ -220,8 +218,6 @@ def _new_battery_data(
         timestamp=timestamp,
         soc=value,
         temperature=value,
-        component_state=BatteryComponentState.UNSPECIFIED,
-        errors=[],
         soc_lower_bound=value,
         soc_upper_bound=value,
         capacity=value,
@@ -229,7 +225,9 @@ def _new_battery_data(
         power_exclusion_upper_bound=value,
         power_inclusion_lower_bound=value,
         power_inclusion_upper_bound=value,
-        relay_state=BatteryRelayState.UNSPECIFIED,
+        states={ComponentStateCode.UNSPECIFIED},
+        errors=frozenset(),
+        warnings=frozenset(),
     )
 
 
@@ -250,8 +248,9 @@ def _new_ev_charger_data(
         active_power_exclusion_upper_bound=value,
         active_power_inclusion_lower_bound=value,
         active_power_inclusion_upper_bound=value,
-        cable_state=EVChargerCableState.UNSPECIFIED,
-        component_state=EVChargerComponentState.UNSPECIFIED,
+        states={ComponentStateCode.UNSPECIFIED},
+        errors=frozenset(),
+        warnings=frozenset(),
     )
 
 

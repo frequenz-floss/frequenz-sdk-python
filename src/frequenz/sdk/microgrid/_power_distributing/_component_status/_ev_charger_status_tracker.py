@@ -11,10 +11,7 @@ from datetime import datetime, timedelta, timezone
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    EVChargerCableState,
-    EVChargerComponentState,
-)
+from frequenz.client.microgrid.component import ComponentStateCode
 from typing_extensions import override
 
 from ...._internal._asyncio import run_forever
@@ -87,14 +84,16 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
 
     def _is_working(self, ev_data: EVChargerData) -> bool:
         """Return whether the given data indicates that the component is working."""
-        return ev_data.cable_state in (
-            EVChargerCableState.EV_PLUGGED,
-            EVChargerCableState.EV_LOCKED,
-        ) and ev_data.component_state in (
-            EVChargerComponentState.READY,
-            EVChargerComponentState.CHARGING,
-            EVChargerComponentState.DISCHARGING,
+        is_connected = ev_data.is_ev_connected()
+        is_ok = bool(
+            {
+                ComponentStateCode.READY,
+                ComponentStateCode.CHARGING,
+                ComponentStateCode.DISCHARGING,
+            }
+            & ev_data.states
         )
+        return is_connected and is_ok
 
     def _is_stale(self, ev_data: EVChargerData) -> bool:
         """Return whether the given data is stale."""
@@ -123,11 +122,9 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
 
         if self._last_status == ComponentStatusEnum.WORKING:
             _logger.warning(
-                "EV charger %s is in NOT_WORKING state. "
-                "Cable state: %s, component state: %s",
+                "EV charger %s is in NOT_WORKING state. component states: %s",
                 self._component_id,
-                ev_data.cable_state,
-                ev_data.component_state,
+                ev_data.states,
             )
         return ComponentStatusEnum.NOT_WORKING
 

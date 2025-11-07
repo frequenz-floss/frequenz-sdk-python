@@ -153,8 +153,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             }
         )
 
-        self.evc_component_states: dict[ComponentId, EVChargerComponentState] = {}
-        self.evc_cable_states: dict[ComponentId, EVChargerCableState] = {}
+        self.evc_states: dict[ComponentId, set[ComponentStateCode]] = {}
 
         self._streaming_coros: list[tuple[ComponentId, Coroutine[None, None, None]]] = (
             []
@@ -343,8 +342,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         active_power=value,
                         reactive_power=2 * value,
                         current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
-                        component_state=self.evc_component_states[evc_id],
-                        cable_state=self.evc_cable_states[evc_id],
+                        states=self.evc_states[evc_id],
                     ),
                 ),
             )
@@ -484,8 +482,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._id_increment += 1
 
             self.evc_ids.append(evc_id)
-            self.evc_component_states[evc_id] = EVChargerComponentState.READY
-            self.evc_cable_states[evc_id] = EVChargerCableState.UNPLUGGED
+            self.evc_states[evc_id] = {
+                ComponentStateCode.READY,
+                ComponentStateCode.EV_CHARGING_CABLE_UNPLUGGED,
+            }
 
             self._components.add(AcEvCharger(id=evc_id, microgrid_id=_MICROGRID_ID))
             self._start_ev_charger_streaming(evc_id)
@@ -584,8 +584,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         value + 101.0,
                         value + 102.0,
                     ),
-                    component_state=self.evc_component_states[comp_id],
-                    cable_state=self.evc_cable_states[comp_id],
+                    states=self.evc_states[comp_id],
                 ).to_samples()
             )
 

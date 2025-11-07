@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import EVChargerCableState, EVChargerComponentState
+from frequenz.client.microgrid.component import ComponentStateCode
 from pytest_mock import MockerFixture
 
 from frequenz.sdk._internal._asyncio import cancel_and_await
@@ -60,8 +60,11 @@ class TestEVChargerStatusTracker:
                     _EV_CHARGER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    component_state=EVChargerComponentState.READY,
-                    cable_state=EVChargerCableState.EV_PLUGGED,
+                    states={
+                        ComponentStateCode.READY,
+                        ComponentStateCode.EV_CHARGING_CABLE_PLUGGED_AT_EV,
+                        ComponentStateCode.EV_CHARGING_CABLE_PLUGGED_AT_STATION,
+                    },
                 ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -74,8 +77,11 @@ class TestEVChargerStatusTracker:
                     _EV_CHARGER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    component_state=EVChargerComponentState.READY,
-                    cable_state=EVChargerCableState.EV_LOCKED,
+                    states={
+                        ComponentStateCode.READY,
+                        ComponentStateCode.EV_CHARGING_CABLE_LOCKED_AT_EV,
+                        ComponentStateCode.EV_CHARGING_CABLE_LOCKED_AT_STATION,
+                    },
                 ).to_samples()
             )
             assert await receive_timeout(status_receiver) is Timeout
@@ -86,8 +92,10 @@ class TestEVChargerStatusTracker:
                     _EV_CHARGER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    component_state=EVChargerComponentState.READY,
-                    cable_state=EVChargerCableState.UNPLUGGED,
+                    states={
+                        ComponentStateCode.READY,
+                        ComponentStateCode.EV_CHARGING_CABLE_UNPLUGGED,
+                    },
                 ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -100,8 +108,11 @@ class TestEVChargerStatusTracker:
                     _EV_CHARGER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    component_state=EVChargerComponentState.READY,
-                    cable_state=EVChargerCableState.EV_LOCKED,
+                    states={
+                        ComponentStateCode.READY,
+                        ComponentStateCode.EV_CHARGING_CABLE_PLUGGED_AT_EV,
+                        ComponentStateCode.EV_CHARGING_CABLE_LOCKED_AT_STATION,
+                    },
                 ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -121,8 +132,11 @@ class TestEVChargerStatusTracker:
                     _EV_CHARGER_ID,
                     datetime.now(tz=timezone.utc),
                     active_power=0.0,
-                    component_state=EVChargerComponentState.READY,
-                    cable_state=EVChargerCableState.EV_LOCKED,
+                    states={
+                        ComponentStateCode.READY,
+                        ComponentStateCode.EV_CHARGING_CABLE_PLUGGED_AT_EV,
+                        ComponentStateCode.EV_CHARGING_CABLE_PLUGGED_AT_STATION,
+                    },
                 ).to_samples()
             )
             assert await receive_timeout(status_receiver) == ComponentStatus(
@@ -136,8 +150,11 @@ class TestEVChargerStatusTracker:
                             _EV_CHARGER_ID,
                             datetime.now(tz=timezone.utc),
                             active_power=0.0,
-                            component_state=EVChargerComponentState.READY,
-                            cable_state=EVChargerCableState.EV_LOCKED,
+                            states={
+                                ComponentStateCode.READY,
+                                ComponentStateCode.EV_CHARGING_CABLE_LOCKED_AT_EV,
+                                ComponentStateCode.EV_CHARGING_CABLE_LOCKED_AT_STATION,
+                            },
                         ).to_samples()
                     )
                     await asyncio.sleep(0.1)

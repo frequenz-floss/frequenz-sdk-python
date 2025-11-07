@@ -12,7 +12,7 @@ import async_solipsism
 import pytest
 from frequenz.channels import Receiver
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import InverterComponentState
+from frequenz.client.microgrid.component import ComponentStateCode
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -77,7 +77,7 @@ class TestPVPoolControl:
                 InverterDataWrapper(
                     comp_id,
                     now,
-                    component_state=InverterComponentState.IDLE,
+                    states={ComponentStateCode.READY},
                     active_power=0.0,
                     active_power_inclusion_lower_bound=-10000.0 * (idx + 1),
                     active_power_inclusion_upper_bound=0.0,
@@ -94,10 +94,10 @@ class TestPVPoolControl:
                 InverterDataWrapper(
                     comp_id,
                     now,
-                    component_state=(
-                        InverterComponentState.ERROR
+                    states=(
+                        {ComponentStateCode.ERROR}
                         if comp_id in fail_ids
-                        else InverterComponentState.IDLE
+                        else {ComponentStateCode.READY}
                     ),
                     active_power=0.0,
                     active_power_inclusion_lower_bound=-10000.0 * (idx + 1),
