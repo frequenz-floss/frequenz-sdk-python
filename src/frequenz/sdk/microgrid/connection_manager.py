@@ -46,7 +46,7 @@ class ConnectionManager(ABC):
         """Get the MicrogridApiClient.
 
         Returns:
-            api client
+            The microgrid API client used by this connection manager.
         """
 
     @property
@@ -181,14 +181,14 @@ async def initialize(server_url: str) -> None:
 
     _logger.info("Connecting to microgrid at %s", server_url)
 
-    microgrid_api = _InsecureConnectionManager(server_url)
-    await microgrid_api._initialize()  # pylint: disable=protected-access
+    connection_manager = _InsecureConnectionManager(server_url)
+    await connection_manager._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
     # calling initialize() twice and in parallel.
     assert _CONNECTION_MANAGER is None, "MicrogridApi was already initialized."
 
-    _CONNECTION_MANAGER = microgrid_api
+    _CONNECTION_MANAGER = connection_manager
 
 
 def get() -> ConnectionManager:
