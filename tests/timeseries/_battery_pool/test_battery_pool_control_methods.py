@@ -5,7 +5,7 @@
 
 import asyncio
 import dataclasses
-import typing
+from collections.abc import AsyncIterator, Callable
 from datetime import datetime, timedelta, timezone
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
@@ -55,7 +55,7 @@ class Mocks:
 
 
 @pytest.fixture
-async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[Mocks]:
+async def mocks(mocker: MockerFixture) -> AsyncIterator[Mocks]:
     """Fixture for the mocks."""
     mockgrid = MockMicrogrid()
     mockgrid.add_batteries(4)
@@ -168,7 +168,7 @@ class TestBatteryPoolControl:
         upper: float,
         dist_result: _power_distributing.Result | None = None,
         expected_result_pred: (
-            typing.Callable[[_power_distributing.Result], bool] | None
+            Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
         assert report.target_power == (
@@ -559,7 +559,7 @@ class TestBatteryPoolControl:
 
     async def test_no_resend_0w(self, mocks: Mocks, mocker: MockerFixture) -> None:
         """Test that 0W command is not resent unnecessarily."""
-        set_power = typing.cast(
+        set_power = cast(
             AsyncMock,
             microgrid.connection_manager.get().api_client.set_component_power_active,
         )

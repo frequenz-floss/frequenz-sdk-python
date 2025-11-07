@@ -4,7 +4,7 @@
 """Test the EV charger pool control methods."""
 
 import asyncio
-import typing
+from collections.abc import AsyncIterator, Callable
 from datetime import datetime, timedelta, timezone
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
@@ -42,7 +42,7 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 
 
 @pytest.fixture
-async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
+async def mocks(mocker: MockerFixture) -> AsyncIterator[_Mocks]:
     """Create the mocks."""
     mockgrid = MockMicrogrid(grid_meter=True)
     mockgrid.add_ev_chargers(4)
@@ -56,7 +56,7 @@ async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
     )
     streamer = MockComponentDataStreamer(mockgrid.mock_client)
 
-    dp = typing.cast(_DataPipeline, microgrid._data_pipeline._DATA_PIPELINE)
+    dp = cast(_DataPipeline, microgrid._data_pipeline._DATA_PIPELINE)
 
     try:
         yield _Mocks(
@@ -156,7 +156,7 @@ class TestEVChargerPoolControl:
     async def _recv_reports_until(
         self,
         bounds_rx: Receiver[EVChargerPoolReport],
-        check: typing.Callable[[EVChargerPoolReport], bool],
+        check: Callable[[EVChargerPoolReport], bool],
     ) -> EVChargerPoolReport | None:
         """Receive reports until the given condition is met."""
         max_reports = 10
@@ -179,7 +179,7 @@ class TestEVChargerPoolControl:
         upper: float,
         dist_result: _power_distributing.Result | None = None,
         expected_result_pred: (
-            typing.Callable[[_power_distributing.Result], bool] | None
+            Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
         assert report is not None and report.target_power == (
