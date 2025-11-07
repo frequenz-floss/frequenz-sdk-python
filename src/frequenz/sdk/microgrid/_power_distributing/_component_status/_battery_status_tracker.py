@@ -100,25 +100,25 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
     @override
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        *,
         component_id: ComponentId,
-        max_data_age: timedelta,
-        max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
+        *,
+        max_data_age: timedelta,
+        max_blocking_duration: timedelta,
     ) -> None:
         """Create class instance.
 
         Args:
             component_id: Id of this battery
+            status_sender: Channel to send status updates.
+            set_power_result_receiver: Channel to receive results of the requests to the
+                components.
             max_data_age: If component stopped sending data, then this is the maximum
                 time when its last message should be considered as valid. After that
                 time, component won't be used until it starts sending data.
             max_blocking_duration: This value tell what should be the maximum
                 timeout used for blocking failing component.
-            status_sender: Channel to send status updates.
-            set_power_result_receiver: Channel to receive results of the requests to the
-                components.
 
         Raises:
             RuntimeError: If battery has no adjacent inverter.

@@ -44,25 +44,25 @@ class EVChargerStatusTracker(ComponentStatusTracker, BackgroundService):
     @override
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        *,
         component_id: ComponentId,
-        max_data_age: timedelta,
-        max_blocking_duration: timedelta,
         status_sender: Sender[ComponentStatus],
         set_power_result_receiver: Receiver[SetPowerResult],
+        *,
+        max_data_age: timedelta,
+        max_blocking_duration: timedelta,
     ) -> None:
         """Initialize this instance.
 
         Args:
             component_id: ID of the EV charger to monitor the status of.
-            max_data_age: max duration to wait for, before marking a component as
-                NOT_WORKING, unless new data arrives.
-            max_blocking_duration: duration for which the component status should be
-                UNCERTAIN if a request to the component failed unexpectedly.
             status_sender: Channel sender to send status updates to.
             set_power_result_receiver: Receiver to fetch PowerDistributor responses
                 from, to get the status of the most recent request made for an EV
                 Charger.
+            max_data_age: max duration to wait for, before marking a component as
+                NOT_WORKING, unless new data arrives.
+            max_blocking_duration: duration for which the component status should be
+                UNCERTAIN if a request to the component failed unexpectedly.
         """
         self._component_id = component_id
         self._max_data_age = max_data_age
