@@ -609,7 +609,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         for inverter_ids in [
             self._bat_invs_map[battery_id_set] for battery_id_set in unavailable_bat_ids
         ]:
-            unavailable_inv_ids = unavailable_inv_ids.union(inverter_ids)
+            unavailable_inv_ids = unavailable_inv_ids | inverter_ids
 
         result = self._distribution_algorithm.distribute_power(
             request.power, inv_bat_pairs
