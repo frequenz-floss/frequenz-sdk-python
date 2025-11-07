@@ -24,7 +24,7 @@ flow of power.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Set
+from collections.abc import Callable, Iterable
 
 import networkx as nx
 from frequenz.client.common.microgrid.components import ComponentId
@@ -83,8 +83,8 @@ class ComponentGraph(ABC):
     @abstractmethod
     def connections(
         self,
-        matching_sources: set[ComponentId] | None = None,
-        matching_destinations: set[ComponentId] | None = None,
+        matching_sources: Iterable[ComponentId] | ComponentId | None = None,
+        matching_destinations: Iterable[ComponentId] | ComponentId | None = None,
     ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
@@ -399,27 +399,15 @@ class _MicrogridComponentGraph(
             The set of components currently connected to the microgrid, filtered by
                 the provided `matching_ids` and `matching_types` values.
         """
-        match matching_ids:
-            case ComponentId():
-                matching_ids = {matching_ids}
-            case Set():
-                pass
-            case Iterable():
-                matching_ids = set(matching_ids)
-
-        match matching_types:
-            case type():
-                matching_types = {matching_types}
-            case Set():
-                pass
-            case Iterable():
-                matching_types = set(matching_types)
+        matching_ids = _comp_ids_to_iter(matching_ids)
+        if isinstance(matching_types, type):
+            matching_types = {matching_types}
 
         selection: Iterable[Component]
         selection_ids = (
             self._graph.nodes
             if matching_ids is None
-            else matching_ids & self._graph.nodes
+            else set(matching_ids) & self._graph.nodes
         )
         selection = (self._graph.nodes[i][_DATA_KEY] for i in selection_ids)
 
@@ -433,8 +421,8 @@ class _MicrogridComponentGraph(
     @override
     def connections(
         self,
-        matching_sources: set[ComponentId] | None = None,
-        matching_destinations: set[ComponentId] | None = None,
+        matching_sources: Iterable[ComponentId] | ComponentId | None = None,
+        matching_destinations: Iterable[ComponentId] | ComponentId | None = None,
     ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
@@ -447,6 +435,9 @@ class _MicrogridComponentGraph(
             The set of connections between components in the microgrid, filtered by
                 the provided `matching_sources` and `matching_destinations` choices.
         """
+        matching_sources = _comp_ids_to_iter(matching_sources)
+        matching_destinations = _comp_ids_to_iter(matching_destinations)
+
         match (matching_sources, matching_destinations):
             case (None, None):
                 selection = self._graph.edges
@@ -1128,3 +1119,11 @@ class _MicrogridComponentGraph(
             raise InvalidGraphError(
                 f"Leaf components with graph successors: {with_successors}"
             )
+
+
+def _comp_ids_to_iter(
+    ids: Iterable[ComponentId] | ComponentId | None,
+) -> Iterable[ComponentId] | None:
+    if isinstance(ids, ComponentId):
+        return (ids,)
+    return ids

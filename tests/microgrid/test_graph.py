@@ -389,18 +389,18 @@ class TestComponentGraph:
 
         # with start filter applied, we get back only connections whose `start`
         # component matches one of the provided IDs
-        assert graph.connections(matching_sources={ComponentId(8)}) == set()
-        assert graph.connections(matching_sources={ComponentId(7)}) == set()
-        assert graph.connections(matching_sources={ComponentId(6)}) == set()
-        assert graph.connections(matching_sources={ComponentId(5)}) == set()
-        assert graph.connections(matching_sources={ComponentId(4)}) == set()
-        assert graph.connections(matching_sources={ComponentId(3)}) == set()
-        assert graph.connections(matching_sources={ComponentId(2)}) == {
+        assert graph.connections(matching_sources=ComponentId(8)) == set()
+        assert graph.connections(matching_sources=ComponentId(7)) == set()
+        assert graph.connections(matching_sources=ComponentId(6)) == set()
+        assert graph.connections(matching_sources=ComponentId(5)) == set()
+        assert graph.connections(matching_sources=ComponentId(4)) == set()
+        assert graph.connections(matching_sources=ComponentId(3)) == set()
+        assert graph.connections(matching_sources=ComponentId(2)) == {
             ComponentConnection(source=ComponentId(2), destination=ComponentId(4)),
             ComponentConnection(source=ComponentId(2), destination=ComponentId(5)),
             ComponentConnection(source=ComponentId(2), destination=ComponentId(6)),
         }
-        assert graph.connections(matching_sources={ComponentId(1)}) == {
+        assert graph.connections(matching_sources=ComponentId(1)) == {
             ComponentConnection(source=ComponentId(1), destination=ComponentId(2)),
             ComponentConnection(source=ComponentId(1), destination=ComponentId(3)),
         }
@@ -427,23 +427,23 @@ class TestComponentGraph:
 
         # with end filter applied, we get back only connections whose `end`
         # component matches one of the provided IDs
-        assert graph.connections(matching_destinations={ComponentId(8)}) == set()
-        assert graph.connections(matching_destinations={ComponentId(6)}) == {
+        assert graph.connections(matching_destinations=ComponentId(8)) == set()
+        assert graph.connections(matching_destinations=ComponentId(6)) == {
             ComponentConnection(source=ComponentId(2), destination=ComponentId(6))
         }
-        assert graph.connections(matching_destinations={ComponentId(5)}) == {
+        assert graph.connections(matching_destinations=ComponentId(5)) == {
             ComponentConnection(source=ComponentId(2), destination=ComponentId(5))
         }
-        assert graph.connections(matching_destinations={ComponentId(4)}) == {
+        assert graph.connections(matching_destinations=ComponentId(4)) == {
             ComponentConnection(source=ComponentId(2), destination=ComponentId(4))
         }
-        assert graph.connections(matching_destinations={ComponentId(3)}) == {
+        assert graph.connections(matching_destinations=ComponentId(3)) == {
             ComponentConnection(source=ComponentId(1), destination=ComponentId(3))
         }
-        assert graph.connections(matching_destinations={ComponentId(2)}) == {
+        assert graph.connections(matching_destinations=ComponentId(2)) == {
             ComponentConnection(source=ComponentId(1), destination=ComponentId(2))
         }
-        assert graph.connections(matching_destinations={ComponentId(1)}) == set()
+        assert graph.connections(matching_destinations=ComponentId(1)) == set()
         assert graph.connections(
             matching_destinations={ComponentId(1), ComponentId(2), ComponentId(3)}
         ) == {
@@ -470,18 +470,18 @@ class TestComponentGraph:
             ComponentConnection(source=ComponentId(2), destination=ComponentId(4)),
             ComponentConnection(source=ComponentId(2), destination=ComponentId(6)),
         }
-        assert graph.connections(matching_destinations={ComponentId(1)}) == set()
+        assert graph.connections(matching_destinations=ComponentId(1)) == set()
 
         # when both filters are applied, they are combined via AND logic, i.e.
         # a connection must have its `start` matching one of the provided start
         # values, and its `end` matching one of the provided end values
         assert graph.connections(
-            matching_sources={ComponentId(1)}, matching_destinations={ComponentId(2)}
+            matching_sources=ComponentId(1), matching_destinations=ComponentId(2)
         ) == {ComponentConnection(source=ComponentId(1), destination=ComponentId(2))}
         assert (
             graph.connections(
-                matching_sources={ComponentId(2)},
-                matching_destinations={ComponentId(3)},
+                matching_sources=ComponentId(2),
+                matching_destinations=ComponentId(3),
             )
             == set()
         )
