@@ -10,16 +10,22 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from frequenz.client.common.microgrid import MicrogridId
+from frequenz.client.common.microgrid import EnterpriseId, MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
-    Component,
-    ComponentCategory,
+    DeliveryArea,
+    EnergyMarketCodeType,
     Location,
     MicrogridInfo,
+    MicrogridStatus,
 )
 from frequenz.client.microgrid.component import (
+    BatteryInverter,
+    Component,
     ComponentConnection,
+    GridConnectionPoint,
+    LiIonBattery,
+    Meter,
 )
 
 from frequenz.sdk.microgrid import connection_manager
@@ -43,22 +49,30 @@ class TestMicrogridApi:
         """
         components = [
             [
-                Component(ComponentId(1), ComponentCategory.GRID),
-                Component(ComponentId(4), ComponentCategory.METER),
-                Component(ComponentId(5), ComponentCategory.METER),
-                Component(ComponentId(7), ComponentCategory.METER),
-                Component(ComponentId(8), ComponentCategory.INVERTER),
-                Component(ComponentId(9), ComponentCategory.BATTERY),
-                Component(ComponentId(10), ComponentCategory.METER),
-                Component(ComponentId(11), ComponentCategory.INVERTER),
-                Component(ComponentId(12), ComponentCategory.BATTERY),
+                GridConnectionPoint(
+                    id=ComponentId(1),
+                    microgrid_id=_MICROGRID_ID,
+                    rated_fuse_current=10_000,
+                ),
+                Meter(id=ComponentId(4), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(5), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(7), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(8), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(10), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(11), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(12), microgrid_id=_MICROGRID_ID),
             ],
             [
-                Component(ComponentId(1), ComponentCategory.GRID),
-                Component(ComponentId(4), ComponentCategory.METER),
-                Component(ComponentId(7), ComponentCategory.METER),
-                Component(ComponentId(8), ComponentCategory.INVERTER),
-                Component(ComponentId(9), ComponentCategory.BATTERY),
+                GridConnectionPoint(
+                    id=ComponentId(1),
+                    microgrid_id=_MICROGRID_ID,
+                    rated_fuse_current=10_000,
+                ),
+                Meter(id=ComponentId(4), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(7), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(8), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
             ],
         ]
         return components

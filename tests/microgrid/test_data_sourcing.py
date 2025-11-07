@@ -12,15 +12,20 @@ from unittest import mock
 import pytest
 import pytest_mock
 from frequenz.channels import Broadcast
+from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     BatteryComponentState,
     BatteryRelayState,
-    Component,
-    ComponentCategory,
     EVChargerCableState,
     EVChargerComponentState,
     InverterComponentState,
+)
+from frequenz.client.microgrid.component import (
+    BatteryInverter,
+    DcEvCharger,
+    LiIonBattery,
+    Meter,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
@@ -41,6 +46,8 @@ from frequenz.sdk.timeseries import Sample
 
 T = TypeVar("T", bound=ComponentData)
 
+_MICROGRID_ID = MicrogridId(1)
+
 
 @pytest.fixture
 def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
@@ -49,12 +56,10 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     mock_client.list_components = mock.AsyncMock(
         name="list_components()",
         return_value=[
-            Component(component_id=ComponentId(4), category=ComponentCategory.METER),
-            Component(component_id=ComponentId(6), category=ComponentCategory.INVERTER),
-            Component(component_id=ComponentId(9), category=ComponentCategory.BATTERY),
-            Component(
-                component_id=ComponentId(12), category=ComponentCategory.EV_CHARGER
-            ),
+            Meter(id=ComponentId(4), microgrid_id=_MICROGRID_ID),
+            BatteryInverter(id=ComponentId(6), microgrid_id=_MICROGRID_ID),
+            LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
+            DcEvCharger(id=ComponentId(12), microgrid_id=_MICROGRID_ID),
         ],
     )
 

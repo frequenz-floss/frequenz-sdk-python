@@ -6,12 +6,17 @@
 
 from dataclasses import dataclass
 
+from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
+    BatteryInverter,
     Component,
-    ComponentCategory,
     ComponentConnection,
-    InverterType,
+    DcEvCharger,
+    GridConnectionPoint,
+    LiIonBattery,
+    Meter,
+    SolarInverter,
 )
 
 
@@ -49,12 +54,20 @@ def create_component_graph_structure(
     Returns:
         Create set of components and set of connections between them.
     """
+    microgrid_id = MicrogridId(1)
     grid_id = ComponentId(1)
     main_meter_id = ComponentId(2)
 
     components = {
-        Component(grid_id, ComponentCategory.GRID),
-        Component(main_meter_id, ComponentCategory.METER),
+        GridConnectionPoint(
+            id=grid_id,
+            microgrid_id=microgrid_id,
+            rated_fuse_current=1000,
+        ),
+        Meter(
+            id=main_meter_id,
+            microgrid_id=microgrid_id,
+        ),
     }
     connections = {ComponentConnection(source=grid_id, destination=main_meter_id)}
 
@@ -69,11 +82,9 @@ def create_component_graph_structure(
         battery_id = ComponentId(start_idx + 2)
         start_idx += 3
 
-        components.add(Component(meter_id, ComponentCategory.METER))
-        components.add(Component(battery_id, ComponentCategory.BATTERY))
-        components.add(
-            Component(inv_id, ComponentCategory.INVERTER, InverterType.BATTERY)
-        )
+        components.add(Meter(id=meter_id, microgrid_id=microgrid_id))
+        components.add(LiIonBattery(id=battery_id, microgrid_id=microgrid_id))
+        components.add(BatteryInverter(id=inv_id, microgrid_id=microgrid_id))
 
         connections.add(ComponentConnection(source=junction_id, destination=meter_id))
         connections.add(ComponentConnection(source=meter_id, destination=inv_id))
@@ -84,10 +95,8 @@ def create_component_graph_structure(
         inv_id = ComponentId(start_idx + 1)
         start_idx += 2
 
-        components.add(Component(meter_id, ComponentCategory.METER))
-        components.add(
-            Component(inv_id, ComponentCategory.INVERTER, InverterType.SOLAR)
-        )
+        components.add(Meter(id=meter_id, microgrid_id=microgrid_id))
+        components.add(SolarInverter(id=inv_id, microgrid_id=microgrid_id))
         connections.add(ComponentConnection(source=junction_id, destination=meter_id))
         connections.add(ComponentConnection(source=meter_id, destination=inv_id))
 
@@ -95,6 +104,6 @@ def create_component_graph_structure(
         ev_id = ComponentId(start_idx)
         start_idx += 1
 
-        components.add(Component(ev_id, ComponentCategory.EV_CHARGER))
+        components.add(DcEvCharger(id=ev_id, microgrid_id=microgrid_id))
         connections.add(ComponentConnection(source=junction_id, destination=ev_id))
     return components, connections
