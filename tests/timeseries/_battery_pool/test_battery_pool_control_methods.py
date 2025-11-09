@@ -79,13 +79,7 @@ async def mocks(mocker: MockerFixture) -> AsyncIterator[Mocks]:
             dp._battery_power_wrapper.status_channel.new_sender(),
         )
     finally:
-        _ = await asyncio.gather(
-            *[
-                dp._stop(),
-                streamer.stop(),
-                mockgrid.cleanup(),
-            ]
-        )
+        await asyncio.gather(dp._stop(), streamer.stop(), mockgrid.cleanup())
 
 
 class TestBatteryPoolControl:
