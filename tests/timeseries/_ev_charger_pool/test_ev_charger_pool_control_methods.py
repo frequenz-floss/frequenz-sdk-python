@@ -177,7 +177,8 @@ class TestEVChargerPoolControl:
             Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
-        assert report is not None and report.target_power == (
+        assert report is not None
+        assert report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
         assert report.bounds is not None
