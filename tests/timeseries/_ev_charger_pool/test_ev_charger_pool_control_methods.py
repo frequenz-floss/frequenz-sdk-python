@@ -206,6 +206,7 @@ class TestEVChargerPoolControl:
         await self._patch_power_distributing_actor(mocker)
 
         bounds_rx = ev_charger_pool.power_status.new_receiver()
+        # Receive reports until all chargers are initialized
         latest_report = await self._recv_reports_until(
             bounds_rx,
             lambda x: x.bounds is not None and x.bounds.upper.as_watts() == 44160.0,
@@ -220,9 +221,11 @@ class TestEVChargerPoolControl:
         set_power.reset_mock()
         await ev_charger_pool.propose_power(Power.from_watts(40000.0))
         # ignore one report because it is not always immediately updated.
-        self._assert_report(
-            await bounds_rx.receive(), power=40000.0, lower=0.0, upper=44160.0
+        latest_report = await self._recv_reports_until(
+            bounds_rx,
+            lambda r: r.target_power == Power.from_watts(40000.0),
         )
+        self._assert_report(latest_report, power=40000.0, lower=0.0, upper=44160.0)
         mock_time.shift(timedelta(seconds=60))
         await asyncio.sleep(0.15)
 
@@ -245,7 +248,7 @@ class TestEVChargerPoolControl:
         # Throttle the power
         set_power.reset_mock()
         await ev_charger_pool.propose_power(Power.from_watts(32000.0))
-        await bounds_rx.receive()
+        await bounds_rx.receive()  # Receive the next report and discard it.
         await asyncio.sleep(0.02)
         assert set_power.call_count == 1
 

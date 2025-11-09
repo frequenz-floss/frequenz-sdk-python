@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism
 import pytest
-from frequenz.channels import LatestValueCache, Sender
+from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -155,7 +155,7 @@ class TestBatteryPoolControl:
 
     def _assert_report(  # pylint: disable=too-many-arguments
         self,
-        report: BatteryPoolReport,
+        report: BatteryPoolReport | None,
         *,
         power: float | None,
         lower: float,
@@ -165,6 +165,7 @@ class TestBatteryPoolControl:
             Callable[[_power_distributing.Result], bool] | None
         ) = None,
     ) -> None:
+        assert report is not None
         assert report.target_power == (
             Power.from_watts(power) if power is not None else None
         )
@@ -174,6 +175,22 @@ class TestBatteryPoolControl:
         if expected_result_pred is not None:
             assert dist_result is not None
             assert expected_result_pred(dist_result)
+
+    async def _recv_reports_until(
+        self,
+        bounds_rx: Receiver[BatteryPoolReport],
+        check: Callable[[BatteryPoolReport], bool],
+    ) -> BatteryPoolReport | None:
+        """Receive reports until the given condition is met."""
+        max_reports = 10
+        ctr = 0
+        while ctr < max_reports:
+            ctr += 1
+            async with asyncio.timeout(10.0):
+                report = await bounds_rx.receive()
+            if check(report):
+                return report
+        return None
 
     async def test_case_1(
         self,
@@ -201,9 +218,12 @@ class TestBatteryPoolControl:
             battery_pool.power_distribution_results.new_receiver()
         )
 
-        self._assert_report(
-            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        report = await self._recv_reports_until(
+            bounds_rx,
+            lambda r: r.bounds is not None
+            and r.bounds.upper == Power.from_watts(4000.0),
         )
+        self._assert_report(report, power=None, lower=-4000.0, upper=4000.0)
 
         await battery_pool.propose_power(Power.from_watts(1000.0))
 
@@ -441,6 +461,7 @@ class TestBatteryPoolControl:
             mocker.call(inv_id, 250.0)
             for inv_id in mocks.microgrid.battery_inverter_ids
         ]
+
         self._assert_report(
             await bounds_rx.receive(),
             power=1000.0,
@@ -458,9 +479,10 @@ class TestBatteryPoolControl:
         # available power.
         await battery_pool.propose_power(Power.from_watts(50.0))
 
-        self._assert_report(
-            await bounds_rx.receive(), power=400.0, lower=-4000.0, upper=4000.0
+        report = await self._recv_reports_until(
+            bounds_rx, lambda r: r.target_power == Power.from_watts(400.0)
         )
+        self._assert_report(report, power=400.0, lower=-4000.0, upper=4000.0)
         await asyncio.sleep(0.0)  # Wait for the power to be distributed.
         assert set_power.call_count == 4
         assert sorted(set_power.call_args_list) == [
