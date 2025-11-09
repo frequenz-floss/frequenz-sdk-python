@@ -156,14 +156,13 @@ class TestEVChargerPoolControl:
         """Receive reports until the given condition is met."""
         max_reports = 10
         ctr = 0
-        latest_report: EVChargerPoolReport | None = None
         while ctr < max_reports:
             ctr += 1
-            latest_report = await bounds_rx.receive()
-            if check(latest_report):
-                break
-
-        return latest_report
+            async with asyncio.timeout(10.0):
+                report = await bounds_rx.receive()
+            if check(report):
+                return report
+        return None
 
     def _assert_report(  # pylint: disable=too-many-arguments
         self,
