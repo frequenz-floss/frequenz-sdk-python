@@ -1120,6 +1120,11 @@ class _MicrogridComponentGraph(
                 f"Leaf components with graph successors: {with_successors}"
             )
 
+    @override
+    def __repr__(self) -> str:
+        """Return a string representation of the component graph."""
+        return f"ComponentGraph({self._graph!r})"
+
 
 def _comp_ids_to_iter(
     ids: Iterable[ComponentId] | ComponentId | None,
