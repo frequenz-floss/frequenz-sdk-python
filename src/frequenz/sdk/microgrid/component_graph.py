@@ -369,7 +369,7 @@ class _MicrogridComponentGraph(
             InvalidGraphError: If `components` and `connections` are not both `None`
                 and either of them is either `None` or empty.
         """
-        self._graph: nx.DiGraph = nx.DiGraph()
+        self._graph: nx.DiGraph[ComponentId] = nx.DiGraph()
 
         if components is None and connections is None:
             return
@@ -437,6 +437,7 @@ class _MicrogridComponentGraph(
         """
         matching_sources = _comp_ids_to_iter(matching_sources)
         matching_destinations = _comp_ids_to_iter(matching_destinations)
+        selection: Iterable[tuple[ComponentId, ComponentId]]
 
         match (matching_sources, matching_destinations):
             case (None, None):
@@ -536,7 +537,7 @@ class _MicrogridComponentGraph(
         if issues:
             raise InvalidGraphError(f"Invalid component data: {', '.join(issues)}")
 
-        new_graph = nx.DiGraph()
+        new_graph: nx.DiGraph[ComponentId] = nx.DiGraph()
         new_graph.add_nodes_from(
             (component.id, {_DATA_KEY: component}) for component in components
         )
