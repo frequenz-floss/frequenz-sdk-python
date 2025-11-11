@@ -58,8 +58,8 @@ article](https://en.wikipedia.org/wiki/State_of_charge) for more details.
 
 A local electrical grid that connects a set of different [types of
 components](#component-category) together. It can be connected to the public
-[grid](#grid), or be completely isolated, in which case it is known as an
-island.
+[grid](#grid) (through a [grid connection point](#grid-connection-point)), or be completely isolated, in which case
+it is known as an island.
 
 Components can be grouped into [assets](#assets) and [devices](#devices).
 Assets are core components like generators or storage systems that are crucial from a business perspective,
@@ -104,6 +104,15 @@ A station for charging [EVs](#ev).
 #### Electrolyzer
 
 A device that converts water into hydrogen and oxygen.
+
+#### Grid Connection Point
+
+The point where the local [microgrid](#microgrid) is connected to the public
+electricity [grid](#grid).
+
+#### GCP
+
+[Grid connection point](#grid-connection-point).
 
 #### Grid
 

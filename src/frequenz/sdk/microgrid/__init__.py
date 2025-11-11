@@ -32,7 +32,7 @@ flowchart LR
 
 subgraph Left[Measurements only]
 direction LR
-  grid["Grid Connection"]
+  grid["Grid Connection Point"]
   consumer["Consumer"]
   pv["PV Arrays"]
   chp["CHP"]
@@ -57,12 +57,12 @@ junction --- ev
 
 ## Grid
 
-This refers to a microgrid's connection to the external Grid.  The power flowing through
-this connection can be streamed through
+This refers to a microgrid's {{glossary("grid-connection-point")}}.  The power flowing
+through this connection can be streamed through
 [`grid_power`][frequenz.sdk.timeseries.grid.Grid.power].
 
-In locations without a grid connection, this method remains accessible, and streams zero
-values.
+In locations without a grid connection point, this method remains accessible, and
+streams zero values.
 
 ## Consumer
 
