@@ -1,0 +1,97 @@
+# License: MIT
+# Copyright © 2025 Frequenz Energy-as-a-Service GmbH
+
+"""Function implementations for evaluating formulas."""
+
+from __future__ import annotations
+
+import abc
+from collections.abc import Iterable
+
+from typing_extensions import override
+
+
+class Function(abc.ABC):
+    """A function that can be called in a formula expression."""
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """Return the name of the function."""
+
+    @abc.abstractmethod
+    def __call__(self, args: Iterable[float | None]) -> float | None:
+        """Call the function with the given arguments."""
+
+    @classmethod
+    def from_string(cls, name: str) -> Function:
+        """Create a function instance from its name."""
+        match name.upper():
+            case "COALESCE":
+                return Coalesce()
+            case "MAX":
+                return Max()
+            case "MIN":
+                return Min()
+            case _:
+                raise ValueError(f"Unknown function name: {name}")
+
+
+class Coalesce(Function):
+    """A function that returns the first non-None argument."""
+
+    @property
+    @override
+    def name(self) -> str:
+        """Return the name of the function."""
+        return "COALESCE"
+
+    @override
+    def __call__(self, args: Iterable[float | None]) -> float | None:
+        """Return the first non-None argument."""
+        for arg in args:
+            if arg is not None:
+                return arg
+        return None
+
+
+class Max(Function):
+    """A function that returns the maximum of the arguments."""
+
+    @property
+    @override
+    def name(self) -> str:
+        """Return the name of the function."""
+        return "MAX"
+
+    @override
+    def __call__(self, args: Iterable[float | None]) -> float | None:
+        """Return the maximum of the arguments."""
+        max_value: float | None = None
+        for arg in args:
+            if arg is None:
+                return None
+            if max_value is None or arg > max_value:
+                max_value = arg
+        return max_value
+
+
+class Min(Function):
+    """A function that returns the minimum of the arguments."""
+
+    @property
+    @override
+    def name(self) -> str:
+        """Return the name of the function."""
+        return "MIN"
+
+    @override
+    def __call__(self, args: Iterable[float | None]) -> float | None:
+        """Return the minimum of the arguments."""
+        min_value: float | None = None
+        for arg in args:
+            if arg is None:
+                return None
+            if min_value is None or arg < min_value:
+                min_value = arg
+        return min_value
