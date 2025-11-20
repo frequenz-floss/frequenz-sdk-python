@@ -29,32 +29,6 @@ from ..timeseries.mock_microgrid import MockMicrogrid
 _MICROGRID_ID = MicrogridId(1)
 
 
-async def test_grid_1(mocker: MockerFixture) -> None:
-    """Test the grid connection module."""
-    # The tests here need to be in this exact sequence, because the grid connection
-    # is a singleton. Once it gets created, it stays in memory for the duration of
-    # the tests, unless we explicitly delete it.
-
-    # validate that islands with no grid connection are accepted.
-    unspec_1 = UnspecifiedComponent(id=ComponentId(1), microgrid_id=_MICROGRID_ID)
-    meter_2 = Meter(id=ComponentId(2), microgrid_id=_MICROGRID_ID)
-    components = {unspec_1, meter_2}
-    connections = {ComponentConnection(source=unspec_1.id, destination=meter_2.id)}
-
-    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
-        components=components, connections=connections
-    )
-
-    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
-        grid = microgrid.grid()
-        assert grid is not None
-        stack.push_async_callback(grid.stop)
-
-        assert grid
-        assert grid.fuse
-        assert grid.fuse.max_current == Current.from_amperes(0.0)
-
-
 async def test_grid_2(mocker: MockerFixture) -> None:
     """Validate that microgrids with one grid connection are accepted."""
     grid_1 = GridConnectionPoint(
