@@ -52,7 +52,7 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
 
             await mockgrid.mock_resampler.send_meter_power([-1.0, -2.0])
             await mockgrid.mock_resampler.send_pv_inverter_power([-10.0, -20.0])
-            assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
+            assert (await pv_power_receiver.receive()).value == Power.from_watts(-30.0)
 
     async def test_pv_power_no_meter(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""

@@ -516,15 +516,15 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
         # send meter power [grid_meter, battery1_meter, battery2_meter]
         await mockgrid.mock_resampler.send_meter_power([100.0, 2.0, 3.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(5.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(50.0)
 
         await mockgrid.mock_resampler.send_meter_power([100.0, -2.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-7.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-70.0)
 
         await mockgrid.mock_resampler.send_meter_power([100.0, 2.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-3.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-30.0)
 
 
 async def test_battery_pool_power_two_inverters_per_battery(
@@ -546,17 +546,17 @@ async def test_battery_pool_power_two_inverters_per_battery(
 
         # send meter power [grid_meter, battery1_meter]
         # Fallback formula - use only meter power, inverter and batteries are not used.
-        await mockgrid.mock_resampler.send_meter_power([100.0, 3.0])
+        await mockgrid.mock_resampler.send_meter_power([100.0, 2.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(3.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(50.0)
 
         await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-5.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-70.0)
 
         await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-5.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-30.0)
 
 
 async def test_batter_pool_power_two_batteries_per_inverter(
@@ -595,15 +595,15 @@ async def test_batter_pool_power_two_batteries_per_inverter(
         # Fallback formula - use only meter power, inverter and batteries are not used.
         await mockgrid.mock_resampler.send_meter_power([100.0, 3.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, 30.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(103.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(50.0)
 
         await mockgrid.mock_resampler.send_meter_power([100.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([-20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(95.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-70.0)
 
         await mockgrid.mock_resampler.send_meter_power([3.0, -5.0])
         await mockgrid.mock_resampler.send_bat_inverter_power([20.0, -50.0])
-        assert (await power_receiver.receive()).value == Power.from_watts(-2.0)
+        assert (await power_receiver.receive()).value == Power.from_watts(-30.0)
 
 
 async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
