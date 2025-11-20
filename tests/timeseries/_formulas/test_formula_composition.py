@@ -51,62 +51,71 @@ class TestFormulaComposition:
                 Metric.AC_ACTIVE_POWER,
                 Power.from_watts,
             )
-            grid_power_recv = grid.power.new_receiver()
-            battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = pv_pool.power.new_receiver()
-
             engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine.stop)
-            inv_calc_recv = engine.new_receiver()
 
-            await mockgrid.mock_resampler.send_bat_inverter_power([10.0, 12.0, 14.0])
-            await mockgrid.mock_resampler.send_meter_power(
-                [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
-            )
-            await mockgrid.mock_resampler.send_pv_inverter_power([-100.0, -200.0])
+            async with (
+                pv_pool.power as pv_power,
+                battery_pool.power as battery_power,
+                engine,
+            ):
+                grid_power_recv = grid.power.new_receiver()
+                battery_power_recv = battery_power.new_receiver()
+                pv_power_recv = pv_power.new_receiver()
 
-            grid_pow = await grid_power_recv.receive()
-            pv_pow = await pv_power_recv.receive()
-            bat_pow = await battery_power_recv.receive()
-            main_pow = await grid_meter_recv.receive()
-            inv_calc_pow = await inv_calc_recv.receive()
+                inv_calc_recv = engine.new_receiver()
 
-            assert (
-                grid_pow is not None
-                and grid_pow.value is not None
-                and math.isclose(grid_pow.value.base_value, -164.0)
-            )  # 100 + 10 + 12 + 14 + -100 + -200
-            assert (
-                bat_pow is not None
-                and bat_pow.value is not None
-                and math.isclose(bat_pow.value.base_value, 36.0)
-            )  # 10 + 12 + 14
-            assert (
-                pv_pow is not None
-                and pv_pow.value is not None
-                and math.isclose(pv_pow.value.base_value, -300.0)
-            )  # -100 + -200
-            assert (
-                inv_calc_pow is not None
-                and inv_calc_pow.value is not None
-                and math.isclose(inv_calc_pow.value.base_value, -264.0)  # -300 + 36
-            )
-            assert (
-                main_pow is not None
-                and main_pow.value is not None
-                and math.isclose(main_pow.value.base_value, 100.0)
-            )
+                await mockgrid.mock_resampler.send_bat_inverter_power(
+                    [10.0, 12.0, 14.0]
+                )
+                await mockgrid.mock_resampler.send_meter_power(
+                    [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
+                )
+                await mockgrid.mock_resampler.send_pv_inverter_power([-100.0, -200.0])
 
-            assert math.isclose(
-                inv_calc_pow.value.base_value,
-                pv_pow.value.base_value + bat_pow.value.base_value,
-            )
-            assert math.isclose(
-                grid_pow.value.base_value,
-                inv_calc_pow.value.base_value + main_pow.value.base_value,
-            )
+                grid_pow = await grid_power_recv.receive()
+                pv_pow = await pv_power_recv.receive()
+                bat_pow = await battery_power_recv.receive()
+                main_pow = await grid_meter_recv.receive()
+                inv_calc_pow = await inv_calc_recv.receive()
 
-    async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
+                assert (
+                    grid_pow is not None
+                    and grid_pow.value is not None
+                    and math.isclose(grid_pow.value.base_value, -164.0)
+                )  # 100 + 10 + 12 + 14 + -100 + -200
+                assert (
+                    bat_pow is not None
+                    and bat_pow.value is not None
+                    and math.isclose(bat_pow.value.base_value, 36.0)
+                )  # 10 + 12 + 14
+                assert (
+                    pv_pow is not None
+                    and pv_pow.value is not None
+                    and math.isclose(pv_pow.value.base_value, -300.0)
+                )  # -100 + -200
+                assert (
+                    inv_calc_pow is not None
+                    and inv_calc_pow.value is not None
+                    and math.isclose(inv_calc_pow.value.base_value, -264.0)  # -300 + 36
+                )
+                assert (
+                    main_pow is not None
+                    and main_pow.value is not None
+                    and math.isclose(main_pow.value.base_value, 100.0)
+                )
+
+                assert math.isclose(
+                    inv_calc_pow.value.base_value,
+                    pv_pow.value.base_value + bat_pow.value.base_value,
+                )
+                assert math.isclose(
+                    grid_pow.value.base_value,
+                    inv_calc_pow.value.base_value + main_pow.value.base_value,
+                )
+
+    async def test_formula_composition_missing_pv(  # pylint: disable=too-many-locals
+        self, mocker: MockerFixture
+    ) -> None:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
         mockgrid.add_batteries(3)
@@ -122,29 +131,37 @@ class TestFormulaComposition:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
-            battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = pv_pool.power.new_receiver()
             engine = (pv_pool.power + battery_pool.power).build("inv_power")
             stack.push_async_callback(engine.stop)
 
-            inv_calc_recv = engine.new_receiver()
+            async with (
+                engine,
+                battery_pool.power as battery_power,
+                pv_pool.power as pv_power,
+            ):
+                inv_calc_recv = engine.new_receiver()
+                battery_power_recv = battery_power.new_receiver()
+                pv_power_recv = pv_power.new_receiver()
 
-            for _ in range(10):
-                await mockgrid.mock_resampler.send_meter_power(
-                    [10.0 + count, 12.0 + count, 14.0 + count]
-                )
-                await mockgrid.mock_resampler.send_non_existing_component_value()
+                for _ in range(10):
+                    await mockgrid.mock_resampler.send_meter_power(
+                        [10.0 + count, 12.0 + count, 14.0 + count]
+                    )
+                    await mockgrid.mock_resampler.send_bat_inverter_power(
+                        [10.0 + count, 12.0 + count, 14.0 + count]
+                    )
+                    await mockgrid.mock_resampler.send_non_existing_component_value()
 
-                bat_pow = await battery_power_recv.receive()
-                pv_pow = await pv_power_recv.receive()
-                inv_pow = await inv_calc_recv.receive()
+                    bat_pow = await battery_power_recv.receive()
+                    pv_pow = await pv_power_recv.receive()
+                    inv_pow = await inv_calc_recv.receive()
 
-                assert inv_pow == bat_pow
-                assert (
-                    pv_pow.timestamp == inv_pow.timestamp
-                    and pv_pow.value == Power.from_watts(0.0)
-                )
-                count += 1
+                    assert inv_pow == bat_pow
+                    assert (
+                        pv_pow.timestamp == inv_pow.timestamp
+                        and pv_pow.value == Power.from_watts(0.0)
+                    )
+                    count += 1
 
         assert count == 10
 
@@ -201,15 +218,20 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            engine_min = grid.power.min(logical_meter.chp_power).build("grid_power_min")
+            engine_min = grid.power.min([logical_meter.chp_power]).build(
+                "grid_power_min"
+            )
             stack.push_async_callback(engine_min.stop)
             engine_min_rx = engine_min.new_receiver()
 
-            engine_max = grid.power.max(logical_meter.chp_power).build("grid_power_max")
+            engine_max = grid.power.max([logical_meter.chp_power]).build(
+                "grid_power_max"
+            )
             stack.push_async_callback(engine_max.stop)
             engine_max_rx = engine_max.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
             min_pow = await engine_min_rx.receive()
@@ -228,6 +250,7 @@ class TestFormulaComposition:
             )
 
             await mockgrid.mock_resampler.send_meter_power([-100.0, -200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
             min_pow = await engine_min_rx.receive()
@@ -259,11 +282,11 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            engine_min = grid.power.min(Power.zero()).build("grid_power_min")
+            engine_min = grid.power.min([Power.zero()]).build("grid_power_min")
             stack.push_async_callback(engine_min.stop)
             engine_min_rx = engine_min.new_receiver()
 
-            engine_max = grid.power.max(Power.zero()).build("grid_power_max")
+            engine_max = grid.power.max([Power.zero()]).build("grid_power_max")
             stack.push_async_callback(engine_max.stop)
             engine_max_rx = engine_max.new_receiver()
 
@@ -387,7 +410,7 @@ class TestFormulaComposition:
                 await engine_assert.new_receiver().receive()
 
             # Test addition with a float
-            with pytest.raises(RuntimeError):
+            with pytest.raises(AttributeError):
                 engine_assert = (grid.power + 2.0).build(  # type: ignore
                     "grid_power_multiplication"
                 )
@@ -423,6 +446,13 @@ class TestFormulaComposition:
 
             for _ in range(10):
                 await mockgrid.mock_resampler.send_meter_current(
+                    [
+                        [10.0, 12.0, 14.0],
+                        [10.0, 12.0, 14.0],
+                        [10.0, 12.0, 14.0],
+                    ]
+                )
+                await mockgrid.mock_resampler.send_bat_inverter_current(
                     [
                         [10.0, 12.0, 14.0],
                         [10.0, 12.0, 14.0],

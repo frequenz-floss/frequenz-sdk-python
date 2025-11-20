@@ -9,10 +9,10 @@ from frequenz.channels import Sender
 from frequenz.quantities import Power
 
 from .._internal._channels import ChannelRegistry
+from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
-from .formula_engine import FormulaEngine
-from .formula_engine._formula_engine_pool import FormulaEnginePool
-from .formula_engine._formula_generators import ConsumerPowerFormula
+from .formulas._formula import Formula
+from .formulas._formula_pool import FormulaPool
 
 
 class Consumer:
@@ -52,7 +52,7 @@ class Consumer:
         ```
     """
 
-    _formula_pool: FormulaEnginePool
+    _formula_pool: FormulaPool
     """The formula engine pool to generate consumer metrics."""
 
     def __init__(
@@ -67,14 +67,14 @@ class Consumer:
             resampler_subscription_sender: The sender to use for resampler subscriptions.
         """
         namespace = f"consumer-{uuid.uuid4()}"
-        self._formula_pool = FormulaEnginePool(
+        self._formula_pool = FormulaPool(
             namespace,
             channel_registry,
             resampler_subscription_sender,
         )
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the consumer power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -88,12 +88,10 @@ class Consumer:
         Returns:
             A FormulaEngine that will calculate and stream consumer power.
         """
-        engine = self._formula_pool.from_power_formula_generator(
+        return self._formula_pool.from_power_formula(
             "consumer_power",
-            ConsumerPowerFormula,
+            connection_manager.get().component_graph.consumer_formula(),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     async def stop(self) -> None:
         """Stop all formula engines."""

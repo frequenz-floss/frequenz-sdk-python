@@ -27,7 +27,7 @@ from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
 class TestFormula3Phase:
     """Tests for 3-phase formulas."""
 
-    async def run_test(
+    async def run_test(  # pylint: disable=too-many-locals
         self,
         io_pairs: list[
             tuple[

@@ -14,21 +14,15 @@ from dataclasses import dataclass
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid.component import GridConnectionPoint
-from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, ReactivePower
 
 from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
 from ._fuse import Fuse
-from .formula_engine import FormulaEngine, FormulaEngine3Phase
-from .formula_engine._formula_engine_pool import FormulaEnginePool
-from .formula_engine._formula_generators import (
-    GridCurrentFormula,
-    GridPower3PhaseFormula,
-    GridPowerFormula,
-    GridReactivePowerFormula,
-)
+from .formulas._formula import Formula
+from .formulas._formula_3_phase import Formula3Phase
+from .formulas._formula_pool import FormulaPool
 
 _logger = logging.getLogger(__name__)
 
@@ -72,11 +66,11 @@ class Grid:
     lacks information about the fuse.
     """
 
-    _formula_pool: FormulaEnginePool
+    _formula_pool: FormulaPool
     """The formula engine pool to generate grid metrics."""
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the grid power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -90,15 +84,13 @@ class Grid:
         Returns:
             A FormulaEngine that will calculate and stream grid power.
         """
-        engine = self._formula_pool.from_power_formula_generator(
+        return self._formula_pool.from_power_formula(
             "grid_power",
-            GridPowerFormula,
+            connection_manager.get().component_graph.grid_formula(),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     @property
-    def reactive_power(self) -> FormulaEngine[ReactivePower]:
+    def reactive_power(self) -> Formula[ReactivePower]:
         """Fetch the grid reactive power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -112,15 +104,13 @@ class Grid:
         Returns:
             A FormulaEngine that will calculate and stream grid reactive power.
         """
-        engine = self._formula_pool.from_reactive_power_formula_generator(
-            f"grid-{Metric.AC_REACTIVE_POWER.value}",
-            GridReactivePowerFormula,
+        return self._formula_pool.from_reactive_power_formula(
+            "grid_reactive_power",
+            connection_manager.get().component_graph.grid_formula(),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     @property
-    def _power_per_phase(self) -> FormulaEngine3Phase[Power]:
+    def _power_per_phase(self) -> Formula3Phase[Power]:
         """Fetch the per-phase grid power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -131,14 +121,13 @@ class Grid:
         Returns:
             A FormulaEngine that will calculate and stream grid 3-phase power.
         """
-        engine = self._formula_pool.from_power_3_phase_formula_generator(
-            "grid_power_3_phase", GridPower3PhaseFormula
+        return self._formula_pool.from_power_3_phase_formula(
+            "grid_power_3_phase",
+            connection_manager.get().component_graph.grid_formula(),
         )
-        assert isinstance(engine, FormulaEngine3Phase)
-        return engine
 
     @property
-    def current_per_phase(self) -> FormulaEngine3Phase[Current]:
+    def current_per_phase(self) -> Formula3Phase[Current]:
         """Fetch the per-phase grid current for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -152,12 +141,10 @@ class Grid:
         Returns:
             A FormulaEngine that will calculate and stream grid current.
         """
-        engine = self._formula_pool.from_3_phase_current_formula_generator(
+        return self._formula_pool.from_current_3_phase_formula(
             "grid_current",
-            GridCurrentFormula,
+            connection_manager.get().component_graph.grid_formula(),
         )
-        assert isinstance(engine, FormulaEngine3Phase)
-        return engine
 
     async def stop(self) -> None:
         """Stop all formula engines."""
@@ -215,7 +202,7 @@ def initialize(
             )
 
     namespace = f"grid-{uuid.uuid4()}"
-    formula_pool = FormulaEnginePool(
+    formula_pool = FormulaPool(
         namespace,
         channel_registry,
         resampler_subscription_sender,

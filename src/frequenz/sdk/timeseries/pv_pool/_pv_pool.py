@@ -10,12 +10,13 @@ from collections import abc
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
+from frequenz.sdk.microgrid import connection_manager
+
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
-from ..formula_engine import FormulaEngine
-from ..formula_engine._formula_generators import FormulaGeneratorConfig, PVPowerFormula
+from ..formulas._formula import Formula
 from ._pv_pool_reference_store import PVPoolReferenceStore
 from ._result_types import PVPoolReport
 
@@ -108,7 +109,7 @@ class PVPool:
         return self._pool_ref_store.component_ids
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the total power for the PV Inverters in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -123,14 +124,12 @@ class PVPool:
             A FormulaEngine that will calculate and stream the total power of all PV
                 Inverters.
         """
-        engine = self._pool_ref_store.formula_pool.from_power_formula_generator(
+        engine = self._pool_ref_store.formula_pool.from_power_formula(
             "pv_power",
-            PVPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._pool_ref_store.component_ids,
+            connection_manager.get().component_graph.pv_formula(
+                self._pool_ref_store.component_ids
             ),
         )
-        assert isinstance(engine, FormulaEngine)
         return engine
 
     @property

@@ -17,14 +17,10 @@ from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...microgrid import _power_distributing, _power_managing
+from ...microgrid import _power_distributing, _power_managing, connection_manager
 from ...timeseries import Sample
 from .._base_types import SystemBounds
-from ..formula_engine import FormulaEngine
-from ..formula_engine._formula_generators import (
-    BatteryPowerFormula,
-    FormulaGeneratorConfig,
-)
+from ..formulas._formula import Formula
 from ._battery_pool_reference_store import BatteryPoolReferenceStore
 from ._methods import SendOnUpdate
 from ._metric_calculator import (
@@ -195,7 +191,7 @@ class BatteryPool:
         return self._pool_ref_store._batteries
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the total power of the batteries in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
@@ -210,15 +206,12 @@ class BatteryPool:
             A FormulaEngine that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        engine = self._pool_ref_store._formula_pool.from_power_formula_generator(
+        engine = self._pool_ref_store._formula_pool.from_power_formula(
             "battery_pool_power",
-            BatteryPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._pool_ref_store._batteries,
-                allow_fallback=True,
+            connection_manager.get().component_graph.battery_formula(
+                self._pool_ref_store._batteries
             ),
         )
-        assert isinstance(engine, FormulaEngine)
         return engine
 
     @property

@@ -21,7 +21,16 @@ import pytest
 import time_machine
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import Battery, Component, ComponentCategory
+from frequenz.client.microgrid.component import (
+    Battery,
+    Component,
+    ComponentCategory,
+    InverterType,
+)
+from frequenz.microgrid_component_graph import (
+    FormulaGenerationError,
+    InvalidGraphError,
+)
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 from pytest_mock import MockerFixture
 
@@ -37,9 +46,6 @@ from frequenz.sdk.microgrid._power_distributing._component_managers._battery_man
 from frequenz.sdk.timeseries import Bounds, ResamplerConfig2, Sample
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
-from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
-    FormulaGenerationError,
-)
 from tests.utils.graph_generator import GraphGenerator
 
 from ...timeseries.mock_microgrid import MockMicrogrid
@@ -75,7 +81,7 @@ def get_components(
     return {
         component.id
         for component in mock_microgrid.component_graph.components(
-            matching_types=component_type
+            matching_types=[component_type]
         )
     }
 
@@ -696,11 +702,15 @@ async def test_battery_power_fallback_formula(
 
 async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
     """Test power method with no batteries."""
+    graph_gen = GraphGenerator()
     mockgrid = MockMicrogrid(
-        graph=GraphGenerator().to_graph(
+        graph=graph_gen.to_graph(
             (
                 ComponentCategory.METER,
-                [ComponentCategory.INVERTER, ComponentCategory.INVERTER],
+                [
+                    graph_gen.component(ComponentCategory.INVERTER, InverterType.SOLAR),
+                    graph_gen.component(ComponentCategory.INVERTER, InverterType.SOLAR),
+                ],
             )
         )
     )
@@ -714,15 +724,13 @@ async def test_batter_pool_power_no_batteries(mocker: MockerFixture) -> None:
 
 async def test_battery_pool_power_with_no_inverters(mocker: MockerFixture) -> None:
     """Test power method with no inverters."""
-    mockgrid = MockMicrogrid(
-        graph=GraphGenerator().to_graph(
-            (ComponentCategory.METER, ComponentCategory.BATTERY)
+    with pytest.raises(InvalidGraphError):
+        mockgrid = MockMicrogrid(
+            graph=GraphGenerator().to_graph(
+                (ComponentCategory.METER, ComponentCategory.BATTERY)
+            )
         )
-    )
-    await mockgrid.start(mocker)
-
-    with pytest.raises(RuntimeError):
-        microgrid.new_battery_pool(priority=5)
+        await mockgrid.start(mocker)
 
 
 async def test_battery_pool_power_incomplete_bat_request(mocker: MockerFixture) -> None:

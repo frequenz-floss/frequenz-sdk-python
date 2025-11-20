@@ -23,7 +23,7 @@ from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Fuse
 from tests.utils.graph_generator import GraphGenerator
 
-from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream
+from ..timeseries._formulas.utils import equal_float_lists, get_resampled_stream
 from ..timeseries.mock_microgrid import MockMicrogrid
 
 _MICROGRID_ID = MicrogridId(1)
