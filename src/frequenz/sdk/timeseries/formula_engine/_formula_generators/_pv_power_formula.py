@@ -9,6 +9,7 @@ from frequenz.client.microgrid.component import Component, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
+from ...._internal._graph_traversal import dfs, is_pv_chain
 from ....microgrid import connection_manager
 from .._formula_engine import FormulaEngine
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
@@ -48,10 +49,11 @@ class PVPowerFormula(FormulaGenerator[Power]):
         if component_ids:
             pv_components = component_graph.components(set(component_ids))
         else:
-            pv_components = component_graph.dfs(
+            pv_components = dfs(
+                component_graph,
                 self._get_grid_component(),
                 set(),
-                component_graph.is_pv_chain,
+                lambda c: is_pv_chain(component_graph, c),
             )
 
         if not pv_components:

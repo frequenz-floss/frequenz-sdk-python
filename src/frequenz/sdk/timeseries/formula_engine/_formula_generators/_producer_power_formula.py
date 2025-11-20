@@ -10,6 +10,7 @@ from frequenz.client.microgrid.component import Component, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
+from ...._internal._graph_traversal import dfs, is_chp_chain, is_pv_chain
 from ....microgrid import connection_manager
 from .._formula_engine import FormulaEngine
 from ._fallback_formula_metric_fetcher import FallbackFormulaMetricFetcher
@@ -52,11 +53,12 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
 
         component_graph = connection_manager.get().component_graph
         # if in the future we support additional producers, we need to add them to the lambda
-        producer_components = component_graph.dfs(
+        producer_components = dfs(
+            component_graph,
             self._get_grid_component(),
             set(),
-            lambda component: component_graph.is_pv_chain(component)
-            or component_graph.is_chp_chain(component),
+            lambda component: is_pv_chain(component_graph, component)
+            or is_chp_chain(component_graph, component),
         )
 
         if not producer_components:

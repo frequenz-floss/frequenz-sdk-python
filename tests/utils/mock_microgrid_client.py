@@ -17,12 +17,11 @@ from frequenz.client.microgrid.component import (
     ComponentDataSamples,
 )
 from frequenz.client.microgrid.metrics import Metric
+from frequenz.microgrid_component_graph import (
+    ComponentGraph,
+)
 from pytest_mock import MockerFixture
 
-from frequenz.sdk.microgrid.component_graph import (
-    ComponentGraph,
-    _MicrogridComponentGraph,
-)
 from frequenz.sdk.microgrid.connection_manager import ConnectionManager
 
 
@@ -60,7 +59,9 @@ class MockMicrogridClient:
             microgrid_id: the ID of the microgrid
             location: the location of the microgrid
         """
-        self._component_graph = _MicrogridComponentGraph(components, connections)
+        self._component_graph: ComponentGraph[
+            Component, ComponentConnection, ComponentId
+        ] = ComponentGraph(components, connections)
         self._components = components
         self._connections = connections
         self._component_data_channels: dict[
@@ -102,7 +103,9 @@ class MockMicrogridClient:
         return self._mock_microgrid
 
     @property
-    def component_graph(self) -> ComponentGraph:
+    def component_graph(
+        self,
+    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
         """Return microgrid component graph.
 
         Component graph is not mocked.

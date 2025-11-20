@@ -5,20 +5,20 @@
 
 from contextlib import AsyncExitStack
 
+import frequenz.microgrid_component_graph as gr
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
+    Component,
     ComponentCategory,
     ComponentConnection,
     GridConnectionPoint,
     Meter,
-    UnspecifiedComponent,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 
-import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Fuse
 from tests.utils.graph_generator import GraphGenerator
@@ -38,7 +38,9 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     components = {grid_1, meter_2}
     connections = {ComponentConnection(source=grid_1.id, destination=meter_2.id)}
 
-    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
+    graph = gr.ComponentGraph[
+        Component, ComponentConnection, ComponentId
+    ](  # pylint: disable=protected-access
         components=components, connections=connections
     )
 

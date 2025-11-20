@@ -18,6 +18,12 @@ from frequenz.client.microgrid.component import Component, GridConnectionPoint, 
 from frequenz.client.microgrid.metrics import Metric
 
 from ...._internal._channels import ChannelRegistry
+from ...._internal._graph_traversal import (
+    is_battery_inverter,
+    is_chp,
+    is_ev_charger,
+    is_pv_inverter,
+)
 from ....microgrid import connection_manager
 from ....microgrid._data_sourcing import ComponentMetricRequest
 from ..._base_types import QuantityT
@@ -138,7 +144,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
 
-        return grid_successors
+        return set(grid_successors)
 
     @abstractmethod
     def generate(
@@ -183,7 +189,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             if isinstance(component, Meter):
                 fallbacks[component] = self._get_meter_fallback_components(component)
             else:
-                predecessors = graph.predecessors(component.id)
+                predecessors = set(graph.predecessors(component.id))
                 if len(predecessors) == 1:
                     predecessor = predecessors.pop()
                     if self._is_primary_fallback_pair(predecessor, component):
@@ -213,11 +219,11 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
 
         # All fallbacks has to be of the same type and category.
         if (
-            all(graph.is_pv_inverter(c) for c in successors)
-            or all(graph.is_battery_inverter(c) for c in successors)
-            or all(graph.is_ev_charger(c) for c in successors)
+            all(is_pv_inverter(c) for c in successors)
+            or all(is_battery_inverter(c) for c in successors)
+            or all(is_ev_charger(c) for c in successors)
         ):
-            return successors
+            return set(successors)
         return set()
 
     def _is_primary_fallback_pair(
@@ -246,9 +252,9 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
 
         # fmt: off
         return (
-            graph.is_pv_inverter(fallback) and graph.is_pv_meter(primary)
-            or graph.is_chp(fallback) and graph.is_chp_meter(primary)
-            or graph.is_ev_charger(fallback) and graph.is_ev_charger_meter(primary)
-            or graph.is_battery_inverter(fallback) and graph.is_battery_meter(primary)
+            is_pv_inverter(fallback) and graph.is_pv_meter(primary.id)
+            or is_chp(fallback) and graph.is_chp_meter(primary.id)
+            or is_ev_charger(fallback) and graph.is_ev_charger_meter(primary.id)
+            or is_battery_inverter(fallback) and graph.is_battery_meter(primary.id)
         )
         # fmt: on

@@ -9,6 +9,13 @@ from frequenz.client.microgrid.component import Component, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
+from ...._internal._graph_traversal import (
+    dfs,
+    is_battery_chain,
+    is_chp_chain,
+    is_ev_charger_chain,
+    is_pv_chain,
+)
 from ....microgrid import connection_manager
 from .._formula_engine import FormulaEngine
 from .._resampled_formula_builder import ResampledFormulaBuilder
@@ -43,10 +50,10 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
         component_graph = connection_manager.get().component_graph
         return all(
             isinstance(successor, Meter)
-            and not component_graph.is_battery_chain(successor)
-            and not component_graph.is_chp_chain(successor)
-            and not component_graph.is_pv_chain(successor)
-            and not component_graph.is_ev_charger_chain(successor)
+            and not is_battery_chain(component_graph, successor)
+            and not is_chp_chain(component_graph, successor)
+            and not is_pv_chain(component_graph, successor)
+            and not is_ev_charger_chain(component_graph, successor)
             for successor in grid_successors
         )
 
@@ -107,17 +114,17 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             # If the component graph supports additional types of grid successors in the
             # future, additional checks need to be added here.
             return (
-                component_graph.is_battery_chain(component)
-                or component_graph.is_chp_chain(component)
-                or component_graph.is_pv_chain(component)
-                or component_graph.is_ev_charger_chain(component)
+                is_battery_chain(component_graph, component)
+                or is_chp_chain(component_graph, component)
+                or is_pv_chain(component_graph, component)
+                or is_ev_charger_chain(component_graph, component)
             )
 
         # join all non consumer components reachable from the different grid meters
         non_consumer_components: set[Component] = set()
         for grid_meter in grid_meters:
             non_consumer_components = non_consumer_components.union(
-                component_graph.dfs(grid_meter, set(), non_consumer_component)
+                dfs(component_graph, grid_meter, set(), non_consumer_component)
             )
 
         # push all grid meters
@@ -180,14 +187,14 @@ class ConsumerPowerFormula(FormulaGenerator[Power]):
             # future, additional checks need to be added here.
             return (
                 isinstance(component, (Meter, Inverter))
-                and not component_graph.is_battery_chain(component)
-                and not component_graph.is_chp_chain(component)
-                and not component_graph.is_pv_chain(component)
-                and not component_graph.is_ev_charger_chain(component)
+                and not is_battery_chain(component_graph, component)
+                and not is_chp_chain(component_graph, component)
+                and not is_pv_chain(component_graph, component)
+                and not is_ev_charger_chain(component_graph, component)
             )
 
         component_graph = connection_manager.get().component_graph
-        consumer_components = component_graph.dfs(grid, set(), consumer_component)
+        consumer_components = dfs(component_graph, grid, set(), consumer_component)
 
         if not consumer_components:
             _logger.warning(
