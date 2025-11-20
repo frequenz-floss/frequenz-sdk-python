@@ -53,7 +53,7 @@ class Producer:
     """
 
     _formula_pool: FormulaPool
-    """The formula engine pool to generate producer metrics."""
+    """The formula pool to generate producer metrics."""
 
     def __init__(
         self,
@@ -79,14 +79,14 @@ class Producer:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        It will start the formula engine to calculate producer power if it is
-        not already running.
+        It will start the formula to calculate producer power if it is not
+        already running.
 
-        A receiver from the formula engine can be created using the
-        `new_receiver` method.
+        A receiver from the formula can be created using the `new_receiver`
+        method.
 
         Returns:
-            A FormulaEngine that will calculate and stream producer power.
+            A Formula that will calculate and stream producer power.
         """
         return self._formula_pool.from_power_formula(
             "producer_power",
@@ -94,5 +94,5 @@ class Producer:
         )
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()

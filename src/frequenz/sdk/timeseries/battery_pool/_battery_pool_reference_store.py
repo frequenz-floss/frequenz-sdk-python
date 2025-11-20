@@ -29,7 +29,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
     """A class for maintaining the shared state/tasks for a set of pool of batteries.
 
     This includes ownership of
-    - the formula engine pool and metric calculators.
+    - the formula pool and metric calculators.
     - the tasks for updating the battery status for the metric calculators.
 
     These are independent of the priority of the actors and can be shared between

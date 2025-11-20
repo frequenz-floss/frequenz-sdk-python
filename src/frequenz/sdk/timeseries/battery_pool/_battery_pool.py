@@ -4,8 +4,8 @@
 """An external interface for the BatteryPool.
 
 Allows for actors interested in operating on the same set of batteries to share
-underlying formula engine and metric calculator instances, but without having to specify
-their individual priorities with each request.
+underlying formula and metric calculator instances, but without having to
+specify their individual priorities with each request.
 """
 
 import asyncio
@@ -196,23 +196,22 @@ class BatteryPool:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate this metric is not already running, it will be
+        If a formula to calculate this metric is not already running, it will be
         started.
 
-        A receiver from the formula engine can be obtained by calling the `new_receiver`
+        A receiver from the formula can be obtained by calling the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all
+            A Formula that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        engine = self._pool_ref_store._formula_pool.from_power_formula(
+        return self._pool_ref_store._formula_pool.from_power_formula(
             "battery_pool_power",
             connection_manager.get().component_graph.battery_formula(
                 self._pool_ref_store._batteries
             ),
         )
-        return engine
 
     @property
     def soc(self) -> ReceiverFetcher[Sample[Percentage]]:

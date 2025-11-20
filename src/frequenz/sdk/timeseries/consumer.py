@@ -53,7 +53,7 @@ class Consumer:
     """
 
     _formula_pool: FormulaPool
-    """The formula engine pool to generate consumer metrics."""
+    """The formula pool to generate consumer metrics."""
 
     def __init__(
         self,
@@ -79,14 +79,14 @@ class Consumer:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        It will start the formula engine to calculate consumer power if it is
+        It will start the formula to calculate consumer power if it is
         not already running.
 
-        A receiver from the formula engine can be created using the
+        A receiver from the formula can be created using the
         `new_receiver` method.
 
         Returns:
-            A FormulaEngine that will calculate and stream consumer power.
+            A Formula that will calculate and stream consumer power.
         """
         return self._formula_pool.from_power_formula(
             "consumer_power",
@@ -94,5 +94,5 @@ class Consumer:
         )
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()

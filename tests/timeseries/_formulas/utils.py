@@ -1,7 +1,7 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""Utils for testing formula engines."""
+"""Utils for testing formulas."""
 
 
 from collections.abc import Callable

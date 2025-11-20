@@ -67,7 +67,7 @@ class Grid:
     """
 
     _formula_pool: FormulaPool
-    """The formula engine pool to generate grid metrics."""
+    """The formula pool to generate grid metrics."""
 
     @property
     def power(self) -> Formula[Power]:
@@ -75,14 +75,14 @@ class Grid:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate grid power is not already running, it will be
+        If a formula to calculate grid power is not already running, it will be
         started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream grid power.
+            A Formula that will calculate and stream grid power.
         """
         return self._formula_pool.from_power_formula(
             "grid_power",
@@ -95,14 +95,14 @@ class Grid:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate grid power is not already running, it will be
+        If a formula to calculate grid power is not already running, it will be
         started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream grid reactive power.
+            A Formula that will calculate and stream grid reactive power.
         """
         return self._formula_pool.from_reactive_power_formula(
             "grid_reactive_power",
@@ -115,11 +115,11 @@ class Grid:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        A receiver from the formula engine can be created using the
+        A receiver from the formula can be created using the
         `new_receiver`method.
 
         Returns:
-            A FormulaEngine that will calculate and stream grid 3-phase power.
+            A Formula that will calculate and stream grid 3-phase power.
         """
         return self._formula_pool.from_power_3_phase_formula(
             "grid_power_3_phase",
@@ -132,14 +132,14 @@ class Grid:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate grid current is not already running, it will be
-        started.
+        If a formula to calculate grid current is not already running, it will
+        be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream grid current.
+            A Formula that will calculate and stream grid current.
         """
         return self._formula_pool.from_current_3_phase_formula(
             "grid_current",
@@ -147,7 +147,7 @@ class Grid:
         )
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()
 
 

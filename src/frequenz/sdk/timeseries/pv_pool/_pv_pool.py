@@ -114,23 +114,22 @@ class PVPool:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate PV Inverter power is not already running, it
+        If a formula to calculate PV Inverter power is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all PV
+            A Formula that will calculate and stream the total power of all PV
                 Inverters.
         """
-        engine = self._pool_ref_store.formula_pool.from_power_formula(
+        return self._pool_ref_store.formula_pool.from_power_formula(
             "pv_power",
             connection_manager.get().component_graph.pv_formula(
                 self._pool_ref_store.component_ids
             ),
         )
-        return engine
 
     @property
     def power_status(self) -> ReceiverFetcher[PVPoolReport]:

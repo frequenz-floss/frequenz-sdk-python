@@ -153,7 +153,7 @@ power values of the components.
 ## Streaming component data
 
 All pools have a `power` property, which is a
-[`FormulaEngine`][frequenz.sdk.timeseries.formula_engine.FormulaEngine] that can
+[`Formula`][frequenz.sdk.timeseries.formulas.Formula] that can
 
 - provide a stream of resampled power values, which correspond to the sum of the
 power measured from all the components in the pool together.

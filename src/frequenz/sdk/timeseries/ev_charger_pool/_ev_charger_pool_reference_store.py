@@ -25,7 +25,7 @@ class EVChargerPoolReferenceStore:
     """A class for maintaining the shared state/tasks for a set of pool of EV chargers.
 
     This includes ownership of
-    - the formula engine pool and metric calculators.
+    - the formula pool and metric calculators.
     - the tasks for calculating system bounds for the EV chargers.
 
     These are independent of the priority of the actors and can be shared between

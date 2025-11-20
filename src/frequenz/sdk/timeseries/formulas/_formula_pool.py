@@ -28,17 +28,17 @@ NON_EXISTING_COMPONENT_ID = sys.maxsize
 """The component ID for non-existent components in the components graph.
 
 The non-existing component ID is commonly used in scenarios where a formula
-engine requires a component ID but there are no available components in the
-graph to associate with it. Thus, the non-existing component ID is subscribed
-instead so that the formula engine can send `None` or `0` values at the same
-frequency as the other streams.
+requires a component ID but there are no available components in the graph to
+associate with it. Thus, the non-existing component ID is subscribed instead so
+that the formula can send `None` or `0` values at the same frequency as the
+other streams.
 """
 
 
 class FormulaPool:
-    """Creates and owns formula engines from string formulas, or formula generators.
+    """Creates and owns formulas from string formulas.
 
-    If an engine already exists with a given name, it is reused instead.
+    If a formula already exists with a given name, it is reused instead.
     """
 
     def __init__(
@@ -62,13 +62,13 @@ class FormulaPool:
             resampler_subscription_sender
         )
 
-        self._string_engines: dict[str, Formula[Quantity]] = {}
-        self._power_engines: dict[str, Formula[Power]] = {}
-        self._reactive_power_engines: dict[str, Formula[ReactivePower]] = {}
-        self._current_engines: dict[str, Formula3Phase[Current]] = {}
+        self._string_formulas: dict[str, Formula[Quantity]] = {}
+        self.power_formulas: dict[str, Formula[Power]] = {}
+        self._reactive_power_formulas: dict[str, Formula[ReactivePower]] = {}
+        self._current_formulas: dict[str, Formula3Phase[Current]] = {}
 
-        self._power_3_phase_engines: dict[str, Formula3Phase[Power]] = {}
-        self._current_3_phase_engines: dict[str, Formula3Phase[Current]] = {}
+        self._power_3_phase_formulas: dict[str, Formula3Phase[Power]] = {}
+        self._current_3_phase_formulas: dict[str, Formula3Phase[Current]] = {}
 
     def from_string(
         self,
@@ -83,18 +83,18 @@ class FormulaPool:
                 actor.
 
         Returns:
-            A Formula engine that streams values with the formulas applied.
+            A Formula that streams values with the formulas applied.
         """
         channel_key = formula_str + str(metric.value)
-        if channel_key in self._string_engines:
-            return self._string_engines[channel_key]
+        if channel_key in self._string_formulas:
+            return self._string_formulas[channel_key]
         formula = parse(
             name=channel_key,
             formula=formula_str,
             telemetry_fetcher=self._telemetry_fetcher(metric),
             create_method=Quantity,
         )
-        self._string_engines[channel_key] = formula
+        self._string_formulas[channel_key] = formula
         return formula
 
     def from_power_formula(self, channel_key: str, formula_str: str) -> Formula[Power]:
@@ -106,10 +106,10 @@ class FormulaPool:
             formula_str: The formula string.
 
         Returns:
-            A formula engine that evaluates the given formula.
+            A formula that evaluates the given formula.
         """
-        if channel_key in self._power_engines:
-            return self._power_engines[channel_key]
+        if channel_key in self.power_formulas:
+            return self.power_formulas[channel_key]
 
         if formula_str == "0.0":
             formula_str = f"coalesce(#{NON_EXISTING_COMPONENT_ID}, 0.0)"
@@ -120,7 +120,7 @@ class FormulaPool:
             telemetry_fetcher=self._telemetry_fetcher(Metric.AC_POWER_ACTIVE),
             create_method=Power.from_watts,
         )
-        self._power_engines[channel_key] = formula
+        self.power_formulas[channel_key] = formula
 
         return formula
 
@@ -135,10 +135,10 @@ class FormulaPool:
             formula_str: The formula string.
 
         Returns:
-            A formula engine that evaluates the given formula.
+            A formula that evaluates the given formula.
         """
-        if channel_key in self._power_engines:
-            return self._reactive_power_engines[channel_key]
+        if channel_key in self.power_formulas:
+            return self._reactive_power_formulas[channel_key]
 
         if formula_str == "0.0":
             formula_str = f"coalesce(#{NON_EXISTING_COMPONENT_ID}, 0.0)"
@@ -149,7 +149,7 @@ class FormulaPool:
             telemetry_fetcher=self._telemetry_fetcher(Metric.AC_POWER_REACTIVE),
             create_method=ReactivePower.from_volt_amperes_reactive,
         )
-        self._reactive_power_engines[channel_key] = formula
+        self._reactive_power_formulas[channel_key] = formula
 
         return formula
 
@@ -164,10 +164,10 @@ class FormulaPool:
             formula_str: The formula string.
 
         Returns:
-            A formula engine that evaluates the given formula.
+            A formula that evaluates the given formula.
         """
-        if channel_key in self._power_3_phase_engines:
-            return self._power_3_phase_engines[channel_key]
+        if channel_key in self._power_3_phase_formulas:
+            return self._power_3_phase_formulas[channel_key]
 
         if formula_str == "0.0":
             formula_str = f"coalesce(#{NON_EXISTING_COMPONENT_ID}, 0.0)"
@@ -199,7 +199,7 @@ class FormulaPool:
                 create_method=Power.from_watts,
             ),
         )
-        self._power_3_phase_engines[channel_key] = formula
+        self._power_3_phase_formulas[channel_key] = formula
 
         return formula
 
@@ -214,10 +214,10 @@ class FormulaPool:
             formula_str: The formula string.
 
         Returns:
-            A formula engine that evaluates the given formula.
+            A formula that evaluates the given formula.
         """
-        if channel_key in self._current_3_phase_engines:
-            return self._current_3_phase_engines[channel_key]
+        if channel_key in self._current_3_phase_formulas:
+            return self._current_3_phase_formulas[channel_key]
 
         if formula_str == "0.0":
             formula_str = f"coalesce(#{NON_EXISTING_COMPONENT_ID}, 0.0)"
@@ -243,27 +243,27 @@ class FormulaPool:
                 create_method=Current.from_amperes,
             ),
         )
-        self._current_3_phase_engines[channel_key] = formula
+        self._current_3_phase_formulas[channel_key] = formula
 
         return formula
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
-        for pf in self._power_engines.values():
+        """Stop all formulas."""
+        for pf in self.power_formulas.values():
             await pf.stop()
-        self._power_engines.clear()
+        self.power_formulas.clear()
 
-        for rpf in self._reactive_power_engines.values():
+        for rpf in self._reactive_power_formulas.values():
             await rpf.stop()
-        self._reactive_power_engines.clear()
+        self._reactive_power_formulas.clear()
 
-        for p3pf in self._power_3_phase_engines.values():
+        for p3pf in self._power_3_phase_formulas.values():
             await p3pf.stop()
-        self._power_3_phase_engines.clear()
+        self._power_3_phase_formulas.clear()
 
-        for c3pf in self._current_3_phase_engines.values():
+        for c3pf in self._current_3_phase_formulas.values():
             await c3pf.stop()
-        self._current_3_phase_engines.clear()
+        self._current_3_phase_formulas.clear()
 
     def _telemetry_fetcher(self, metric: Metric) -> ResampledStreamFetcher:
         """Create a ResampledStreamFetcher for the given metric.

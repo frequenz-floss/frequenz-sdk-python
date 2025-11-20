@@ -94,7 +94,7 @@ class LogicalMeter:
     ) -> Formula[Quantity]:
         """Start execution of the given formula.
 
-        TODO: link to formula engine for formula syntax.
+        TODO: link to formula syntax.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
         these operators: +, -, *, /, (, ).
@@ -107,7 +107,7 @@ class LogicalMeter:
             metric: The metric to use when fetching receivers from the resampling actor.
 
         Returns:
-            A FormulaEngine that applies the formula and streams values.
+            A Formula that applies the formula and streams values.
         """
         return self._formula_pool.from_string(formula, metric)
 
@@ -117,21 +117,20 @@ class LogicalMeter:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate CHP power production is not already running, it
+        If a formula to calculate CHP power production is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream CHP power production.
+            A Formula that will calculate and stream CHP power production.
         """
-        engine = self._formula_pool.from_power_formula(
+        return self._formula_pool.from_power_formula(
             channel_key="chp_power",
             formula_str=connection_manager.get().component_graph.chp_formula(None),
         )
-        return engine
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()

@@ -119,14 +119,14 @@ class EVChargerPool:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger current is not already running, it
+        If a formula to calculate EV Charger current is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total current of all EV
+            A Formula that will calculate and stream the total current of all EV
                 Chargers.
         """
         return self._pool_ref_store.formula_pool.from_current_3_phase_formula(
@@ -142,14 +142,14 @@ class EVChargerPool:
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula to calculate EV Charger power is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all EV
+            A Formula that will calculate and stream the total power of all EV
                 Chargers.
         """
         return self._pool_ref_store.formula_pool.from_power_formula(
