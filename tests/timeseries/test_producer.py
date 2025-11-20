@@ -27,9 +27,11 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([2.0, 3.0, 4.0, 5.0])
+            await mockgrid.mock_resampler.send_meter_power([-2.0, -3.0, -4.0, -5.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([-2.0, -3.0])
+            await mockgrid.mock_resampler.send_chp_power([-4.0, -5.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                14.0
+                -14.0
             )
 
     async def test_producer_power_no_chp(self, mocker: MockerFixture) -> None:
@@ -42,9 +44,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([2.0, 3.0])
+            await mockgrid.mock_resampler.send_meter_power([-2.0, -3.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([-2.0, -3.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                5.0
+                -5.0
             )
 
     async def test_producer_power_no_pv_no_consumer_meter(
@@ -59,10 +62,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_chp_power([2.0])
+            await mockgrid.mock_resampler.send_chp_power([-2.0])
 
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                2.0
+                -2.0
             )
 
     async def test_producer_power_no_pv(self, mocker: MockerFixture) -> None:
@@ -76,9 +79,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([20.0, 2.0])
+            await mockgrid.mock_resampler.send_meter_power([20.0, -2.0])
+            await mockgrid.mock_resampler.send_chp_power([-2.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                2.0
+                -2.0
             )
 
     async def test_no_producer_power(self, mocker: MockerFixture) -> None:

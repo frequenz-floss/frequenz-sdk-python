@@ -28,6 +28,8 @@ class TestConsumer:
             consumer_power_receiver = consumer.power.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
+            await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([4.0, 5.0])
             assert (await consumer_power_receiver.receive()).value == Power.from_watts(
                 6.0
             )
@@ -45,6 +47,8 @@ class TestConsumer:
             consumer_power_receiver = consumer.power.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([20.0, 2.0, 3.0, 4.0, 5.0])
+            await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([4.0, 5.0])
             assert (await consumer_power_receiver.receive()).value == Power.from_watts(
                 20.0
             )
@@ -63,6 +67,9 @@ class TestConsumer:
             consumer_power_receiver = consumer.power.new_receiver()
 
             await mockgrid.mock_resampler.send_non_existing_component_value()
+            await mockgrid.mock_resampler.send_meter_power([2.0, 3.0, 4.0, 5.0])
+            await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([4.0, 5.0])
             assert (await consumer_power_receiver.receive()).value == Power.from_watts(
                 0.0
             )

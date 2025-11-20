@@ -33,9 +33,11 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             chp_power_receiver = logical_meter.chp_power.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([2.0, 3.0, 4.0])
+            await mockgrid.mock_resampler.send_chp_power([2.0])
             assert (await chp_power_receiver.receive()).value == Power.from_watts(2.0)
 
             await mockgrid.mock_resampler.send_meter_power([-12.0, None, 10.2])
+            await mockgrid.mock_resampler.send_chp_power([-12.0])
             assert (await chp_power_receiver.receive()).value == Power.from_watts(-12.0)
 
     async def test_pv_power(self, mocker: MockerFixture) -> None:

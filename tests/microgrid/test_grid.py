@@ -125,6 +125,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
         for count in range(10):
             await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
             await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([0.0])
             meter_sum = 0.0
             for recv in component_receivers:
                 val = await recv.receive()
@@ -220,6 +221,7 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
             await mockgrid.mock_resampler.send_meter_reactive_power(
                 [20.0 + count, 12.0, -13.0]
             )
+            await mockgrid.mock_resampler.send_pv_inverter_reactive_power([-13.0])
             await mockgrid.mock_resampler.send_bat_inverter_reactive_power([0.0, -5.0])
             meter_sum = 0.0
             for recv in component_receivers:
@@ -326,9 +328,13 @@ async def test_grid_production_consumption_power_consumer_meter(
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([-4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
 
@@ -348,9 +354,13 @@ async def test_grid_production_consumption_power_no_grid_meter(
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.5, 3.5])
+        await mockgrid.mock_resampler.send_pv_inverter_power([4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([3.0, -3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([-4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
 
