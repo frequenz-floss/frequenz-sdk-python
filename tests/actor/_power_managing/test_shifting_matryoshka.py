@@ -559,6 +559,34 @@ async def test_matryoshka_none_proposals() -> None:
     )
 
 
+async def test_out_of_bounds_proposals() -> None:
+    """Test out-of-bounds proposals for the shifting matryoshka algorithm."""
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
+
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=None,
+    )
+    tester = StatefulTester(batteries, system_bounds)
+
+    tester.bounds(priority=2, expected_power=None, expected_bounds=(-200.0, 200.0))
+
+    tester.tgt_power(priority=2, power=250.0, bounds=(250.0, None), expected=200.0)
+    tester.bounds(priority=1, expected_power=200.0, expected_bounds=(0.0, 0.0))
+
+    tester.tgt_power(priority=2, power=250.0, bounds=(250.0, 300.0), expected=200.0)
+    tester.bounds(priority=1, expected_power=200.0, expected_bounds=(0.0, 0.0))
+
+    tester.tgt_power(priority=2, power=-250.0, bounds=(-300.0, -250.0), expected=-200.0)
+    tester.bounds(priority=1, expected_power=-200.0, expected_bounds=(0.0, 0.0))
+
+    tester.tgt_power(priority=2, power=-250.0, bounds=(None, -250.0), expected=-200.0)
+    tester.bounds(priority=1, expected_power=-200.0, expected_bounds=(0.0, 0.0))
+
+
 async def test_matryoshka_shifting_limiting() -> None:
     """Tests for the power managing actor.
 
@@ -572,10 +600,10 @@ async def test_matryoshka_shifting_limiting() -> None:
     | 5     | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW   | 70 kW    | 90 kW     |
     | 4     | -170 kW .. 0 kW   | None             | -120 kW | -120 kW  | -30 kW    |
     | 3     | -50 kW .. 120 kW  | None             | 60 kW   | 60 kW    | 30 kW     |
-    | 2     | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW   | 20 kW    | 50 kW     |
-    | 1     | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW   | 10 kW    | 60 kW     |
-    | 0     | -60 kW .. 0 kW    | None             | 12 kW   | 0 kW     | 60 kW     |
-    | -1    | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW  | -10 kW   | 50 kW     |
+    | 2     | -110 kW .. 60 kW  | -40 kW .. 50 kW  | 20 kW   | 20 kW    | 50 kW     |
+    | 1     | -60 kW .. 30 kW   | -50 kW .. 40 kW  | 25 kW   | 25 kW    | 75 kW     |
+    | 0     | -75 kW .. 5 kW    | 50 kW .. None    | 50 kW   | 0 kW     | 80 kW     |
+    | -1    | 0 kW .. 0 kW      | -40 kW .. -10 kW | -10 kW  | 0 kW     | 80 kW     |
     |-------|-------------------|------------------|---------|----------|-----------|
     |       |                   |                  |         | Power    |           |
     |       |                   |                  |         | Setpoint | 50 kW     |
@@ -609,13 +637,13 @@ async def test_matryoshka_shifting_limiting() -> None:
     tester.tgt_power(priority=3, power=60.0, bounds=(None, None), expected=30.0)
     tester.bounds(priority=2, expected_power=30.0, expected_bounds=(-110.0, 60.0))
 
-    tester.tgt_power(priority=2, power=20.0, bounds=(-40.0, 30.0), expected=50.0)
-    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-60.0, 10.0))
+    tester.tgt_power(priority=2, power=20.0, bounds=(-40.0, 50.0), expected=50.0)
+    tester.bounds(priority=1, expected_power=50.0, expected_bounds=(-60.0, 30.0))
 
-    tester.tgt_power(priority=1, power=25.0, bounds=(-50.0, 40.0), expected=60.0)
-    tester.bounds(priority=0, expected_power=60.0, expected_bounds=(-60.0, 0.0))
+    tester.tgt_power(priority=1, power=25.0, bounds=(-50.0, 40.0), expected=75.0)
+    tester.bounds(priority=0, expected_power=75.0, expected_bounds=(-75.0, 5.0))
 
-    tester.tgt_power(priority=0, power=12.0, bounds=(None, None), expected=60.0)
-    tester.bounds(priority=-1, expected_power=60.0, expected_bounds=(-60.0, 0.0))
+    tester.tgt_power(priority=0, power=50.0, bounds=(50.0, None), expected=80.0)
+    tester.bounds(priority=-1, expected_power=80.0, expected_bounds=(0.0, 0.0))
 
-    tester.tgt_power(priority=-1, power=-10.0, bounds=(-40.0, -10.0), expected=50.0)
+    tester.tgt_power(priority=-1, power=-10.0, bounds=(-40.0, -10.0), expected=80.0)

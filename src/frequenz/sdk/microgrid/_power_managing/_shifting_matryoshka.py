@@ -67,7 +67,7 @@ class ShiftingMatryoshka(BaseAlgorithm):
         self._component_buckets: dict[frozenset[ComponentId], set[Proposal]] = {}
         self._target_power: dict[frozenset[ComponentId], Power] = {}
 
-    def _calc_targets(
+    def _calc_targets(  # pylint: disable=too-many-branches,too-many-statements
         self,
         component_ids: frozenset[ComponentId],
         system_bounds: SystemBounds,
@@ -122,8 +122,26 @@ class ShiftingMatryoshka(BaseAlgorithm):
             if upper_bound < lower_bound:
                 break
 
-            proposal_lower = next_proposal.bounds.lower or lower_bound
-            proposal_upper = next_proposal.bounds.upper or upper_bound
+            match (next_proposal.bounds.lower, next_proposal.bounds.upper):
+                case (None, None):
+                    proposal_lower = lower_bound
+                    proposal_upper = upper_bound
+                case (Power(), None):
+                    proposal_lower = next_proposal.bounds.lower
+                    if proposal_lower > upper_bound:
+                        proposal_upper = proposal_lower
+                    else:
+                        proposal_upper = upper_bound
+                case (None, Power()):
+                    proposal_upper = next_proposal.bounds.upper
+                    if proposal_upper < lower_bound:
+                        proposal_lower = proposal_upper
+                    else:
+                        proposal_lower = lower_bound
+                case (Power(), Power()):
+                    proposal_lower = next_proposal.bounds.lower
+                    proposal_upper = next_proposal.bounds.upper
+
             proposal_power = next_proposal.preferred_power
 
             # Make sure that if the proposal specified bounds, they make sense.
