@@ -551,3 +551,48 @@ class TestBatteryPoolControl:
                 result, _power_distributing.Success
             ),
         )
+
+    async def test_no_resend_0w(self, mocks: Mocks, mocker: MockerFixture) -> None:
+        """Test that 0W command is not resent unnecessarily."""
+        set_power = typing.cast(
+            AsyncMock, microgrid.connection_manager.get().api_client.set_power
+        )
+        await self._patch_battery_pool_status(mocks, mocker)
+        await self._init_data_for_batteries(mocks)
+        await self._init_data_for_inverters(mocks)
+
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        bounds_rx = battery_pool.power_status.new_receiver()
+
+        self._assert_report(
+            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+
+        # First send 0W command.  This should result in API calls.
+        await battery_pool.propose_power(Power.from_watts(0.0))
+
+        self._assert_report(
+            await bounds_rx.receive(), power=0.0, lower=-4000.0, upper=4000.0
+        )
+        await asyncio.sleep(1.0)  # Wait for the power to be distributed.
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]
+
+        set_power.reset_mock()
+
+        # Sending 0W again should not result in any API calls.
+        await battery_pool.propose_power(Power.from_watts(0.0))
+        await asyncio.sleep(1.0)  # Wait for the power to be distributed.
+        assert set_power.call_count == 0
+
+        set_power.reset_mock()
+
+        # Sending a different power should result in API calls.
+        await battery_pool.propose_power(Power.from_watts(100.0))
+        await asyncio.sleep(1.0)
+        assert set_power.call_count == 4
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]

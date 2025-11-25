@@ -183,6 +183,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         )
         """The distribution algorithm used to distribute power between batteries."""
 
+        self._last_set_powers: dict[ComponentId, Power] = {}
+        """The last power value set to each battery's inverter."""
+
     @override
     def component_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the set of component ids."""
@@ -266,29 +269,13 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Result from the microgrid API.
         """
         distributed_power_value = request.power - distribution.remaining_power
-        battery_distribution: dict[frozenset[ComponentId], Power] = {}
         battery_ids: set[ComponentId] = set()
-        for inverter_id, dist in distribution.distribution.items():
+        for inverter_id in distribution.distribution:
             for battery_id in self._inv_bats_map[inverter_id]:
                 battery_ids.add(battery_id)
-            battery_distribution[self._inv_bats_map[inverter_id]] = dist
-        if _logger.isEnabledFor(logging.DEBUG):
-            _logger.debug(
-                "Distributing power %s between the batteries: %s",
-                distributed_power_value,
-                ", ".join(
-                    (
-                        str(next(iter(cids)))
-                        if len(cids) == 1
-                        else f"({', '.join(str(cid) for cid in cids)})"
-                    )
-                    + f": {power}"
-                    for cids, power in battery_distribution.items()
-                ),
-            )
 
         failed_power, failed_batteries = await self._set_distributed_power(
-            distribution, self._api_power_request_timeout
+            request, distribution, self._api_power_request_timeout
         )
 
         response: Success | PartialFailure
@@ -632,12 +619,14 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     async def _set_distributed_power(
         self,
+        request: Request,
         distribution: DistributionResult,
         timeout: timedelta,
     ) -> tuple[Power, set[ComponentId]]:
         """Send distributed power to the inverters.
 
         Args:
+            request: Request to set the power for.
             distribution: Distribution result
             timeout: How long wait for the response
 
@@ -652,7 +641,33 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                 api.set_power(inverter_id, power.as_watts())
             )
             for inverter_id, power in distribution.distribution.items()
+            if power != Power.zero()
+            or self._last_set_powers.get(inverter_id) != Power.zero()
         }
+
+        if not tasks:
+            if _logger.isEnabledFor(logging.DEBUG):
+                _logger.debug("Not repeating 0W commands to batteries.")
+            return Power.zero(), set()
+
+        if _logger.isEnabledFor(logging.DEBUG):
+            battery_distribution = {
+                self._inv_bats_map[inverter_id]: distribution.distribution[inverter_id]
+                for inverter_id in tasks
+            }
+            _logger.debug(
+                "Distributing power %s between the batteries: %s",
+                request.power - distribution.remaining_power,
+                ", ".join(
+                    (
+                        str(next(iter(cids)))
+                        if len(cids) == 1
+                        else f"({', '.join(str(cid) for cid in cids)})"
+                    )
+                    + f": {power}"
+                    for cids, power in battery_distribution.items()
+                ),
+            )
 
         _, pending = await asyncio.wait(
             tasks.values(),
@@ -722,6 +737,8 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             if failed:
                 failed_power += distribution[inverter_id]
                 failed_batteries.update(battery_ids)
+            else:
+                self._last_set_powers[inverter_id] = distribution[inverter_id]
 
         return failed_power, failed_batteries
 

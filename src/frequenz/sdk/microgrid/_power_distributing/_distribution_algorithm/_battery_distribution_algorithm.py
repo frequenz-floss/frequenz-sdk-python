@@ -370,8 +370,6 @@ class BatteryDistributionAlgorithm:
             ValueError: If distributor_exponent < 0
 
         """
-        super().__init__()
-
         if distributor_exponent < 0:
             raise ValueError("Distribution factor should be float >= 0.")
         self._distributor_exponent: float = distributor_exponent
