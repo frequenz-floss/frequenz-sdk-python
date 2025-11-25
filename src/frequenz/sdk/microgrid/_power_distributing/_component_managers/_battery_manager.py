@@ -183,6 +183,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         )
         """The distribution algorithm used to distribute power between batteries."""
 
+        self._last_set_powers: dict[ComponentId, Power] = {}
+        """The last power value set to each battery's inverter."""
+
     @override
     def component_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the set of component ids."""
@@ -638,7 +641,14 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                 api.set_power(inverter_id, power.as_watts())
             )
             for inverter_id, power in distribution.distribution.items()
+            if power != Power.zero()
+            or self._last_set_powers.get(inverter_id) != Power.zero()
         }
+
+        if not tasks:
+            if _logger.isEnabledFor(logging.DEBUG):
+                _logger.debug("Not repeating 0W commands to batteries.")
+            return Power.zero(), set()
 
         if _logger.isEnabledFor(logging.DEBUG):
             battery_distribution = {
@@ -727,6 +737,8 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             if failed:
                 failed_power += distribution[inverter_id]
                 failed_batteries.update(battery_ids)
+            else:
+                self._last_set_powers[inverter_id] = distribution[inverter_id]
 
         return failed_power, failed_batteries
 
