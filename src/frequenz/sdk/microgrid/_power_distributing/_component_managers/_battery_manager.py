@@ -266,29 +266,13 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Result from the microgrid API.
         """
         distributed_power_value = request.power - distribution.remaining_power
-        battery_distribution: dict[frozenset[ComponentId], Power] = {}
         battery_ids: set[ComponentId] = set()
-        for inverter_id, dist in distribution.distribution.items():
+        for inverter_id in distribution.distribution:
             for battery_id in self._inv_bats_map[inverter_id]:
                 battery_ids.add(battery_id)
-            battery_distribution[self._inv_bats_map[inverter_id]] = dist
-        if _logger.isEnabledFor(logging.DEBUG):
-            _logger.debug(
-                "Distributing power %s between the batteries: %s",
-                distributed_power_value,
-                ", ".join(
-                    (
-                        str(next(iter(cids)))
-                        if len(cids) == 1
-                        else f"({', '.join(str(cid) for cid in cids)})"
-                    )
-                    + f": {power}"
-                    for cids, power in battery_distribution.items()
-                ),
-            )
 
         failed_power, failed_batteries = await self._set_distributed_power(
-            distribution, self._api_power_request_timeout
+            request, distribution, self._api_power_request_timeout
         )
 
         response: Success | PartialFailure
@@ -632,12 +616,14 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     async def _set_distributed_power(
         self,
+        request: Request,
         distribution: DistributionResult,
         timeout: timedelta,
     ) -> tuple[Power, set[ComponentId]]:
         """Send distributed power to the inverters.
 
         Args:
+            request: Request to set the power for.
             distribution: Distribution result
             timeout: How long wait for the response
 
@@ -653,6 +639,25 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             )
             for inverter_id, power in distribution.distribution.items()
         }
+
+        if _logger.isEnabledFor(logging.DEBUG):
+            battery_distribution = {
+                self._inv_bats_map[inverter_id]: distribution.distribution[inverter_id]
+                for inverter_id in tasks
+            }
+            _logger.debug(
+                "Distributing power %s between the batteries: %s",
+                request.power - distribution.remaining_power,
+                ", ".join(
+                    (
+                        str(next(iter(cids)))
+                        if len(cids) == 1
+                        else f"({', '.join(str(cid) for cid in cids)})"
+                    )
+                    + f": {power}"
+                    for cids, power in battery_distribution.items()
+                ),
+            )
 
         _, pending = await asyncio.wait(
             tasks.values(),
