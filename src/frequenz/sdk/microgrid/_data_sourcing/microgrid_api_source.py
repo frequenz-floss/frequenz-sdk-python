@@ -10,126 +10,115 @@ from typing import Any
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    BatteryData,
-    ComponentCategory,
-    ComponentMetricId,
-    EVChargerData,
-    InverterData,
-    MeterData,
-)
+from frequenz.client.microgrid.component import ComponentCategory
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import run_forever
 from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
+from .._old_component_data import (
+    BatteryData,
+    EVChargerData,
+    InverterData,
+    MeterData,
+    TransitionalMetric,
+)
 from ._component_metric_request import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 
-_MeterDataMethods: dict[ComponentMetricId, Callable[[MeterData], float]] = {
-    ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
-    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
-    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
-    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
-    ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
-    ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
-    ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
-    ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
-    ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
-    ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
-    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
-    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
-    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
-        0
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
-        1
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
-        2
-    ],
+_MeterDataMethods: dict[Metric | TransitionalMetric, Callable[[MeterData], float]] = {
+    Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
+    Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    Metric.AC_ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
+    Metric.AC_CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
+    Metric.AC_CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
+    Metric.AC_CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
+    Metric.AC_VOLTAGE_PHASE_1_N: lambda msg: msg.voltage_per_phase[0],
+    Metric.AC_VOLTAGE_PHASE_2_N: lambda msg: msg.voltage_per_phase[1],
+    Metric.AC_VOLTAGE_PHASE_3_N: lambda msg: msg.voltage_per_phase[2],
+    Metric.AC_FREQUENCY: lambda msg: msg.frequency,
+    Metric.AC_REACTIVE_POWER: lambda msg: msg.reactive_power,
+    Metric.AC_REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[0],
+    Metric.AC_REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[1],
+    Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
 }
 
-_BatteryDataMethods: dict[ComponentMetricId, Callable[[BatteryData], float]] = {
-    ComponentMetricId.SOC: lambda msg: msg.soc,
-    ComponentMetricId.SOC_LOWER_BOUND: lambda msg: msg.soc_lower_bound,
-    ComponentMetricId.SOC_UPPER_BOUND: lambda msg: msg.soc_upper_bound,
-    ComponentMetricId.CAPACITY: lambda msg: msg.capacity,
-    ComponentMetricId.POWER_INCLUSION_LOWER_BOUND: lambda msg: (
+_BatteryDataMethods: dict[
+    Metric | TransitionalMetric, Callable[[BatteryData], float]
+] = {
+    Metric.BATTERY_SOC_PCT: lambda msg: msg.soc,
+    TransitionalMetric.SOC_LOWER_BOUND: lambda msg: msg.soc_lower_bound,
+    TransitionalMetric.SOC_UPPER_BOUND: lambda msg: msg.soc_upper_bound,
+    Metric.BATTERY_CAPACITY: lambda msg: msg.capacity,
+    TransitionalMetric.POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.power_inclusion_lower_bound
     ),
-    ComponentMetricId.POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
+    TransitionalMetric.POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
         msg.power_exclusion_lower_bound
     ),
-    ComponentMetricId.POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
+    TransitionalMetric.POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
         msg.power_exclusion_upper_bound
     ),
-    ComponentMetricId.POWER_INCLUSION_UPPER_BOUND: lambda msg: (
+    TransitionalMetric.POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.power_inclusion_upper_bound
     ),
-    ComponentMetricId.TEMPERATURE: lambda msg: msg.temperature,
+    Metric.BATTERY_TEMPERATURE: lambda msg: msg.temperature,
 }
 
-_InverterDataMethods: dict[ComponentMetricId, Callable[[InverterData], float]] = {
-    ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
-    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
-    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
-    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
-    ComponentMetricId.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
+_InverterDataMethods: dict[
+    Metric | TransitionalMetric, Callable[[InverterData], float]
+] = {
+    Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
+    Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    Metric.AC_ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
+    TransitionalMetric.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
         msg.active_power_inclusion_lower_bound
     ),
-    ComponentMetricId.ACTIVE_POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
+    TransitionalMetric.ACTIVE_POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
         msg.active_power_exclusion_lower_bound
     ),
-    ComponentMetricId.ACTIVE_POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
+    TransitionalMetric.ACTIVE_POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_exclusion_upper_bound
     ),
-    ComponentMetricId.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
+    TransitionalMetric.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
         msg.active_power_inclusion_upper_bound
     ),
-    ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
-    ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
-    ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
-    ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
-    ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
-    ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
-    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
-    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
-    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
-        0
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
-        1
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
-        2
-    ],
+    Metric.AC_CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
+    Metric.AC_CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
+    Metric.AC_CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
+    Metric.AC_VOLTAGE_PHASE_1_N: lambda msg: msg.voltage_per_phase[0],
+    Metric.AC_VOLTAGE_PHASE_2_N: lambda msg: msg.voltage_per_phase[1],
+    Metric.AC_VOLTAGE_PHASE_3_N: lambda msg: msg.voltage_per_phase[2],
+    Metric.AC_FREQUENCY: lambda msg: msg.frequency,
+    Metric.AC_REACTIVE_POWER: lambda msg: msg.reactive_power,
+    Metric.AC_REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[0],
+    Metric.AC_REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[1],
+    Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
 }
 
-_EVChargerDataMethods: dict[ComponentMetricId, Callable[[EVChargerData], float]] = {
-    ComponentMetricId.ACTIVE_POWER: lambda msg: msg.active_power,
-    ComponentMetricId.ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
-    ComponentMetricId.ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
-    ComponentMetricId.ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
-    ComponentMetricId.CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
-    ComponentMetricId.CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
-    ComponentMetricId.CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
-    ComponentMetricId.VOLTAGE_PHASE_1: lambda msg: msg.voltage_per_phase[0],
-    ComponentMetricId.VOLTAGE_PHASE_2: lambda msg: msg.voltage_per_phase[1],
-    ComponentMetricId.VOLTAGE_PHASE_3: lambda msg: msg.voltage_per_phase[2],
-    ComponentMetricId.FREQUENCY: lambda msg: msg.frequency,
-    ComponentMetricId.REACTIVE_POWER: lambda msg: msg.reactive_power,
-    ComponentMetricId.REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[
-        0
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[
-        1
-    ],
-    ComponentMetricId.REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[
-        2
-    ],
+_EVChargerDataMethods: dict[
+    Metric | TransitionalMetric, Callable[[EVChargerData], float]
+] = {
+    Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
+    Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    Metric.AC_ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
+    Metric.AC_CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
+    Metric.AC_CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
+    Metric.AC_CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
+    Metric.AC_VOLTAGE_PHASE_1_N: lambda msg: msg.voltage_per_phase[0],
+    Metric.AC_VOLTAGE_PHASE_2_N: lambda msg: msg.voltage_per_phase[1],
+    Metric.AC_VOLTAGE_PHASE_3_N: lambda msg: msg.voltage_per_phase[2],
+    Metric.AC_FREQUENCY: lambda msg: msg.frequency,
+    Metric.AC_REACTIVE_POWER: lambda msg: msg.reactive_power,
+    Metric.AC_REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[0],
+    Metric.AC_REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[1],
+    Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
 }
 
 
@@ -149,7 +138,7 @@ class MicrogridApiSource:
             registry: A channel registry.  To be replaced by a singleton
                 instance.
         """
-        self._comp_categories_cache: dict[ComponentId, ComponentCategory] = {}
+        self._comp_categories_cache: dict[ComponentId, ComponentCategory | int] = {}
 
         self.comp_data_receivers: dict[ComponentId, Receiver[Any]] = {}
         """The dictionary of component IDs to data receivers."""
@@ -159,12 +148,12 @@ class MicrogridApiSource:
 
         self._registry = registry
         self._req_streaming_metrics: dict[
-            ComponentId, dict[ComponentMetricId, list[ComponentMetricRequest]]
+            ComponentId, dict[Metric | TransitionalMetric, list[ComponentMetricRequest]]
         ] = {}
 
     async def _get_component_category(
         self, comp_id: ComponentId
-    ) -> ComponentCategory | None:
+    ) -> ComponentCategory | int | None:
         """Get the component category of the given component.
 
         Args:
@@ -178,8 +167,8 @@ class MicrogridApiSource:
             return self._comp_categories_cache[comp_id]
 
         api = connection_manager.get().api_client
-        for comp in await api.components():
-            self._comp_categories_cache[comp.component_id] = comp.category
+        for comp in await api.list_components():
+            self._comp_categories_cache[comp.id] = comp.category
 
         if comp_id in self._comp_categories_cache:
             return self._comp_categories_cache[comp_id]
@@ -189,7 +178,7 @@ class MicrogridApiSource:
     async def _check_battery_request(
         self,
         comp_id: ComponentId,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Battery metrics.
 
@@ -207,14 +196,14 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.battery_data(comp_id)
+            self.comp_data_receivers[comp_id] = BatteryData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_ev_charger_request(
         self,
         comp_id: ComponentId,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid EV Charger metrics.
 
@@ -232,14 +221,14 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.ev_charger_data(comp_id)
+            self.comp_data_receivers[comp_id] = EVChargerData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_inverter_request(
         self,
         comp_id: ComponentId,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Inverter metrics.
 
@@ -257,14 +246,14 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.inverter_data(comp_id)
+            self.comp_data_receivers[comp_id] = InverterData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_meter_request(
         self,
         comp_id: ComponentId,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requests are valid Meter metrics.
 
@@ -282,15 +271,15 @@ class MicrogridApiSource:
                 _logger.error(err)
                 raise ValueError(err)
         if comp_id not in self.comp_data_receivers:
-            self.comp_data_receivers[comp_id] = (
-                await connection_manager.get().api_client.meter_data(comp_id)
+            self.comp_data_receivers[comp_id] = MeterData.subscribe(
+                connection_manager.get().api_client, comp_id
             )
 
     async def _check_requested_component_and_metrics(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        category: ComponentCategory | int,
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> None:
         """Check if the requested component and metrics are valid.
 
@@ -321,7 +310,7 @@ class MicrogridApiSource:
             raise ValueError(err)
 
     def _get_data_extraction_method(
-        self, category: ComponentCategory, metric: ComponentMetricId
+        self, category: ComponentCategory | int, metric: Metric | TransitionalMetric
     ) -> Callable[[Any], float]:
         """Get the data extraction method for the given metric.
 
@@ -350,8 +339,8 @@ class MicrogridApiSource:
 
     def _get_metric_senders(
         self,
-        category: ComponentCategory,
-        requests: dict[ComponentMetricId, list[ComponentMetricRequest]],
+        category: ComponentCategory | int,
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
@@ -380,7 +369,7 @@ class MicrogridApiSource:
     async def _handle_data_stream(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
     ) -> None:
         """Stream component data and send the requested metrics out.
 
@@ -445,14 +434,14 @@ class MicrogridApiSource:
                 "Unexpected error while handling data stream for component %d (%s), "
                 "component data is not being streamed anymore",
                 comp_id,
-                category.name,
+                category,
             )
             raise
 
     async def _update_streams(
         self,
         comp_id: ComponentId,
-        category: ComponentCategory,
+        category: ComponentCategory | int,
     ) -> None:
         """Update the requested metric streams for the given component.
 
@@ -465,7 +454,7 @@ class MicrogridApiSource:
 
         self.comp_data_tasks[comp_id] = asyncio.create_task(
             run_forever(lambda: self._handle_data_stream(comp_id, category)),
-            name=f"{type(self).__name__}._update_stream({comp_id=}, {category.name})",
+            name=f"{type(self).__name__}._update_stream({comp_id=}, {category})",
         )
 
     async def add_metric(self, request: ComponentMetricRequest) -> None:
@@ -484,15 +473,15 @@ class MicrogridApiSource:
             return
 
         self._req_streaming_metrics.setdefault(comp_id, {}).setdefault(
-            request.metric_id, []
+            request.metric, []
         )
 
-        for existing_request in self._req_streaming_metrics[comp_id][request.metric_id]:
+        for existing_request in self._req_streaming_metrics[comp_id][request.metric]:
             if existing_request.get_channel_name() == request.get_channel_name():
                 # the requested metric is already being handled, so nothing to do.
                 return
 
-        self._req_streaming_metrics[comp_id][request.metric_id].append(request)
+        self._req_streaming_metrics[comp_id][request.metric].append(request)
 
         await self._update_streams(
             comp_id,

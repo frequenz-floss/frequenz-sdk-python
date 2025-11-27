@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 
-__all__ = ["ComponentMetricRequest", "ComponentMetricId"]
+from frequenz.sdk.microgrid._old_component_data import TransitionalMetric
+
+__all__ = ["ComponentMetricRequest", "Metric"]
 
 
 @dataclass
@@ -25,7 +27,7 @@ class ComponentMetricRequest:
     metric. For example, requesters can use different `namespace` values to subscribe to
     raw or resampled data streams separately. This ensures that each requester receives
     the appropriate type of data without interference. Requests with the same
-    `namespace`, `component_id`, and `metric_id` will use the same channel, preventing
+    `namespace`, `component_id`, and `metric` will use the same channel, preventing
     unnecessary duplication of data streams.
 
     The requester and provider must use the same channel name so that they can
@@ -40,7 +42,7 @@ class ComponentMetricRequest:
     component_id: ComponentId
     """The ID of the requested component."""
 
-    metric_id: ComponentMetricId
+    metric: Metric | TransitionalMetric
     """The ID of the requested component's metric."""
 
     start_time: datetime | None
@@ -60,7 +62,7 @@ class ComponentMetricRequest:
             "component_metric_request<"
             f"namespace={self.namespace},"
             f"component_id={self.component_id},"
-            f"metric_id={self.metric_id.name}"
+            f"metric={self.metric.name}"
             f"{start}"
             ">"
         )

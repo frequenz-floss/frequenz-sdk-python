@@ -5,21 +5,32 @@
 
 import asyncio
 from asyncio.tasks import ALL_COMPLETED
+from datetime import datetime, timezone
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from frequenz.client.common.microgrid import MicrogridId
+from frequenz.client.common.microgrid import EnterpriseId, MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
-    Component,
-    ComponentCategory,
-    Connection,
+    DeliveryArea,
+    EnergyMarketCodeType,
     Location,
-    Metadata,
+    MicrogridInfo,
+    MicrogridStatus,
+)
+from frequenz.client.microgrid.component import (
+    BatteryInverter,
+    Component,
+    ComponentConnection,
+    GridConnectionPoint,
+    LiIonBattery,
+    Meter,
 )
 
 from frequenz.sdk.microgrid import connection_manager
+
+_MICROGRID_ID = MicrogridId(1)
 
 
 class TestMicrogridApi:
@@ -38,29 +49,37 @@ class TestMicrogridApi:
         """
         components = [
             [
-                Component(ComponentId(1), ComponentCategory.GRID),
-                Component(ComponentId(4), ComponentCategory.METER),
-                Component(ComponentId(5), ComponentCategory.METER),
-                Component(ComponentId(7), ComponentCategory.METER),
-                Component(ComponentId(8), ComponentCategory.INVERTER),
-                Component(ComponentId(9), ComponentCategory.BATTERY),
-                Component(ComponentId(10), ComponentCategory.METER),
-                Component(ComponentId(11), ComponentCategory.INVERTER),
-                Component(ComponentId(12), ComponentCategory.BATTERY),
+                GridConnectionPoint(
+                    id=ComponentId(1),
+                    microgrid_id=_MICROGRID_ID,
+                    rated_fuse_current=10_000,
+                ),
+                Meter(id=ComponentId(4), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(5), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(7), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(8), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(10), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(11), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(12), microgrid_id=_MICROGRID_ID),
             ],
             [
-                Component(ComponentId(1), ComponentCategory.GRID),
-                Component(ComponentId(4), ComponentCategory.METER),
-                Component(ComponentId(7), ComponentCategory.METER),
-                Component(ComponentId(8), ComponentCategory.INVERTER),
-                Component(ComponentId(9), ComponentCategory.BATTERY),
+                GridConnectionPoint(
+                    id=ComponentId(1),
+                    microgrid_id=_MICROGRID_ID,
+                    rated_fuse_current=10_000,
+                ),
+                Meter(id=ComponentId(4), microgrid_id=_MICROGRID_ID),
+                Meter(id=ComponentId(7), microgrid_id=_MICROGRID_ID),
+                BatteryInverter(id=ComponentId(8), microgrid_id=_MICROGRID_ID),
+                LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
             ],
         ]
         return components
 
     # ignore mypy: Untyped decorator makes function "components" untyped
     @pytest.fixture
-    def connections(self) -> list[list[Connection]]:
+    def connections(self) -> list[list[ComponentConnection]]:
         """Get connections between components in the graph.
 
         Override this method to create a graph with different connections.
@@ -71,36 +90,48 @@ class TestMicrogridApi:
         """
         connections = [
             [
-                Connection(ComponentId(1), ComponentId(4)),
-                Connection(ComponentId(1), ComponentId(5)),
-                Connection(ComponentId(1), ComponentId(7)),
-                Connection(ComponentId(7), ComponentId(8)),
-                Connection(ComponentId(8), ComponentId(9)),
-                Connection(ComponentId(1), ComponentId(10)),
-                Connection(ComponentId(10), ComponentId(11)),
-                Connection(ComponentId(11), ComponentId(12)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(4)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(5)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(7)),
+                ComponentConnection(source=ComponentId(7), destination=ComponentId(8)),
+                ComponentConnection(source=ComponentId(8), destination=ComponentId(9)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(10)),
+                ComponentConnection(
+                    source=ComponentId(10), destination=ComponentId(11)
+                ),
+                ComponentConnection(
+                    source=ComponentId(11), destination=ComponentId(12)
+                ),
             ],
             [
-                Connection(ComponentId(1), ComponentId(4)),
-                Connection(ComponentId(1), ComponentId(7)),
-                Connection(ComponentId(7), ComponentId(8)),
-                Connection(ComponentId(8), ComponentId(9)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(4)),
+                ComponentConnection(source=ComponentId(1), destination=ComponentId(7)),
+                ComponentConnection(source=ComponentId(7), destination=ComponentId(8)),
+                ComponentConnection(source=ComponentId(8), destination=ComponentId(9)),
             ],
         ]
         return connections
 
     @pytest.fixture
-    def metadata(self) -> Metadata:
-        """Fetch the microgrid metadata.
+    def microgrid(self) -> MicrogridInfo:
+        """Fetch the microgrid information.
 
         Returns:
-            the microgrid metadata.
+            the information about the microgrid
         """
-        return Metadata(
-            microgrid_id=MicrogridId(8),
+        return MicrogridInfo(
+            id=_MICROGRID_ID,
+            enterprise_id=EnterpriseId(1),
+            name="test",
+            delivery_area=DeliveryArea(
+                code="test", code_type=EnergyMarketCodeType.EUROPE_EIC
+            ),
+            status=MicrogridStatus.ACTIVE,
+            create_timestamp=datetime.now(tz=timezone.utc),
             location=Location(
                 latitude=52.520008,
                 longitude=13.404954,
+                country_code="DE",
             ),
         )
 
@@ -109,8 +140,8 @@ class TestMicrogridApi:
         self,
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
-        connections: list[list[Connection]],
-        metadata: Metadata,
+        connections: list[list[ComponentConnection]],
+        microgrid: MicrogridInfo,
     ) -> None:
         """Test microgrid api.
 
@@ -118,12 +149,12 @@ class TestMicrogridApi:
             _insecure_channel_mock: insecure channel mock from `mock.patch`
             components: components
             connections: connections
-            metadata: the metadata of the microgrid
+            microgrid: the information about the microgrid
         """
         microgrid_client = MagicMock()
-        microgrid_client.components = AsyncMock(side_effect=components)
-        microgrid_client.connections = AsyncMock(side_effect=connections)
-        microgrid_client.metadata = AsyncMock(return_value=metadata)
+        microgrid_client.list_components = AsyncMock(side_effect=components)
+        microgrid_client.list_connections = AsyncMock(side_effect=connections)
+        microgrid_client.get_microgrid_info = AsyncMock(return_value=microgrid)
 
         with mock.patch(
             "frequenz.sdk.microgrid.connection_manager.MicrogridApiClient",
@@ -166,8 +197,8 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
-            assert api.microgrid_id == metadata.microgrid_id
-            assert api.location == metadata.location
+            assert api.microgrid_id == microgrid.id
+            assert api.location == microgrid.location
 
             # It should not be possible to initialize method once again
             with pytest.raises(AssertionError):
@@ -180,16 +211,16 @@ class TestMicrogridApi:
             assert set(graph.components()) == set(components[0])
             assert set(graph.connections()) == set(connections[0])
 
-            assert api.microgrid_id == metadata.microgrid_id
-            assert api.location == metadata.location
+            assert api.microgrid_id == microgrid.id
+            assert api.location == microgrid.location
 
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
         self,
         _insecure_channel_mock: MagicMock,
         components: list[list[Component]],
-        connections: list[list[Connection]],
-        metadata: Metadata,
+        connections: list[list[ComponentConnection]],
+        microgrid: MicrogridInfo,
     ) -> None:
         """Test if the api was not deallocated.
 
@@ -197,7 +228,7 @@ class TestMicrogridApi:
             _insecure_channel_mock: insecure channel mock
             components: components
             connections: connections
-            metadata: the metadata of the microgrid
+            microgrid: the information about the microgrid
         """
         microgrid_client = MagicMock()
         microgrid_client.components = AsyncMock(return_value=[])
@@ -209,5 +240,5 @@ class TestMicrogridApi:
         assert set(graph.components()) == set(components[0])
         assert set(graph.connections()) == set(connections[0])
 
-        assert api.microgrid_id == metadata.microgrid_id
-        assert api.location == metadata.location
+        assert api.microgrid_id == microgrid.id
+        assert api.location == microgrid.location

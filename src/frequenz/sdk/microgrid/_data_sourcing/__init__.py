@@ -3,11 +3,13 @@
 
 """The DataSourcingActor."""
 
-from ._component_metric_request import ComponentMetricId, ComponentMetricRequest
+from frequenz.client.microgrid.metrics import Metric
+
+from ._component_metric_request import ComponentMetricRequest
 from .data_sourcing import DataSourcingActor
 
 __all__ = [
-    "ComponentMetricId",
+    "Metric",
     "ComponentMetricRequest",
     "DataSourcingActor",
 ]

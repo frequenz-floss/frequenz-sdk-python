@@ -28,13 +28,24 @@ from collections.abc import Callable, Iterable
 
 import networkx as nx
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
+from frequenz.client.microgrid import MicrogridApiClient
+from frequenz.client.microgrid.component import (
+    Battery,
+    BatteryInverter,
+    Chp,
     Component,
     ComponentCategory,
-    Connection,
-    InverterType,
-    MicrogridApiClient,
+    ComponentConnection,
+    EvCharger,
+    GridConnectionPoint,
+    Inverter,
+    Meter,
+    MismatchedCategoryComponent,
+    SolarInverter,
+    UnrecognizedComponent,
+    UnspecifiedComponent,
 )
+from typing_extensions import override
 
 _logger = logging.getLogger(__name__)
 
@@ -55,35 +66,35 @@ class ComponentGraph(ABC):
     @abstractmethod
     def components(
         self,
-        component_ids: set[ComponentId] | None = None,
-        component_categories: set[ComponentCategory] | None = None,
+        matching_ids: Iterable[ComponentId] | ComponentId | None = None,
+        matching_types: Iterable[type[Component]] | type[Component] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
-            component_ids: The component IDs that the components must match.
-            component_categories: The component categories that the components must match.
+            matching_ids: The component IDs that the components must match.
+            matching_types: The component types that the components must match.
 
         Returns:
             The set of components currently connected to the microgrid, filtered by
-                the provided `component_ids` and `component_categories` values.
+                the provided `matching_ids` and `matching_types` values.
         """
 
     @abstractmethod
     def connections(
         self,
-        start: set[ComponentId] | None = None,
-        end: set[ComponentId] | None = None,
-    ) -> set[Connection]:
+        matching_sources: Iterable[ComponentId] | ComponentId | None = None,
+        matching_destinations: Iterable[ComponentId] | ComponentId | None = None,
+    ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
         Args:
-            start: The component IDs that the connections' start must match.
-            end: The component IDs that the connections' end must match.
+            matching_sources: The component IDs the connections' source must match.
+            matching_destinations: The component IDs the connections' destination must match.
 
         Returns:
             The set of connections between components in the microgrid, filtered by
-                the provided `start`/`end` choices.
+                the provided `matching_sources` and `matching_destinations` choices.
         """
 
     @abstractmethod
@@ -312,7 +323,7 @@ class ComponentGraph(ABC):
     def find_first_descendant_component(
         self,
         *,
-        descendant_categories: Iterable[ComponentCategory],
+        descendants: Iterable[type[Component]],
     ) -> Component:
         """Find the first descendant component given root and descendant categories.
 
@@ -324,7 +335,7 @@ class ComponentGraph(ABC):
         highest priority.
 
         Args:
-            descendant_categories: The descendant classes to search for the first
+            descendants: The descendant classes to search for the first
                 descendant component in.
 
         Returns:
@@ -344,7 +355,7 @@ class _MicrogridComponentGraph(
     def __init__(
         self,
         components: set[Component] | None = None,
-        connections: set[Connection] | None = None,
+        connections: set[ComponentConnection] | None = None,
     ) -> None:
         """Initialize the component graph.
 
@@ -372,64 +383,76 @@ class _MicrogridComponentGraph(
         self.refresh_from(components, connections)
         self.validate()
 
+    @override
     def components(
         self,
-        component_ids: set[ComponentId] | None = None,
-        component_categories: set[ComponentCategory] | None = None,
+        matching_ids: Iterable[ComponentId] | ComponentId | None = None,
+        matching_types: Iterable[type[Component]] | type[Component] | None = None,
     ) -> set[Component]:
         """Fetch the components of the microgrid.
 
         Args:
-            component_ids: The component IDs that the components must match.
-            component_categories: The component categories that the components must match.
+            matching_ids: The component IDs that the components must match.
+            matching_types: The component types that the components must match.
 
         Returns:
             The set of components currently connected to the microgrid, filtered by
-                the provided `component_ids` and `component_categories` values.
+                the provided `matching_ids` and `matching_types` values.
         """
+        matching_ids = _comp_ids_to_iter(matching_ids)
+        if isinstance(matching_types, type):
+            matching_types = {matching_types}
+
+        selection: Iterable[Component]
         selection_ids = (
             self._graph.nodes
-            if component_ids is None
-            else component_ids & self._graph.nodes
+            if matching_ids is None
+            else set(matching_ids) & self._graph.nodes
         )
-        selection: Iterable[Component] = (
-            self._graph.nodes[i][_DATA_KEY] for i in selection_ids
-        )
+        selection = (self._graph.nodes[i][_DATA_KEY] for i in selection_ids)
 
-        if component_categories is not None:
-            selection = filter(lambda c: c.category in component_categories, selection)
+        if matching_types is not None:
+            selection = filter(
+                lambda c: isinstance(c, tuple(matching_types)), selection
+            )
 
         return set(selection)
 
+    @override
     def connections(
         self,
-        start: set[ComponentId] | None = None,
-        end: set[ComponentId] | None = None,
-    ) -> set[Connection]:
+        matching_sources: Iterable[ComponentId] | ComponentId | None = None,
+        matching_destinations: Iterable[ComponentId] | ComponentId | None = None,
+    ) -> set[ComponentConnection]:
         """Fetch the connections between microgrid components.
 
         Args:
-            start: The component IDs that the connections' start must match.
-            end: The component IDs that the connections' end must match.
+            matching_sources: The component IDs that the connections' source must match.
+            matching_destinations: The component IDs that the connections' destination
+                must match.
 
         Returns:
             The set of connections between components in the microgrid, filtered by
-                the provided `start`/`end` choices.
+                the provided `matching_sources` and `matching_destinations` choices.
         """
-        match (start, end):
+        matching_sources = _comp_ids_to_iter(matching_sources)
+        matching_destinations = _comp_ids_to_iter(matching_destinations)
+
+        match (matching_sources, matching_destinations):
             case (None, None):
-                selection_ids = self._graph.edges
+                selection = self._graph.edges
             case (None, _):
-                selection_ids = self._graph.in_edges(end)
+                selection = self._graph.in_edges(matching_destinations)
             case (_, None):
-                selection_ids = self._graph.out_edges(start)
+                selection = self._graph.out_edges(matching_sources)
             case (_, _):
-                start_edges = self._graph.out_edges(start)
-                end_edges = self._graph.in_edges(end)
-                selection_ids = set(start_edges).intersection(end_edges)
+                source_edges = self._graph.out_edges(matching_sources)
+                destination_edges = self._graph.in_edges(matching_destinations)
+                selection = set(source_edges).intersection(destination_edges)
 
-        return set(self._graph.edges[i][_DATA_KEY] for i in selection_ids)
+        return set(self._graph.edges[i][_DATA_KEY] for i in selection)
 
+    @override
     def predecessors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph predecessors of the specified component.
 
@@ -447,13 +470,14 @@ class _MicrogridComponentGraph(
         """
         if component_id not in self._graph:
             raise KeyError(
-                f"Component with {component_id} not in graph, cannot get predecessors!"
+                f"Component {component_id} not in graph, cannot get predecessors!"
             )
 
         predecessors_ids = self._graph.predecessors(component_id)
 
         return set(map(lambda idx: self._graph.nodes[idx][_DATA_KEY], predecessors_ids))
 
+    @override
     def successors(self, component_id: ComponentId) -> set[Component]:
         """Fetch the graph successors of the specified component.
 
@@ -470,7 +494,7 @@ class _MicrogridComponentGraph(
         """
         if component_id not in self._graph:
             raise KeyError(
-                f"Component with {component_id} not in graph, cannot get successors!"
+                f"Component {component_id} not in graph, cannot get successors!"
             )
 
         successors_ids = self._graph.successors(component_id)
@@ -480,7 +504,7 @@ class _MicrogridComponentGraph(
     def refresh_from(
         self,
         components: set[Component],
-        connections: set[Connection],
+        connections: set[ComponentConnection],
         correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the graph from the provided list of components and connections.
@@ -489,8 +513,10 @@ class _MicrogridComponentGraph(
         components and connections.
 
         Args:
-            components: The components to include in the graph.
-            connections: The connections to include in the graph.
+            components: The components to initialize the graph with. If set, must
+                provide `connections` as well.
+            connections: The connections to initialize the graph with. If set, must
+                provide `components` as well.
             correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
                 correct the errors by inferring what the correct data should be).
@@ -500,21 +526,27 @@ class _MicrogridComponentGraph(
                 do not form a valid component graph and `correct_errors` does
                 not fix it.
         """
-        if not all(component.is_valid() for component in components):
-            raise InvalidGraphError(f"Invalid components in input: {components}")
-        if not all(connection.is_valid() for connection in connections):
-            raise InvalidGraphError(f"Invalid connections in input: {connections}")
+        issues: list[str] = []
+
+        for connection in connections:
+            issues.extend((self._validate_connection(connection)))
+        for component in components:
+            issues.extend((self._validate_component(component)))
+
+        if issues:
+            raise InvalidGraphError(f"Invalid component data: {', '.join(issues)}")
 
         new_graph = nx.DiGraph()
-        for component in components:
-            new_graph.add_node(component.component_id, **{_DATA_KEY: component})
+        new_graph.add_nodes_from(
+            (component.id, {_DATA_KEY: component}) for component in components
+        )
 
         # Store the original connection object in the edge data (third item in the
         # tuple) so that we can retrieve it later.
-        for connection in connections:
-            new_graph.add_edge(
-                connection.start, connection.end, **{_DATA_KEY: connection}
-            )
+        new_graph.add_edges_from(
+            (connection.source, connection.destination, {_DATA_KEY: connection})
+            for connection in connections
+        )
 
         # check if we can construct a valid ComponentGraph
         # from the new NetworkX graph data
@@ -539,22 +571,55 @@ class _MicrogridComponentGraph(
         self._graph = new_graph
         old_graph.clear()  # just in case any references remain, but should not
 
-    async def refresh_from_api(
+    def _validate_connection(self, connection: ComponentConnection) -> list[str]:
+        """Check that the connection is valid.
+
+        Args:
+            connection: connection to validate.
+
+        Returns:
+            List of issues found with the connection.
+        """
+        issues: list[str] = []
+        if connection.source == connection.destination:
+            issues.append(f"Connection {connection} has same source and destination!")
+        return issues
+
+    def _validate_component(self, component: Component) -> list[str]:
+        """Check that the component is valid.
+
+        Args:
+            component: component to validate.
+
+        Returns:
+            List of issues found with the component.
+        """
+        issues: list[str] = []
+        if isinstance(component, UnspecifiedComponent):
+            _logger.warning("Component %r has an unspecified category!", component)
+        if isinstance(component, UnrecognizedComponent):
+            issues.append(f"Component {component!r} has an unrecognized category!")
+        if isinstance(component, MismatchedCategoryComponent):
+            _logger.warning("Component %r has a mismatched category!", component)
+
+        return issues
+
+    async def refresh_from_client(
         self,
-        api: MicrogridApiClient,
+        client: MicrogridApiClient,
         correct_errors: Callable[["_MicrogridComponentGraph"], None] | None = None,
     ) -> None:
         """Refresh the contents of a component graph from the remote API.
 
         Args:
-            api: The API client from which to fetch graph data.
+            client: The API client from which to fetch graph data
             correct_errors: The callback that, if set, will be invoked if the
                 provided graph data is in any way invalid (it will attempt to
                 correct the errors by inferring what the correct data should be).
         """
         components, connections = await asyncio.gather(
-            api.components(),
-            api.connections(),
+            client.list_components(),
+            client.list_connections(),
         )
 
         self.refresh_from(set(components), set(connections), correct_errors)
@@ -567,6 +632,7 @@ class _MicrogridComponentGraph(
         self._validate_intermediary_components()
         self._validate_leaf_components()
 
+    @override
     def is_grid_meter(self, component: Component) -> bool:
         """Check if the specified component is a grid meter.
 
@@ -582,7 +648,7 @@ class _MicrogridComponentGraph(
         if component.category != ComponentCategory.METER:
             return False
 
-        predecessors = self.predecessors(component.component_id)
+        predecessors = self.predecessors(component.id)
         if len(predecessors) != 1:
             return False
 
@@ -590,9 +656,10 @@ class _MicrogridComponentGraph(
         if predecessor.category != ComponentCategory.GRID:
             return False
 
-        grid_successors = self.successors(predecessor.component_id)
+        grid_successors = self.successors(predecessor.id)
         return len(grid_successors) == 1
 
+    @override
     def is_pv_inverter(self, component: Component) -> bool:
         """Check if the specified component is a PV inverter.
 
@@ -602,11 +669,9 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a PV inverter.
         """
-        return (
-            component.category == ComponentCategory.INVERTER
-            and component.type == InverterType.SOLAR
-        )
+        return isinstance(component, SolarInverter)
 
+    @override
     def is_pv_meter(self, component: Component) -> bool:
         """Check if the specified component is a PV meter.
 
@@ -619,17 +684,18 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a PV meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
-            component.category == ComponentCategory.METER
+            isinstance(component, Meter)
             and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(
                 self.is_pv_inverter(successor)
-                for successor in self.successors(component.component_id)
+                for successor in self.successors(component.id)
             )
         )
 
+    @override
     def is_pv_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a PV chain.
 
@@ -644,6 +710,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_pv_inverter(component) or self.is_pv_meter(component)
 
+    @override
     def is_ev_charger(self, component: Component) -> bool:
         """Check if the specified component is an EV charger.
 
@@ -653,8 +720,9 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is an EV charger.
         """
-        return component.category == ComponentCategory.EV_CHARGER
+        return isinstance(component, EvCharger)
 
+    @override
     def is_ev_charger_meter(self, component: Component) -> bool:
         """Check if the specified component is an EV charger meter.
 
@@ -667,14 +735,15 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is an EV charger meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
-            component.category == ComponentCategory.METER
+            isinstance(component, Meter)
             and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_ev_charger(successor) for successor in successors)
         )
 
+    @override
     def is_ev_charger_chain(self, component: Component) -> bool:
         """Check if the specified component is part of an EV charger chain.
 
@@ -689,6 +758,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_ev_charger(component) or self.is_ev_charger_meter(component)
 
+    @override
     def is_battery_inverter(self, component: Component) -> bool:
         """Check if the specified component is a battery inverter.
 
@@ -698,11 +768,9 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a battery inverter.
         """
-        return (
-            component.category == ComponentCategory.INVERTER
-            and component.type == InverterType.BATTERY
-        )
+        return isinstance(component, BatteryInverter)
 
+    @override
     def is_battery_meter(self, component: Component) -> bool:
         """Check if the specified component is a battery meter.
 
@@ -715,14 +783,15 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a battery meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
-            component.category == ComponentCategory.METER
+            isinstance(component, Meter)
             and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_battery_inverter(successor) for successor in successors)
         )
 
+    @override
     def is_battery_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a battery chain.
 
@@ -737,6 +806,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_battery_inverter(component) or self.is_battery_meter(component)
 
+    @override
     def is_chp(self, component: Component) -> bool:
         """Check if the specified component is a CHP.
 
@@ -746,8 +816,9 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a CHP.
         """
-        return component.category == ComponentCategory.CHP
+        return isinstance(component, Chp)
 
+    @override
     def is_chp_meter(self, component: Component) -> bool:
         """Check if the specified component is a CHP meter.
 
@@ -760,14 +831,15 @@ class _MicrogridComponentGraph(
         Returns:
             Whether the specified component is a CHP meter.
         """
-        successors = self.successors(component.component_id)
+        successors = self.successors(component.id)
         return (
-            component.category == ComponentCategory.METER
+            isinstance(component, Meter)
             and not self.is_grid_meter(component)
             and len(successors) > 0
             and all(self.is_chp(successor) for successor in successors)
         )
 
+    @override
     def is_chp_chain(self, component: Component) -> bool:
         """Check if the specified component is part of a CHP chain.
 
@@ -781,6 +853,7 @@ class _MicrogridComponentGraph(
         """
         return self.is_chp(component) or self.is_chp_meter(component)
 
+    @override
     def dfs(
         self,
         current_node: Component,
@@ -811,15 +884,16 @@ class _MicrogridComponentGraph(
 
         component: set[Component] = set()
 
-        for successor in self.successors(current_node.component_id):
+        for successor in self.successors(current_node.id):
             component.update(self.dfs(successor, visited, condition))
 
         return component
 
+    @override
     def find_first_descendant_component(
         self,
         *,
-        descendant_categories: Iterable[ComponentCategory],
+        descendants: Iterable[type[Component]],
     ) -> Component:
         """Find the first descendant component given root and descendant categories.
 
@@ -831,7 +905,7 @@ class _MicrogridComponentGraph(
         highest priority.
 
         Args:
-            descendant_categories: The descendant classes to search for the first
+            descendants: The descendant classes to search for the first
                 descendant component in.
 
         Returns:
@@ -842,33 +916,31 @@ class _MicrogridComponentGraph(
             InvalidGraphError: When no GRID component is found in the graph.
             ValueError: When no component is found in the given categories.
         """
+        # We always sort by component ID to ensure consistent results
+
+        def sorted_by_id(components: Iterable[Component]) -> Iterable[Component]:
+            return sorted(components, key=lambda c: c.id)
+
         root_component = next(
-            (
-                comp
-                for comp in self.components(
-                    component_categories={ComponentCategory.GRID}
-                )
-            ),
+            iter(sorted_by_id(self.components(matching_types={GridConnectionPoint}))),
             None,
         )
         if root_component is None:
-            raise InvalidGraphError("No GRID component found in the component graph!")
+            raise InvalidGraphError(
+                "No GridConnectionPoint component found in the component graph!"
+            )
 
-        # Sort by component ID to ensure consistent results.
-        successors = sorted(
-            self.successors(root_component.component_id),
-            key=lambda comp: comp.component_id,
-        )
+        successors = sorted_by_id(self.successors(root_component.id))
 
-        def find_component(component_category: ComponentCategory) -> Component | None:
+        def find_component(component_class: type[Component]) -> Component | None:
             return next(
-                (comp for comp in successors if comp.category == component_category),
+                (comp for comp in successors if isinstance(comp, component_class)),
                 None,
             )
 
         # Find the first component that matches the given descendant categories
         # in the order of the categories list.
-        component = next(filter(None, map(find_component, descendant_categories)), None)
+        component = next(filter(None, map(find_component, descendants)), None)
 
         if component is None:
             raise ValueError("Component not found in any of the descendant categories.")
@@ -900,9 +972,10 @@ class _MicrogridComponentGraph(
         if undefined := [
             node[0] for node in self._graph.nodes(data=True) if len(node[1]) == 0
         ]:
-            undefined_str = ", ".join(map(str, sorted(undefined)))
+            undefined_str = ", ".join(map(str, map(int, sorted(undefined))))
             raise InvalidGraphError(
-                f"Missing definition for graph components: {undefined_str}"
+                "Some component IDs found in connections are missing a "
+                f"component definition: {undefined_str}"
             )
 
         # should be true as a consequence of checks above
@@ -913,9 +986,7 @@ class _MicrogridComponentGraph(
 
         # should be true as a consequence of the tree property:
         # there should be no unconnected components
-        unconnected = filter(
-            lambda c: self._graph.degree(c.component_id) == 0, self.components()
-        )
+        unconnected = filter(lambda c: self._graph.degree(c.id) == 0, self.components())
         if sum(1 for _ in unconnected) != 0:
             raise InvalidGraphError(
                 "Every component must have at least one connection!"
@@ -929,27 +1000,26 @@ class _MicrogridComponentGraph(
                 or if there is a single such node that is not one of NONE or GRID.
         """
         no_predecessors = filter(
-            lambda c: self._graph.in_degree(c.component_id) == 0,
+            lambda c: self._graph.in_degree(c.id) == 0,
             self.components(),
         )
 
-        valid_root_types = {
-            ComponentCategory.NONE,
-            ComponentCategory.GRID,
-        }
-
         valid_roots = list(
-            filter(lambda c: c.category in valid_root_types, no_predecessors)
+            filter(
+                lambda c: isinstance(c, (GridConnectionPoint, UnspecifiedComponent)),
+                no_predecessors,
+            )
         )
 
         if len(valid_roots) == 0:
             raise InvalidGraphError("No valid root nodes of component graph!")
 
         if len(valid_roots) > 1:
-            raise InvalidGraphError(f"Multiple potential root nodes: {valid_roots}")
+            root_nodes = ", ".join(map(str, sorted(valid_roots, key=lambda c: c.id)))
+            raise InvalidGraphError(f"Multiple potential root nodes: {root_nodes}")
 
         root = valid_roots[0]
-        if self._graph.out_degree(root.component_id) == 0:
+        if self._graph.out_degree(root.id) == 0:
             raise InvalidGraphError(f"Graph root {root} has no successors!")
 
     def _validate_grid_endpoint(self) -> None:
@@ -962,7 +1032,7 @@ class _MicrogridComponentGraph(
                 it has no successors in the graph (i.e. it is not connected to
                 anything).
         """
-        grid = list(self.components(component_categories={ComponentCategory.GRID}))
+        grid = list(self.components(matching_types={GridConnectionPoint}))
 
         if len(grid) == 0:
             # it's OK to not have a grid endpoint as long as other properties
@@ -974,17 +1044,15 @@ class _MicrogridComponentGraph(
                 f"Multiple grid endpoints in component graph: {grid}"
             )
 
-        grid_id = grid[0].component_id
+        grid_id = grid[0].id
         if self._graph.in_degree(grid_id) > 0:
-            grid_predecessors = list(self.predecessors(grid_id))
-            raise InvalidGraphError(
-                f"Grid endpoint with {grid_id} has graph predecessors: {grid_predecessors}"
+            pred = ", ".join(
+                map(str, sorted(self.predecessors(grid_id), key=lambda c: c.id))
             )
+            raise InvalidGraphError(f"Grid endpoint {grid_id} has predecessors: {pred}")
 
         if self._graph.out_degree(grid_id) == 0:
-            raise InvalidGraphError(
-                f"Grid endpoint with {grid_id} has no graph successors!"
-            )
+            raise InvalidGraphError(f"Grid endpoint {grid_id} has no graph successors!")
 
     def _validate_intermediary_components(self) -> None:
         """Check that intermediary components (e.g. meters) are configured correctly.
@@ -996,20 +1064,18 @@ class _MicrogridComponentGraph(
             InvalidGraphError: If any intermediary component has zero predecessors
                 or zero successors.
         """
-        intermediary_components = list(
-            self.components(component_categories={ComponentCategory.INVERTER})
-        )
+        intermediary_components = list(self.components(matching_types={Inverter}))
 
         missing_predecessors = list(
             filter(
-                lambda c: sum(1 for _ in self.predecessors(c.component_id)) == 0,
+                lambda c: sum(1 for _ in self.predecessors(c.id)) == 0,
                 intermediary_components,
             )
         )
         if len(missing_predecessors) > 0:
             raise InvalidGraphError(
                 "Intermediary components without graph predecessors: "
-                f"{missing_predecessors}"
+                f"{list(map(str, missing_predecessors))}"
             )
 
     def _validate_leaf_components(self) -> None:
@@ -1025,16 +1091,16 @@ class _MicrogridComponentGraph(
         """
         leaf_components = list(
             self.components(
-                component_categories={
-                    ComponentCategory.BATTERY,
-                    ComponentCategory.EV_CHARGER,
+                matching_types={
+                    Battery,
+                    EvCharger,
                 }
             )
         )
 
         missing_predecessors = list(
             filter(
-                lambda c: sum(1 for _ in self.predecessors(c.component_id)) == 0,
+                lambda c: sum(1 for _ in self.predecessors(c.id)) == 0,
                 leaf_components,
             )
         )
@@ -1045,7 +1111,7 @@ class _MicrogridComponentGraph(
 
         with_successors = list(
             filter(
-                lambda c: sum(1 for _ in self.successors(c.component_id)) > 0,
+                lambda c: sum(1 for _ in self.successors(c.id)) > 0,
                 leaf_components,
             )
         )
@@ -1053,3 +1119,11 @@ class _MicrogridComponentGraph(
             raise InvalidGraphError(
                 f"Leaf components with graph successors: {with_successors}"
             )
+
+
+def _comp_ids_to_iter(
+    ids: Iterable[ComponentId] | ComponentId | None,
+) -> Iterable[ComponentId] | None:
+    if isinstance(ids, ComponentId):
+        return (ids,)
+    return ids

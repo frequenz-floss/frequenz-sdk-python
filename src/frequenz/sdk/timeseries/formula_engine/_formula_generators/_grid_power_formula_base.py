@@ -5,7 +5,7 @@
 
 from abc import ABC, abstractmethod
 
-from frequenz.client.microgrid import Component, ComponentCategory
+from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 
 from ..._base_types import QuantityT
 from .._formula_engine import FormulaEngine
@@ -33,15 +33,8 @@ class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
         """
         grid_successors = self._get_grid_component_successors()
 
-        components = {
-            c
-            for c in grid_successors
-            if c.category
-            in {
-                ComponentCategory.INVERTER,
-                ComponentCategory.EV_CHARGER,
-                ComponentCategory.METER,
-            }
+        components: set[Component] = {
+            c for c in grid_successors if isinstance(c, (Inverter, EvCharger, Meter))
         }
 
         if not components:
@@ -69,10 +62,8 @@ class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
-                    nones_are_zeros=(
-                        primary_component.category != ComponentCategory.METER
-                    ),
+                    primary_component.id,
+                    nones_are_zeros=not isinstance(primary_component, Meter),
                     fallback=fallback_formula,
                 )
         else:
@@ -81,8 +72,8 @@ class GridPowerFormulaBase(FormulaGenerator[QuantityT], ABC):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    comp.component_id,
-                    nones_are_zeros=(comp.category != ComponentCategory.METER),
+                    comp.id,
+                    nones_are_zeros=not isinstance(comp, Meter),
                 )
 
         return builder.build()

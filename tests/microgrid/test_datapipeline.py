@@ -9,12 +9,13 @@ from datetime import timedelta
 import async_solipsism
 import pytest
 import time_machine
+from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    Component,
-    ComponentCategory,
-    Connection,
-    InverterType,
+from frequenz.client.microgrid.component import (
+    BatteryInverter,
+    ComponentConnection,
+    GridConnectionPoint,
+    LiIonBattery,
 )
 from pytest_mock import MockerFixture
 
@@ -28,6 +29,9 @@ from ..utils.mock_microgrid_client import MockMicrogridClient
 def event_loop_policy() -> async_solipsism.EventLoopPolicy:
     """Return an event loop policy that uses the async solipsism event loop."""
     return async_solipsism.EventLoopPolicy()
+
+
+_MICROGRID_ID = MicrogridId(1)
 
 
 # loop time is advanced but not the system time
@@ -59,15 +63,16 @@ async def test_actors_started(
 
     assert datapipeline._battery_power_wrapper._power_distributing_actor is None
 
+    grid_1 = GridConnectionPoint(
+        id=ComponentId(1), microgrid_id=_MICROGRID_ID, rated_fuse_current=10_000
+    )
+    bat_inverter_4 = BatteryInverter(id=ComponentId(4), microgrid_id=_MICROGRID_ID)
+    battery_15 = LiIonBattery(id=ComponentId(15), microgrid_id=_MICROGRID_ID)
     mock_client = MockMicrogridClient(
-        {
-            Component(ComponentId(1), ComponentCategory.GRID),
-            Component(ComponentId(4), ComponentCategory.INVERTER, InverterType.BATTERY),
-            Component(ComponentId(15), ComponentCategory.BATTERY),
-        },
+        components={grid_1, bat_inverter_4, battery_15},
         connections={
-            Connection(ComponentId(1), ComponentId(4)),
-            Connection(ComponentId(4), ComponentId(15)),
+            ComponentConnection(source=grid_1.id, destination=bat_inverter_4.id),
+            ComponentConnection(source=bat_inverter_4.id, destination=battery_15.id),
         },
     )
     mock_client.initialize(mocker)

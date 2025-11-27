@@ -8,7 +8,7 @@ import math
 from contextlib import AsyncExitStack
 
 import pytest
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -48,7 +48,7 @@ class TestFormulaComposition:
             grid_meter_recv = get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 mockgrid.meter_ids[0],
-                ComponentMetricId.ACTIVE_POWER,
+                Metric.AC_ACTIVE_POWER,
                 Power.from_watts,
             )
             grid_power_recv = grid.power.new_receiver()

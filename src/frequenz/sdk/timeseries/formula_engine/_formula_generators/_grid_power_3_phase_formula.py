@@ -3,7 +3,8 @@
 
 """Formula generator from component graph for 3-phase Grid Power."""
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from .._formula_engine import FormulaEngine, FormulaEngine3Phase
@@ -32,13 +33,13 @@ class GridPower3PhaseFormula(FormulaGenerator[Power]):
             Power.from_watts,
             (
                 self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.ACTIVE_POWER_PHASE_1
+                    grid_successors, Metric.AC_ACTIVE_POWER_PHASE_1
                 ),
                 self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.ACTIVE_POWER_PHASE_2
+                    grid_successors, Metric.AC_ACTIVE_POWER_PHASE_2
                 ),
                 self._gen_phase_formula(
-                    grid_successors, ComponentMetricId.ACTIVE_POWER_PHASE_3
+                    grid_successors, Metric.AC_ACTIVE_POWER_PHASE_3
                 ),
             ),
         )
@@ -46,7 +47,7 @@ class GridPower3PhaseFormula(FormulaGenerator[Power]):
     def _gen_phase_formula(
         self,
         grid_successors: set[Component],
-        metric_id: ComponentMetricId,
+        metric: Metric,
     ) -> FormulaEngine[Power]:
         """Generate a formula for calculating grid 3-phase power from the component graph.
 
@@ -55,13 +56,13 @@ class GridPower3PhaseFormula(FormulaGenerator[Power]):
 
         Args:
             grid_successors: The set of components that are directly connected to the grid.
-            metric_id: The metric to use for the formula.
+            metric: The metric to use for the formula.
 
         Returns:
             A formula engine that will calculate grid 3-phase power values.
         """
         formula_builder = self._get_builder(
-            "grid-power-3-phase", metric_id, Power.from_watts
+            "grid-power-3-phase", metric, Power.from_watts
         )
 
         for idx, comp in enumerate(grid_successors):
@@ -71,21 +72,19 @@ class GridPower3PhaseFormula(FormulaGenerator[Power]):
             #
             # This is not possible for Meters, so when they produce `None`
             # values, those values get propagated as the output.
-            if comp.category in (
-                ComponentCategory.INVERTER,
-                ComponentCategory.EV_CHARGER,
-            ):
-                nones_are_zeros = True
-            elif comp.category == ComponentCategory.METER:
-                nones_are_zeros = False
-            else:
-                continue
+            match comp:
+                case Inverter() | EvCharger():
+                    nones_are_zeros = True
+                case Meter():
+                    nones_are_zeros = False
+                case _:
+                    continue
 
             if idx > 0:
                 formula_builder.push_oper("+")
 
             formula_builder.push_component_metric(
-                comp.component_id, nones_are_zeros=nones_are_zeros
+                comp.id, nones_are_zeros=nones_are_zeros
             )
 
         return formula_builder.build()

@@ -9,7 +9,7 @@ from math import isclose
 
 from frequenz.channels import Receiver
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.timeseries._base_types import QuantityT, Sample
@@ -21,7 +21,7 @@ from frequenz.sdk.timeseries.formula_engine._resampled_formula_builder import (
 def get_resampled_stream(
     namespace: str,
     comp_id: ComponentId,
-    metric_id: ComponentMetricId,
+    metric: Metric,
     create_method: Callable[[float], QuantityT],
 ) -> Receiver[Sample[QuantityT]]:
     """Return the resampled data stream for the given component."""
@@ -34,14 +34,14 @@ def get_resampled_stream(
         formula_name="",
         channel_registry=_data_pipeline._get()._channel_registry,
         resampler_subscription_sender=_data_pipeline._get()._resampling_request_sender(),
-        metric_id=metric_id,
+        metric=metric,
         create_method=create_method,
     )
     # Resampled data is always `Quantity` type, so we need to convert it to the desired
     # output type.
     return builder._get_resampled_receiver(
         comp_id,
-        metric_id,
+        metric,
     ).map(
         lambda sample: Sample(
             sample.timestamp,

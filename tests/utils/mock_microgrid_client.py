@@ -2,32 +2,36 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Mock microgrid definition."""
-from functools import partial
-from typing import Any
+
+from collections.abc import Iterable
+from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock
 
-from frequenz.channels import Broadcast, Receiver
+from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    BatteryData,
+from frequenz.client.microgrid import Location, MicrogridApiClient
+from frequenz.client.microgrid.component import (
     Component,
-    ComponentCategory,
-    ComponentData,
-    Connection,
-    EVChargerData,
-    InverterData,
-    Location,
-    MeterData,
+    ComponentConnection,
+    ComponentDataSamples,
 )
+from frequenz.client.microgrid.metrics import Metric
 from pytest_mock import MockerFixture
 
-from frequenz.sdk._internal._constants import RECEIVER_MAX_SIZE
 from frequenz.sdk.microgrid.component_graph import (
     ComponentGraph,
     _MicrogridComponentGraph,
 )
 from frequenz.sdk.microgrid.connection_manager import ConnectionManager
+
+
+@dataclass(frozen=True)
+class ComponentDataReceiverKey:
+    """Key for the component data receiver."""
+
+    component_id: ComponentId
+    metrics: frozenset[Metric | int]
 
 
 class MockMicrogridClient:
@@ -36,9 +40,11 @@ class MockMicrogridClient:
     def __init__(
         self,
         components: set[Component],
-        connections: set[Connection],
+        connections: set[ComponentConnection],
         microgrid_id: MicrogridId = MicrogridId(8),
-        location: Location = Location(latitude=52.520008, longitude=13.404954),
+        location: Location = Location(
+            latitude=52.520008, longitude=13.404954, country_code="DE"
+        ),
     ):
         """Create mock microgrid with given components and connections.
 
@@ -55,44 +61,22 @@ class MockMicrogridClient:
             location: the location of the microgrid
         """
         self._component_graph = _MicrogridComponentGraph(components, connections)
-
         self._components = components
+        self._connections = connections
+        self._component_data_channels: dict[
+            ComponentDataReceiverKey, Broadcast[ComponentDataSamples]
+        ] = {}
+        self._component_data_senders: dict[
+            ComponentDataReceiverKey, Sender[ComponentDataSamples]
+        ] = {}
 
-        bat_channels = self._create_battery_channels()
-        inv_channels = self._create_inverter_channels()
-        meter_channels = self._create_meter_channels()
-        ev_charger_channels = self._create_ev_charger_channels()
-
-        self._all_channels: dict[ComponentId, Broadcast[Any]] = {
-            **bat_channels,
-            **inv_channels,
-            **meter_channels,
-            **ev_charger_channels,
-        }
-
-        mock_api = self._create_mock_api(
-            bat_channels, inv_channels, meter_channels, ev_charger_channels
+        self._mock_microgrid = MagicMock(
+            spec=ConnectionManager,
+            api_client=self._create_mock_api(),
+            component_graph=self._component_graph,
+            microgrid_id=microgrid_id,
+            location=location,
         )
-        kwargs: dict[str, Any] = {
-            "api_client": mock_api,
-            "component_graph": self._component_graph,
-            "microgrid_id": microgrid_id,
-            "location": location,
-        }
-
-        self._mock_microgrid = MagicMock(spec=ConnectionManager, **kwargs)
-        self._battery_data_senders = {
-            id: channel.new_sender() for id, channel in bat_channels.items()
-        }
-        self._inverter_data_senders = {
-            id: channel.new_sender() for id, channel in inv_channels.items()
-        }
-        self._meter_data_senders = {
-            id: channel.new_sender() for id, channel in meter_channels.items()
-        }
-        self._ev_charger_data_senders = {
-            id: channel.new_sender() for id, channel in ev_charger_channels.items()
-        }
 
     def initialize(self, mocker: MockerFixture) -> None:
         """Mock `microgrid.get` call to return this mock_microgrid.
@@ -128,244 +112,81 @@ class MockMicrogridClient:
         """
         return self._component_graph
 
-    # We need the noqa because the `SenderError` is raised indirectly by `send()`.
-    async def send(self, data: ComponentData) -> None:  # noqa: DOC503
+    async def send(self, data: ComponentDataSamples) -> None:
         """Send component data using channel.
 
         This simulates component sending data. Right now only battery and inverter
         are supported. More components categories can be added if needed.
 
         Args:
-            data: Data to be send
-
-        Raises:
-            RuntimeError: if the type of data is not supported.
-            SenderError: if the underlying channel was closed.
-                A [ChannelClosedError][frequenz.channels.ChannelClosedError] is
-                set as the cause.
+            data: Data to be sent.
         """
-        cid = data.component_id
-        if isinstance(data, BatteryData):
-            await self._battery_data_senders[cid].send(data)
-        elif isinstance(data, InverterData):
-            await self._inverter_data_senders[cid].send(data)
-        elif isinstance(data, MeterData):
-            await self._meter_data_senders[cid].send(data)
-        elif isinstance(data, EVChargerData):
-            await self._ev_charger_data_senders[cid].send(data)
-        else:
-            raise RuntimeError(f"{type(data)} is not supported in MockMicrogridClient.")
+        key = ComponentDataReceiverKey(
+            data.component_id, frozenset(s.metric for s in data.metric_samples)
+        )
+        sender = self._component_data_senders.get(key)
 
-    async def close_channel(self, cid: ComponentId) -> None:
+        if sender is None:
+            sender = self._get_chan(key).new_sender()
+            self._component_data_senders[key] = sender
+
+        await sender.send(data)
+
+    async def close_channels(self, cid: ComponentId) -> None:
         """Close channel for given component id.
 
         Args:
             cid: Component id
         """
-        if cid in self._all_channels:
-            await self._all_channels[cid].close()
+        for key, channel in self._component_data_channels.items():
+            if key.component_id == cid:
+                await channel.close()
 
-    def _create_battery_channels(self) -> dict[ComponentId, Broadcast[BatteryData]]:
-        """Create channels for the batteries.
-
-        Returns:
-            Dictionary where the key is battery id and the value is channel for this
-                battery.
-        """
-        batteries = [
-            c.component_id
-            for c in self.component_graph.components(
-                component_categories={ComponentCategory.BATTERY}
-            )
-        ]
-
-        return {
-            bid: Broadcast[BatteryData](name="battery_data_" + str(bid))
-            for bid in batteries
-        }
-
-    def _create_meter_channels(self) -> dict[ComponentId, Broadcast[MeterData]]:
-        """Create channels for the meters.
-
-        Returns:
-            Dictionary where the key is meter id and the value is channel for this
-                meter.
-        """
-        meters = [
-            c.component_id
-            for c in self.component_graph.components(
-                component_categories={ComponentCategory.METER}
-            )
-        ]
-
-        return {
-            cid: Broadcast[MeterData](name="meter_data_" + str(cid)) for cid in meters
-        }
-
-    def _create_inverter_channels(self) -> dict[ComponentId, Broadcast[InverterData]]:
-        """Create channels for the inverters.
-
-        Returns:
-            Dictionary where the key is inverter id and the value is channel for
-                this inverter.
-        """
-        inverters = [
-            c.component_id
-            for c in self.component_graph.components(
-                component_categories={ComponentCategory.INVERTER}
-            )
-        ]
-
-        return {
-            cid: Broadcast[InverterData](name="inverter_data_" + str(cid))
-            for cid in inverters
-        }
-
-    def _create_ev_charger_channels(
-        self,
-    ) -> dict[ComponentId, Broadcast[EVChargerData]]:
-        """Create channels for the ev chargers.
-
-        Returns:
-            Dictionary where the key is the id of the ev_charger and the value is
-                channel for this ev_charger.
-        """
-        meters = [
-            c.component_id
-            for c in self.component_graph.components(
-                component_categories={ComponentCategory.EV_CHARGER}
-            )
-        ]
-
-        return {
-            cid: Broadcast[EVChargerData](name="meter_data_" + str(cid))
-            for cid in meters
-        }
-
-    def _create_mock_api(
-        self,
-        bat_channels: dict[ComponentId, Broadcast[BatteryData]],
-        inv_channels: dict[ComponentId, Broadcast[InverterData]],
-        meter_channels: dict[ComponentId, Broadcast[MeterData]],
-        ev_charger_channels: dict[ComponentId, Broadcast[EVChargerData]],
-    ) -> MagicMock:
+    def _create_mock_api(self) -> MagicMock:
         """Create mock of MicrogridApiClient.
-
-        Args:
-            bat_channels: battery channels to be returned from
-                MicrogridApiClient.battery_data.
-            inv_channels: inverter channels to be returned from
-                MicrogridApiClient.inverter_data.
-            meter_channels: meter channels to be returned from
-                MicrogridApiClient.meter_data.
-            ev_charger_channels: ev_charger channels to be returned from
-                MicrogridApiClient.ev_charger_data.
 
         Returns:
             Magic mock instance of MicrogridApiClient.
         """
-        api = MagicMock()
-        api.components = AsyncMock(return_value=self._components)
-        # NOTE that has to be partial, because battery_data has id argument and takes
-        # channel based on the argument.
-        api.battery_data = AsyncMock(
-            side_effect=partial(self._get_battery_receiver, channels=bat_channels)
+        api = MagicMock(spec=MicrogridApiClient)
+        api.list_components = AsyncMock(return_value=list(self._components))
+        api.list_connections = AsyncMock(return_value=list(self._connections))
+
+        # Replace individual data methods with the new unified stream method
+        api.receive_component_data_samples_stream = MagicMock(
+            side_effect=self._mock_receiver_component_data_samples_stream
         )
 
-        api.inverter_data = AsyncMock(
-            side_effect=partial(self._get_inverter_receiver, channels=inv_channels)
-        )
-
-        api.meter_data = AsyncMock(
-            side_effect=partial(self._get_meter_receiver, channels=meter_channels)
-        )
-
-        api.ev_charger_data = AsyncMock(
-            side_effect=partial(
-                self._get_ev_charger_receiver, channels=ev_charger_channels
-            )
-        )
-
-        # Can be override in the future
-        api.set_power = AsyncMock(return_value=None)
+        # Can be overridden in the future
+        api.set_component_power_active = AsyncMock(return_value=None)
         return api
 
-    def _get_battery_receiver(
+    def _mock_receiver_component_data_samples_stream(
         self,
-        component_id: ComponentId,
-        channels: dict[ComponentId, Broadcast[BatteryData]],
-        maxsize: int = RECEIVER_MAX_SIZE,
-    ) -> Receiver[BatteryData]:
-        """Return receiver of the broadcast channel for given component_id.
+        component: ComponentId | Component,
+        metrics: Iterable[Metric | int],
+        *,
+        buffer_size: int = 50,
+    ) -> Receiver[ComponentDataSamples]:
+        component_id = component if isinstance(component, ComponentId) else component.id
+        if component_id not in map(lambda c: c.id, self._components):
+            raise ValueError(f"Unknown {component_id}")
 
-        Args:
-            component_id: component_id
-            channels: Broadcast channels
-            maxsize: Max size of the channel
+        key = ComponentDataReceiverKey(component_id, frozenset(metrics))
+        return self._get_chan(key).new_receiver(limit=buffer_size)
 
-        Returns:
-            Receiver from the given channels.
-        """
-        return channels[component_id].new_receiver(
-            name="component" + str(component_id), limit=maxsize
+    def _get_chan(
+        self, key: ComponentDataReceiverKey
+    ) -> Broadcast[ComponentDataSamples]:
+        if chan := self._component_data_channels.get(key):
+            return chan
+
+        metrics_str = ":".join(
+            map(lambda m: m.name if isinstance(m, Metric) else str(m), key.metrics)
         )
-
-    def _get_meter_receiver(
-        self,
-        component_id: ComponentId,
-        channels: dict[ComponentId, Broadcast[MeterData]],
-        maxsize: int = RECEIVER_MAX_SIZE,
-    ) -> Receiver[MeterData]:
-        """Return receiver of the broadcast channel for given component_id.
-
-        Args:
-            component_id: component_id
-            channels: Broadcast channels
-            maxsize: Max size of the channel
-
-        Returns:
-            Receiver from the given channels.
-        """
-        return channels[component_id].new_receiver(
-            name="component" + str(component_id), limit=maxsize
+        chan = Broadcast[ComponentDataSamples](
+            name=f"mock_stream:{key.component_id}:{metrics_str}"
         )
+        self._component_data_channels[key] = chan
 
-    def _get_ev_charger_receiver(
-        self,
-        component_id: ComponentId,
-        channels: dict[ComponentId, Broadcast[EVChargerData]],
-        maxsize: int = RECEIVER_MAX_SIZE,
-    ) -> Receiver[EVChargerData]:
-        """Return receiver of the broadcast channel for given component_id.
-
-        Args:
-            component_id: component_id
-            channels: Broadcast channels
-            maxsize: Max size of the channel
-
-        Returns:
-            Receiver from the given channels.
-        """
-        return channels[component_id].new_receiver(
-            name="component" + str(component_id), limit=maxsize
-        )
-
-    def _get_inverter_receiver(
-        self,
-        component_id: ComponentId,
-        channels: dict[ComponentId, Broadcast[InverterData]],
-        maxsize: int = RECEIVER_MAX_SIZE,
-    ) -> Receiver[InverterData]:
-        """Return receiver of the broadcast channel for given component_id.
-
-        Args:
-            component_id: component_id
-            channels: Broadcast channels
-            maxsize: Max size of the channel
-
-        Returns:
-            Receiver from the given channels.
-        """
-        return channels[component_id].new_receiver(
-            name="component" + str(component_id), limit=maxsize
-        )
+        return chan

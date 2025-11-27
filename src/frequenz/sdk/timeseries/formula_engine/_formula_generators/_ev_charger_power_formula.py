@@ -5,7 +5,7 @@
 
 import logging
 
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from .._formula_engine import FormulaEngine
@@ -24,7 +24,7 @@ class EVChargerPowerFormula(FormulaGenerator[Power]):
             A formula engine that calculates total EV Charger power values.
         """
         builder = self._get_builder(
-            "ev-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "ev-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         component_ids = self._config.component_ids

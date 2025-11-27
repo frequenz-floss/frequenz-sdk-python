@@ -11,7 +11,7 @@ import pytest
 import time_machine
 from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
 from frequenz.sdk._internal._channels import ChannelRegistry
@@ -121,7 +121,7 @@ async def test_single_request(
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
             component_id=ComponentId(9),
-            metric_id=ComponentMetricId.SOC,
+            metric=Metric.BATTERY_SOC_PCT,
             start_time=None,
         )
 
@@ -164,7 +164,7 @@ async def test_duplicate_request(
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
             component_id=ComponentId(9),
-            metric_id=ComponentMetricId.SOC,
+            metric=Metric.BATTERY_SOC_PCT,
             start_time=None,
         )
 

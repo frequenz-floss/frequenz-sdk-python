@@ -8,21 +8,17 @@ import collections.abc
 import logging
 import math
 import typing
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    BatteryData,
-    ComponentCategory,
-    InverterData,
-    OperationOutOfRange,
-)
+from frequenz.client.microgrid import ApiClientError, OperationOutOfRange
+from frequenz.client.microgrid.component import Battery, Inverter
 from frequenz.quantities import Power
 from typing_extensions import override
 
 from ... import connection_manager
+from ..._old_component_data import BatteryData, InverterData
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import BatteryStatusTracker, ComponentPoolStatus
 from .._distribution_algorithm import (
@@ -84,9 +80,11 @@ def _get_battery_inverter_mappings(
 
     for battery_id in battery_ids:
         inverters: set[ComponentId] = set(
-            component.component_id
+            component.id
             for component in component_graph.predecessors(battery_id)
-            if component.category == ComponentCategory.INVERTER
+            # Using Inverter is way too general, see
+            # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
+            if isinstance(component, Inverter)
         )
 
         if len(inverters) == 0:
@@ -97,7 +95,7 @@ def _get_battery_inverter_mappings(
         if bat_bats_map is not None:
             bat_bats_map.setdefault(battery_id, set()).update(
                 set(
-                    component.component_id
+                    component.id
                     for inverter in inverters
                     for component in component_graph.successors(inverter)
                 )
@@ -148,9 +146,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._batteries = connection_manager.get().component_graph.components(
-            component_categories={ComponentCategory.BATTERY}
+            matching_types=Battery
         )
-        self._battery_ids = {battery.component_id for battery in self._batteries}
+        self._battery_ids = {battery.id for battery in self._batteries}
 
         maps = _get_battery_inverter_mappings(self._battery_ids)
 
@@ -310,17 +308,19 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     async def _create_channels(self) -> None:
         """Create channels to get data of components in microgrid."""
-        api = connection_manager.get().api_client
+        client = connection_manager.get().api_client
         manager_id = f"{type(self).__name__}«{hex(id(self))}»"
         for battery_id, inverter_ids in self._bat_invs_map.items():
-            bat_recv: Receiver[BatteryData] = await api.battery_data(battery_id)
+            bat_recv: Receiver[BatteryData] = BatteryData.subscribe(client, battery_id)
             self._battery_caches[battery_id] = LatestValueCache(
                 bat_recv,
                 unique_id=f"{manager_id}:battery«{battery_id}»",
             )
 
             for inverter_id in inverter_ids:
-                inv_recv: Receiver[InverterData] = await api.inverter_data(inverter_id)
+                inv_recv: Receiver[InverterData] = InverterData.subscribe(
+                    client, inverter_id
+                )
                 self._inverter_caches[inverter_id] = LatestValueCache(
                     inv_recv, unique_id=f"{manager_id}:inverter«{inverter_id}»"
                 )
@@ -634,11 +634,11 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Tuple where first element is total failed power, and the second element
             set of batteries that failed.
         """
-        api = connection_manager.get().api_client
+        client = connection_manager.get().api_client
 
         tasks = {
             inverter_id: asyncio.create_task(
-                api.set_power(inverter_id, power.as_watts())
+                client.set_component_power_active(inverter_id, power.as_watts())
             )
             for inverter_id, power in distribution.distribution.items()
             if power != Power.zero()
@@ -681,7 +681,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     def _parse_result(
         self,
-        tasks: dict[ComponentId, asyncio.Task[None]],
+        tasks: dict[ComponentId, asyncio.Task[datetime | None]],
         distribution: dict[ComponentId, Power],
         request_timeout: timedelta,
     ) -> tuple[Power, set[ComponentId]]:
