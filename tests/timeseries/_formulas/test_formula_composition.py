@@ -208,7 +208,7 @@ class TestFormulaComposition:
 
     async def test_formula_composition_min_max(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with the min and max."""
-        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker, num_namespaces=2)
         mockgrid.add_chps(1)
 
         async with mockgrid, AsyncExitStack() as stack:
