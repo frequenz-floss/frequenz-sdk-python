@@ -177,9 +177,8 @@ class FormulaBuilder(Generic[QuantityT]):
 
         if isinstance(formula, Formula):
             self.root: _ast.Node = _ast.TelemetryStream(
-                None,
-                str(formula),
-                formula.new_receiver(),
+                source=str(formula),
+                stream=formula.new_receiver(),
             )
             self._streams.append(self.root)
             self._sub_formulas.append(formula)
@@ -195,13 +194,16 @@ class FormulaBuilder(Generic[QuantityT]):
             right_node = other.root
             self._streams.extend(other._streams)
         elif isinstance(other, Formula):
-            right_node = _ast.TelemetryStream(None, str(other), other.new_receiver())
+            right_node = _ast.TelemetryStream(
+                source=str(other),
+                stream=other.new_receiver(),
+            )
             self._streams.append(right_node)
             self._sub_formulas.append(other)
         else:
-            right_node = _ast.Constant(None, other.base_value)
+            right_node = _ast.Constant(value=other.base_value)
 
-        new_root = _ast.Add(None, self.root, right_node)
+        new_root = _ast.Add(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
             self._create_method,
@@ -218,13 +220,15 @@ class FormulaBuilder(Generic[QuantityT]):
             right_node = other.root
             self._streams.extend(other._streams)
         elif isinstance(other, Formula):
-            right_node = _ast.TelemetryStream(None, str(other), other.new_receiver())
+            right_node = _ast.TelemetryStream(
+                source=str(other), stream=other.new_receiver()
+            )
             self._streams.append(right_node)
             self._sub_formulas.append(other)
         else:
-            right_node = _ast.Constant(None, other.base_value)
+            right_node = _ast.Constant(value=other.base_value)
 
-        new_root = _ast.Sub(None, self.root, right_node)
+        new_root = _ast.Sub(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
             self._create_method,
@@ -234,8 +238,8 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def __mul__(self, other: float) -> FormulaBuilder[QuantityT]:
         """Create a multiplication operation node."""
-        right_node = _ast.Constant(None, other)
-        new_root = _ast.Mul(None, self.root, right_node)
+        right_node = _ast.Constant(value=other)
+        new_root = _ast.Mul(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
             self._create_method,
@@ -248,8 +252,8 @@ class FormulaBuilder(Generic[QuantityT]):
         other: float,
     ) -> FormulaBuilder[QuantityT]:
         """Create a division operation node."""
-        right_node = _ast.Constant(None, other)
-        new_root = _ast.Div(None, self.root, right_node)
+        right_node = _ast.Constant(value=other)
+        new_root = _ast.Div(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
             self._create_method,
@@ -269,20 +273,18 @@ class FormulaBuilder(Generic[QuantityT]):
                 self._streams.extend(item._streams)  # pylint: disable=protected-access
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
-                    None,
-                    str(item),
-                    item.new_receiver(),
+                    source=str(item),
+                    stream=item.new_receiver(),
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(None, item.base_value))
+                right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            None,
-            Coalesce(),
-            [self.root] + right_nodes,
+            function=Coalesce(),
+            args=[self.root] + right_nodes,
         )
 
         return FormulaBuilder(
@@ -304,20 +306,18 @@ class FormulaBuilder(Generic[QuantityT]):
                 self._streams.extend(item._streams)  # pylint: disable=protected-access
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
-                    None,
-                    str(item),
-                    item.new_receiver(),
+                    source=str(item),
+                    stream=item.new_receiver(),
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(None, item.base_value))
+                right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            None,
-            Min(),
-            [self.root] + right_nodes,
+            function=Min(),
+            args=[self.root] + right_nodes,
         )
 
         return FormulaBuilder(
@@ -339,20 +339,18 @@ class FormulaBuilder(Generic[QuantityT]):
                 self._streams.extend(item._streams)  # pylint: disable=protected-access
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
-                    None,
-                    str(item),
-                    item.new_receiver(),
+                    source=str(item),
+                    stream=item.new_receiver(),
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(None, item.base_value))
+                right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            None,
-            Max(),
-            [self.root] + right_nodes,
+            function=Max(),
+            args=[self.root] + right_nodes,
         )
 
         return FormulaBuilder(

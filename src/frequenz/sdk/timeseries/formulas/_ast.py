@@ -21,11 +21,11 @@ from ._functions import Function
 _logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Node(abc.ABC):
     """An abstract syntax tree node representing a formula expression."""
 
-    span: tuple[int, int] | None
+    span: tuple[int, int] | None = None
 
     @abc.abstractmethod
     def evaluate(self) -> float | None:
@@ -41,7 +41,7 @@ class Node(abc.ABC):
         return self.format()
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TelemetryStream(Node, Generic[QuantityT]):
     """A AST node that retrieves values from a component's telemetry stream."""
 
@@ -73,7 +73,7 @@ class TelemetryStream(Node, Generic[QuantityT]):
         self._latest_sample = await anext(self.stream)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class FunCall(Node):
     """A function call in the formula."""
 
@@ -92,7 +92,7 @@ class FunCall(Node):
         return f"{self.function.name}({args_str})"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Constant(Node):
     """A constant numerical value in the formula."""
 
@@ -109,7 +109,7 @@ class Constant(Node):
         return str(self.value)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Add(Node):
     """Addition operation node."""
 
@@ -134,7 +134,7 @@ class Add(Node):
         return expr
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Sub(Node):
     """Subtraction operation node."""
 
@@ -159,7 +159,7 @@ class Sub(Node):
         return expr
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Mul(Node):
     """Multiplication operation node."""
 
@@ -181,7 +181,7 @@ class Mul(Node):
         return f"{self.left.format(True)} * {self.right.format(True)}"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Div(Node):
     """Division operation node."""
 

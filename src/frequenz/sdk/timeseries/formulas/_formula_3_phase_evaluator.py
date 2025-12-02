@@ -44,19 +44,16 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
         self._phase_3_formula: Formula[QuantityT] = phase_3
         self._components: list[_ast.TelemetryStream[QuantityT]] = [
             _ast.TelemetryStream(
-                None,
-                "phase_1",
-                phase_1.new_receiver(),
+                source="phase_1",
+                stream=phase_1.new_receiver(),
             ),
             _ast.TelemetryStream(
-                None,
-                "phase_2",
-                phase_2.new_receiver(),
+                source="phase_2",
+                stream=phase_2.new_receiver(),
             ),
             _ast.TelemetryStream(
-                None,
-                "phase_3",
-                phase_3.new_receiver(),
+                source="phase_3",
+                stream=phase_3.new_receiver(),
             ),
         ]
         self._output_channel: Broadcast[Sample3Phase[QuantityT]] = output_channel
