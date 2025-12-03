@@ -29,7 +29,7 @@ class Function(abc.ABC, Generic[QuantityT]):
         """Return the name of the function."""
 
     @abc.abstractmethod
-    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
+    async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Call the function with the given arguments."""
 
     def format(self) -> str:
@@ -63,11 +63,11 @@ class Coalesce(Function[QuantityT]):
         return "COALESCE"
 
     @override
-    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
+    async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the first non-None argument."""
         ts: datetime | None = None
         for param in self.params:
-            arg = param.evaluate()
+            arg = await param.evaluate()
             match arg:
                 case Sample(value=value, timestamp=timestamp):
                     if value is not None:
@@ -94,12 +94,12 @@ class Max(Function[QuantityT]):
         return "MAX"
 
     @override
-    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
+    async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the maximum of the arguments."""
         max_value: QuantityT | None = None
         ts: datetime | None = None
         for param in self.params:
-            arg = param.evaluate()
+            arg = await param.evaluate()
             match arg:
                 case Sample(value=value, timestamp=timestamp):
                     ts = timestamp
@@ -128,12 +128,12 @@ class Min(Function[QuantityT]):
         return "MIN"
 
     @override
-    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
+    async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the minimum of the arguments."""
         min_value: QuantityT | None = None
         ts: datetime | None = None
         for param in self.params:
-            arg = param.evaluate()
+            arg = await param.evaluate()
             match arg:
                 case Sample(value=value, timestamp=timestamp):
                     ts = timestamp

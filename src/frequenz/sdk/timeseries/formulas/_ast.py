@@ -35,7 +35,7 @@ class TelemetryStream(AstNode[QuantityT]):
         return self._latest_sample
 
     @override
-    def evaluate(self) -> Sample[QuantityT] | None:
+    async def evaluate(self) -> Sample[QuantityT] | None:
         """Return the base value of the latest sample for this component."""
         if self._latest_sample is None:
             raise ValueError("Next value has not been fetched yet.")
@@ -71,9 +71,9 @@ class FunCall(AstNode[QuantityT]):
     function: Function[QuantityT]
 
     @override
-    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the function call with its arguments."""
-        return self.function()
+        return await self.function()
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -88,7 +88,7 @@ class Constant(AstNode[QuantityT]):
     value: QuantityT
 
     @override
-    def evaluate(self) -> QuantityT | None:
+    async def evaluate(self) -> QuantityT | None:
         """Return the constant value."""
         return self.value
 
@@ -106,10 +106,10 @@ class Add(AstNode[QuantityT]):
     right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the addition of the left and right nodes."""
-        left = self.left.evaluate()
-        right = self.right.evaluate()
+        left = await self.left.evaluate()
+        right = await self.right.evaluate()
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
@@ -161,10 +161,10 @@ class Sub(AstNode[QuantityT]):
     right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the subtraction of the right node from the left node."""
-        left = self.left.evaluate()
-        right = self.right.evaluate()
+        left = await self.left.evaluate()
+        right = await self.right.evaluate()
         print("Sub.evaluate:", left, right)
         match left, right:
             case Sample(), Sample():
@@ -217,10 +217,10 @@ class Mul(AstNode[QuantityT]):
     right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the multiplication of the left and right nodes."""
-        left = self.left.evaluate()
-        right = self.right.evaluate()
+        left = await self.left.evaluate()
+        right = await self.right.evaluate()
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
@@ -271,10 +271,10 @@ class Div(AstNode[QuantityT]):
     right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> QuantityT | None:
+    async def evaluate(self) -> QuantityT | None:
         """Evaluate the division of the left node by the right node."""
-        left = self.left.evaluate()
-        right = self.right.evaluate()
+        left = await self.left.evaluate()
+        right = await self.right.evaluate()
         match left, right:
             case Sample(), Sample():
                 if left.value is None:

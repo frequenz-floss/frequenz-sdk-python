@@ -20,7 +20,7 @@ class AstNode(abc.ABC, Generic[QuantityT]):
     span: tuple[int, int] | None = None
 
     @abc.abstractmethod
-    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the expression and return its numerical value."""
 
     @abc.abstractmethod

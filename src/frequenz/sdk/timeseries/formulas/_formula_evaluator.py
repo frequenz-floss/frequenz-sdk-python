@@ -65,7 +65,7 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
                     if comp.latest_sample is not None
                 )
 
-                res = self._root.evaluate()
+                res = await self._root.evaluate()
                 next_sample = res if isinstance(res, Sample) else Sample(timestamp, res)
                 await self._output_sender.send(next_sample)
             except (StopAsyncIteration, StopIteration):
