@@ -304,6 +304,53 @@ Battery bounds available for use: -100kW to 100kW
 |       -1 |    -60 kW .. 0 kW | -40 kW .. -10 kW |          -10 kW |         -10 kW |           50 kW |
 |          |                   |                  |                 |   Target Power |           50 kW |
 
+### Working with other actors to control PV inverters and EV chargers
+
+The power manager reconciles power proposals for PV inverters and EV chargers
+similarly to batteries, but with one key difference:
+
+There is no shifting of operating point between actors, and the powers are not
+added together.
+
+Higher priority actors can strictly limit the bounds available to lower priority
+actors, but the power proposals by lower priority actors take precedence, as
+long as they are within the bounds set by higher priority actors.
+
+This is because PV inverters can only produce power (negative power according to
+the PSC), and EV chargers can only consume power (positive power according to
+the PSC), and shifting bounds would make ranges available to actors that a PV
+inverter or EV charger can't operate in.
+
+*A PV pool Example*
+
+| Actor | Priority | Available Bounds | Requested Bounds | Requested Power | Adjusted Power |
+|------:|---------:|-----------------:|-----------------:|----------------:|---------------:|
+|     A |        4 |     -100kW .. 0W |     -90kW .. 0kW |           -20kW |          -20kW |
+|     B |        3 |     -90kW .. 0kW |   -75kW .. -20kW |           -50kW |          -50kW |
+|     C |        2 |   -75kW .. -20kW |             None |          -100kW |          -75kW |
+|     D |        1 |   -75kW .. -20kW |   -60kW .. -60kW |           -60kW |          -60kW |
+|     E |        0 |   -60kW .. -60kW |             None |           -20kW |          -60kW |
+|       |          |                  |                  |     Final Power |          -60kW |
+
+1. Actor A with the highest priority has access to the entire range of the PV
+   inverters.  In this case `-100kW .. 0W`.
+
+2. It wants to limit production to a maximum of `-90kW`, so it sets bounds of
+   `-90kW .. 0W`.  It also proposes a power of `-20kW`.  If there are no lower
+   priority actors, that power will get set to the inverters.  But here, it gets
+   *overridden* by lower priority actors.
+
+3. Actor B limits the bounds further, and proposes its preferred power.
+
+4. Actor C proposes `-100kW`, which is outside of what Actor B has allowed, so it
+   gets clamped to `-75kW`, which is the closest Actor C can get to its requested
+   power in its available range of `-75kW .. -20kW`.
+
+5. Actor D wants exactly `-60kW`, so it clamps the bounds to `-60kW .. -60kW`, and
+   sets `-60kW`, making sure Actor E or other lower priority actors can't change
+   the power further.
+
+
 ## Withdrawing power proposals
 
 An actor can withdraw its power proposal by calling `propose_power` with `None`
