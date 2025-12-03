@@ -7,11 +7,10 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
 
-from frequenz.sdk.timeseries import Sample
-
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest, Metric
 from ...microgrid._old_component_data import TransitionalMetric
+from .. import Sample
 
 
 class ResampledStreamFetcher:

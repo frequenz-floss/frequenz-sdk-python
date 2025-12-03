@@ -46,14 +46,17 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
             _ast.TelemetryStream(
                 source="phase_1",
                 stream=phase_1.new_receiver(),
+                create_method=phase_1._create_method,  # pylint: disable=protected-access
             ),
             _ast.TelemetryStream(
                 source="phase_2",
                 stream=phase_2.new_receiver(),
+                create_method=phase_2._create_method,  # pylint: disable=protected-access
             ),
             _ast.TelemetryStream(
                 source="phase_3",
                 stream=phase_3.new_receiver(),
+                create_method=phase_3._create_method,  # pylint: disable=protected-access
             ),
         ]
         self._output_channel: Broadcast[Sample3Phase[QuantityT]] = output_channel

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Generic, cast
+from typing import Generic
 
 from frequenz.client.common.microgrid.components import ComponentId
 
@@ -64,7 +64,7 @@ class _Parser(Generic[QuantityT]):
         self._components: list[_ast.TelemetryStream[QuantityT]] = []
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    def _parse_term(self) -> AstNode | None:
+    def _parse_term(self) -> AstNode[QuantityT] | None:
         factor = self._parse_factor()
         if factor is None:
             return None
@@ -88,7 +88,7 @@ class _Parser(Generic[QuantityT]):
 
         return factor
 
-    def _parse_factor(self) -> AstNode | None:
+    def _parse_factor(self) -> AstNode[QuantityT] | None:
         unary = self._parse_unary()
 
         if unary is None:
@@ -110,26 +110,26 @@ class _Parser(Generic[QuantityT]):
 
         return unary
 
-    def _parse_unary(self) -> AstNode | None:
+    def _parse_unary(self) -> AstNode[QuantityT] | None:
         token: _token.Token | None = self._lexer.peek()
         if token is not None and isinstance(token, _token.Minus):
             token = next(self._lexer)
-            primary: AstNode | None = self._parse_primary()
+            primary: AstNode[QuantityT] | None = self._parse_primary()
             if primary is None:
                 raise ValueError(
                     f"Expected primary expression after unary '-' at position {token.span}"
                 )
 
-            zero_const = _ast.Constant(span=token.span, value=0.0)
+            zero_const = _ast.Constant(span=token.span, value=self._create_method(0.0))
             return _ast.Sub(span=token.span, left=zero_const, right=primary)
 
         return self._parse_primary()
 
-    def _parse_bracketed(self) -> AstNode | None:
+    def _parse_bracketed(self) -> AstNode[QuantityT] | None:
         oparen = next(self._lexer)  # consume '('
         assert isinstance(oparen, _token.OpenParen)
 
-        expr: AstNode | None = self._parse_term()
+        expr: AstNode[QuantityT] | None = self._parse_term()
         if expr is None:
             raise ValueError(f"Expected expression after '(' at position {oparen.span}")
 
@@ -141,9 +141,9 @@ class _Parser(Generic[QuantityT]):
 
         return expr
 
-    def _parse_function_call(self) -> AstNode | None:
+    def _parse_function_call(self) -> AstNode[QuantityT] | None:
         fn_name: _token.Token = next(self._lexer)
-        params: list[AstNode] = []
+        params: list[AstNode[QuantityT]] = []
 
         token: _token.Token | None = self._lexer.peek()
         if token is None or not isinstance(token, _token.OpenParen):
@@ -176,7 +176,7 @@ class _Parser(Generic[QuantityT]):
             function=Function.from_string(fn_name.value, params),
         )
 
-    def _parse_primary(self) -> AstNode | None:
+    def _parse_primary(self) -> AstNode[QuantityT] | None:
         token: _token.Token | None = self._lexer.peek()
         if token is None:
             return None
@@ -187,13 +187,16 @@ class _Parser(Generic[QuantityT]):
                 span=token.span,
                 source=f"#{token.id}",
                 stream=self._telemetry_fetcher.fetch_stream(ComponentId(int(token.id))),
+                create_method=self._create_method,
             )
-            self._components.append(cast(_ast.TelemetryStream[QuantityT], comp))
+            self._components.append(comp)
             return comp
 
         if isinstance(token, _token.Number):
             _ = next(self._lexer)
-            return _ast.Constant(span=token.span, value=float(token.value))
+            return _ast.Constant(
+                span=token.span, value=self._create_method(float(token.value))
+            )
 
         if isinstance(token, _token.OpenParen):
             return self._parse_bracketed()

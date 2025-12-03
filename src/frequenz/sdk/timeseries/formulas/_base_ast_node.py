@@ -5,18 +5,22 @@
 
 import abc
 from dataclasses import dataclass
+from typing import Generic
 
 from typing_extensions import override
 
+from ...timeseries import Sample
+from ...timeseries._base_types import QuantityT
+
 
 @dataclass(kw_only=True)
-class AstNode(abc.ABC):
+class AstNode(abc.ABC, Generic[QuantityT]):
     """An abstract syntax tree node representing a formula expression."""
 
     span: tuple[int, int] | None = None
 
     @abc.abstractmethod
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the expression and return its numerical value."""
 
     @abc.abstractmethod

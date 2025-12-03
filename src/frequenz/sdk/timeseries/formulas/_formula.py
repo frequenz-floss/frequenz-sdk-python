@@ -34,7 +34,7 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         self,
         *,
         name: str,
-        root: AstNode,
+        root: AstNode[QuantityT],
         create_method: Callable[[float], QuantityT],
         streams: list[_ast.TelemetryStream[QuantityT]],
         sub_formulas: list[Formula[QuantityT]] | None = None,
@@ -55,7 +55,7 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         """
         BackgroundService.__init__(self)
         self._name: str = name
-        self._root: AstNode = root
+        self._root: AstNode[QuantityT] = root
         self._components: list[_ast.TelemetryStream[QuantityT]] = streams
         self._create_method: Callable[[float], QuantityT] = create_method
         self._sub_formulas: list[Formula[QuantityT]] = sub_formulas or []
@@ -67,7 +67,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         self._evaluator: FormulaEvaluatingActor[QuantityT] = FormulaEvaluatingActor(
             root=self._root,
             components=self._components,
-            create_method=self._create_method,
             output_channel=self._channel,
             metric_fetcher=metric_fetcher,
         )
@@ -155,7 +154,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def __init__(
         self,
-        formula: Formula[QuantityT] | AstNode,
+        formula: Formula[QuantityT] | AstNode[QuantityT],
         create_method: Callable[[float], QuantityT],
         streams: list[_ast.TelemetryStream[QuantityT]] | None = None,
         sub_formulas: list[Formula[QuantityT]] | None = None,
@@ -177,9 +176,10 @@ class FormulaBuilder(Generic[QuantityT]):
         """Sub-formulas whose lifetimes are managed by this formula."""
 
         if isinstance(formula, Formula):
-            self.root: AstNode = _ast.TelemetryStream(
+            self.root: AstNode[QuantityT] = _ast.TelemetryStream(
                 source=str(formula),
                 stream=formula.new_receiver(),
+                create_method=create_method,
             )
             self._streams.append(self.root)
             self._sub_formulas.append(formula)
@@ -198,11 +198,12 @@ class FormulaBuilder(Generic[QuantityT]):
             right_node = _ast.TelemetryStream(
                 source=str(other),
                 stream=other.new_receiver(),
+                create_method=self._create_method,
             )
             self._streams.append(right_node)
             self._sub_formulas.append(other)
         else:
-            right_node = _ast.Constant(value=other.base_value)
+            right_node = _ast.Constant(value=other)
 
         new_root = _ast.Add(left=self.root, right=right_node)
         return FormulaBuilder(
@@ -222,12 +223,14 @@ class FormulaBuilder(Generic[QuantityT]):
             self._streams.extend(other._streams)
         elif isinstance(other, Formula):
             right_node = _ast.TelemetryStream(
-                source=str(other), stream=other.new_receiver()
+                source=str(other),
+                stream=other.new_receiver(),
+                create_method=self._create_method,
             )
             self._streams.append(right_node)
             self._sub_formulas.append(other)
         else:
-            right_node = _ast.Constant(value=other.base_value)
+            right_node = _ast.Constant(value=other)
 
         new_root = _ast.Sub(left=self.root, right=right_node)
         return FormulaBuilder(
@@ -239,7 +242,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def __mul__(self, other: float) -> FormulaBuilder[QuantityT]:
         """Create a multiplication operation node."""
-        right_node = _ast.Constant(value=other)
+        right_node = _ast.Constant(value=self._create_method(other))
         new_root = _ast.Mul(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
@@ -253,7 +256,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: float,
     ) -> FormulaBuilder[QuantityT]:
         """Create a division operation node."""
-        right_node = _ast.Constant(value=other)
+        right_node = _ast.Constant(value=self._create_method(other))
         new_root = _ast.Div(left=self.root, right=right_node)
         return FormulaBuilder(
             new_root,
@@ -267,7 +270,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
-        right_nodes: list[AstNode] = []
+        right_nodes: list[AstNode[QuantityT]] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)
@@ -276,12 +279,13 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
                     stream=item.new_receiver(),
+                    create_method=self._create_method,
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(value=item.base_value))
+                right_nodes.append(_ast.Constant(value=item))
 
         new_root = _ast.FunCall(
             function=Coalesce([self.root] + right_nodes),
@@ -299,7 +303,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
-        right_nodes: list[AstNode] = []
+        right_nodes: list[AstNode[QuantityT]] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)
@@ -308,12 +312,13 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
                     stream=item.new_receiver(),
+                    create_method=self._create_method,
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(value=item.base_value))
+                right_nodes.append(_ast.Constant(value=item))
 
         new_root = _ast.FunCall(
             function=Min([self.root] + right_nodes),
@@ -331,7 +336,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
-        right_nodes: list[AstNode] = []
+        right_nodes: list[AstNode[QuantityT]] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)
@@ -340,12 +345,13 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
                     stream=item.new_receiver(),
+                    create_method=self._create_method,
                 )
                 right_nodes.append(right_node)
                 self._streams.append(right_node)
                 self._sub_formulas.append(item)
             else:
-                right_nodes.append(_ast.Constant(value=item.base_value))
+                right_nodes.append(_ast.Constant(value=item))
 
         new_root = _ast.FunCall(
             function=Max([self.root] + right_nodes),

@@ -6,12 +6,11 @@
 from __future__ import annotations
 
 import logging
-import math
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
-from typing import Generic
 
-from typing_extensions import override
+from frequenz.quantities import Quantity
+from typing_extensions import TypeIs, override
 
 from ..._internal._math import is_close_to_zero
 from .._base_types import QuantityT, Sample
@@ -22,11 +21,12 @@ _logger = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
-class TelemetryStream(AstNode, Generic[QuantityT]):
+class TelemetryStream(AstNode[QuantityT]):
     """A AST node that retrieves values from a component's telemetry stream."""
 
     source: str
-    stream: AsyncIterator[Sample[QuantityT]]
+    stream: AsyncIterator[Sample[QuantityT] | Sample[Quantity]]
+    create_method: Callable[[float], QuantityT]
     _latest_sample: Sample[QuantityT] | None = None
 
     @property
@@ -35,13 +35,11 @@ class TelemetryStream(AstNode, Generic[QuantityT]):
         return self._latest_sample
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | None:
         """Return the base value of the latest sample for this component."""
         if self._latest_sample is None:
             raise ValueError("Next value has not been fetched yet.")
-        if self._latest_sample.value is None:
-            return None
-        return self._latest_sample.value.base_value
+        return self._latest_sample
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -50,17 +48,30 @@ class TelemetryStream(AstNode, Generic[QuantityT]):
 
     async def fetch_next(self) -> None:
         """Fetch the next value for this component and store it internally."""
-        self._latest_sample = await anext(self.stream)
+        latest_sample = await anext(self.stream)
+        if self._is_quantity_sample(latest_sample):
+            assert latest_sample.value is not None
+            self._latest_sample = Sample(
+                timestamp=latest_sample.timestamp,
+                value=self.create_method(latest_sample.value.base_value),
+            )
+        else:
+            self._latest_sample = latest_sample
+
+    def _is_quantity_sample(
+        self, sample: Sample[QuantityT] | Sample[Quantity]
+    ) -> TypeIs[Sample[Quantity]]:
+        return isinstance(sample.value, Quantity)
 
 
 @dataclass(kw_only=True)
-class FunCall(AstNode):
+class FunCall(AstNode[QuantityT]):
     """A function call in the formula."""
 
-    function: Function
+    function: Function[QuantityT]
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the function call with its arguments."""
         return self.function()
 
@@ -71,37 +82,67 @@ class FunCall(AstNode):
 
 
 @dataclass(kw_only=True)
-class Constant(AstNode):
+class Constant(AstNode[QuantityT]):
     """A constant numerical value in the formula."""
 
-    value: float
+    value: QuantityT
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> QuantityT | None:
         """Return the constant value."""
         return self.value
 
     @override
     def format(self, wrap: bool = False) -> str:
         """Return a string representation of the constant node."""
-        return str(self.value)
+        return str(self.value.base_value)
 
 
 @dataclass(kw_only=True)
-class Add(AstNode):
+class Add(AstNode[QuantityT]):
     """Addition operation node."""
 
-    left: AstNode
-    right: AstNode
+    left: AstNode[QuantityT]
+    right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the addition of the left and right nodes."""
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if left is None or right is None:
-            return None
-        return left + right
+        match left, right:
+            case Sample(), Sample():
+                if left.value is None:
+                    return left
+                if right.value is None:
+                    return right
+                return Sample(
+                    timestamp=left.timestamp,
+                    value=left.value + right.value,
+                )
+            case Quantity(), Quantity():
+                return left + right
+            case (Sample(), Quantity()):
+                return (
+                    left
+                    if left.value is None
+                    else Sample(
+                        timestamp=left.timestamp,
+                        value=left.value + right,
+                    )
+                )
+            case (Quantity(), Sample()):
+                return (
+                    right
+                    if right.value is None
+                    else Sample(
+                        timestamp=right.timestamp,
+                        value=left + right.value,
+                    )
+                )
+            case (None, _) | (_, None):
+                return None
+        return None
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -113,20 +154,51 @@ class Add(AstNode):
 
 
 @dataclass(kw_only=True)
-class Sub(AstNode):
+class Sub(AstNode[QuantityT]):
     """Subtraction operation node."""
 
-    left: AstNode
-    right: AstNode
+    left: AstNode[QuantityT]
+    right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the subtraction of the right node from the left node."""
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if left is None or right is None:
-            return None
-        return left - right
+        print("Sub.evaluate:", left, right)
+        match left, right:
+            case Sample(), Sample():
+                if left.value is None:
+                    return left
+                if right.value is None:
+                    return right
+                return Sample(
+                    timestamp=left.timestamp,
+                    value=left.value - right.value,
+                )
+            case Quantity(), Quantity():
+                return left - right
+            case (Sample(), Quantity()):
+                return (
+                    left
+                    if left.value is None
+                    else Sample(
+                        timestamp=left.timestamp,
+                        value=left.value - right,
+                    )
+                )
+            case (Quantity(), Sample()):
+                return (
+                    right
+                    if right.value is None
+                    else Sample(
+                        timestamp=right.timestamp,
+                        value=left - right.value,
+                    )
+                )
+            case (None, _) | (_, None):
+                return None
+        return None
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -138,20 +210,52 @@ class Sub(AstNode):
 
 
 @dataclass(kw_only=True)
-class Mul(AstNode):
+class Mul(AstNode[QuantityT]):
     """Multiplication operation node."""
 
-    left: AstNode
-    right: AstNode
+    left: AstNode[QuantityT]
+    right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the multiplication of the left and right nodes."""
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if left is None or right is None:
-            return None
-        return left * right
+        match left, right:
+            case Sample(), Sample():
+                if left.value is None:
+                    return left
+                if right.value is None:
+                    return right
+                return Sample(
+                    timestamp=left.timestamp,
+                    value=left.value * right.value.base_value,
+                )
+            case Quantity(), Quantity():
+                return left.__class__._new(  # pylint: disable=protected-access
+                    left.base_value * right.base_value
+                )
+            case (Sample(), Quantity()):
+                return (
+                    left
+                    if left.value is None
+                    else Sample(
+                        timestamp=left.timestamp,
+                        value=left.value * right.base_value,
+                    )
+                )
+            case (Quantity(), Sample()):
+                return (
+                    right
+                    if right.value is None
+                    else Sample(
+                        timestamp=right.timestamp,
+                        value=right.value * left.base_value,
+                    )
+                )
+            case (None, _) | (_, None):
+                return None
+        return None
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -160,22 +264,47 @@ class Mul(AstNode):
 
 
 @dataclass(kw_only=True)
-class Div(AstNode):
+class Div(AstNode[QuantityT]):
     """Division operation node."""
 
-    left: AstNode
-    right: AstNode
+    left: AstNode[QuantityT]
+    right: AstNode[QuantityT]
 
     @override
-    def evaluate(self) -> float | None:
+    def evaluate(self) -> QuantityT | None:
         """Evaluate the division of the left node by the right node."""
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if left is None or right is None:
-            return None
-        if is_close_to_zero(right):
-            return math.nan
-        return left / right
+        match left, right:
+            case Sample(), Sample():
+                if left.value is None:
+                    return None
+                if right.value is None:
+                    return None
+                if is_close_to_zero(right.value.base_value):
+                    _logger.warning("Division by zero encountered in formula.")
+                    return None
+                return left.value / right.value.base_value
+            case Quantity(), Quantity():
+                if is_close_to_zero(right.base_value):
+                    _logger.warning("Division by zero encountered in formula.")
+                    return None
+                return left / right.base_value
+            case (Sample(), Quantity()):
+                if is_close_to_zero(right.base_value):
+                    _logger.warning("Division by zero encountered in formula.")
+                    return None
+                return None if left.value is None else left.value / right.base_value
+            case (Quantity(), Sample()):
+                if right.value is None:
+                    return None
+                if is_close_to_zero(right.value.base_value):
+                    _logger.warning("Division by zero encountered in formula.")
+                    return None
+                return left / right.value.base_value
+            case (None, _) | (_, None):
+                return None
+        return None
 
     @override
     def format(self, wrap: bool = False) -> str:

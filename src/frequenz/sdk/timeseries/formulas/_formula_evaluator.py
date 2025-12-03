@@ -6,7 +6,6 @@
 
 import asyncio
 import logging
-from collections.abc import Callable
 from datetime import datetime
 from typing import Generic
 
@@ -28,9 +27,8 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        root: AstNode,
+        root: AstNode[QuantityT],
         components: list[_ast.TelemetryStream[QuantityT]],
-        create_method: Callable[[float], QuantityT],
         output_channel: Broadcast[Sample[QuantityT]],
         metric_fetcher: ResampledStreamFetcher | None = None,
     ) -> None:
@@ -39,18 +37,14 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
         Args:
             root: The root node of the formula AST.
             components: The telemetry streams that the formula depends on.
-            create_method: A method to generate the output values with.  If the
-                formula is for generating power values, this would be
-                `Power.from_watts`, for example.
             output_channel: The channel to send evaluated samples to.
             metric_fetcher: An optional metric fetcher that needs to be started
                 before the formula can be evaluated.
         """
         super().__init__()
 
-        self._root: AstNode = root
+        self._root: AstNode[QuantityT] = root
         self._components: list[_ast.TelemetryStream[QuantityT]] = components
-        self._create_method: Callable[[float], QuantityT] = create_method
         self._metric_fetcher: ResampledStreamFetcher | None = metric_fetcher
         self._output_channel: Broadcast[Sample[QuantityT]] = output_channel
 
@@ -72,9 +66,7 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
                 )
 
                 res = self._root.evaluate()
-                next_sample = Sample(
-                    timestamp, None if res is None else self._create_method(res)
-                )
+                next_sample = res if isinstance(res, Sample) else Sample(timestamp, res)
                 await self._output_sender.send(next_sample)
             except (StopAsyncIteration, StopIteration):
                 _logger.debug(

@@ -7,17 +7,21 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Generic
 
+from frequenz.quantities import Quantity
 from typing_extensions import override
 
+from .._base_types import QuantityT, Sample
 from ._base_ast_node import AstNode
 
 
 @dataclass
-class Function(abc.ABC):
+class Function(abc.ABC, Generic[QuantityT]):
     """A function that can be called in a formula expression."""
 
-    params: list[AstNode]
+    params: list[AstNode[QuantityT]]
 
     @property
     @abc.abstractmethod
@@ -25,7 +29,7 @@ class Function(abc.ABC):
         """Return the name of the function."""
 
     @abc.abstractmethod
-    def __call__(self) -> float | None:
+    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Call the function with the given arguments."""
 
     def format(self) -> str:
@@ -34,7 +38,9 @@ class Function(abc.ABC):
         return f"{self.name}({params_str})"
 
     @classmethod
-    def from_string(cls, name: str, params: list[AstNode]) -> Function:
+    def from_string(
+        cls, name: str, params: list[AstNode[QuantityT]]
+    ) -> Function[QuantityT]:
         """Create a function instance from its name."""
         match name.upper():
             case "COALESCE":
@@ -47,7 +53,7 @@ class Function(abc.ABC):
                 raise ValueError(f"Unknown function name: {name}")
 
 
-class Coalesce(Function):
+class Coalesce(Function[QuantityT]):
     """A function that returns the first non-None argument."""
 
     @property
@@ -57,16 +63,28 @@ class Coalesce(Function):
         return "COALESCE"
 
     @override
-    def __call__(self) -> float | None:
+    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the first non-None argument."""
+        ts: datetime | None = None
         for param in self.params:
             arg = param.evaluate()
-            if arg is not None:
-                return arg
+            match arg:
+                case Sample(value=value, timestamp=timestamp):
+                    if value is not None:
+                        return arg
+                    ts = timestamp
+                case Quantity():
+                    if ts is not None:
+                        return Sample(timestamp=ts, value=arg)
+                    return arg
+                case None:
+                    continue
+        if ts is not None:
+            return Sample(timestamp=ts, value=None)
         return None
 
 
-class Max(Function):
+class Max(Function[QuantityT]):
     """A function that returns the maximum of the arguments."""
 
     @property
@@ -76,19 +94,31 @@ class Max(Function):
         return "MAX"
 
     @override
-    def __call__(self) -> float | None:
+    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the maximum of the arguments."""
-        max_value: float | None = None
+        max_value: QuantityT | None = None
+        ts: datetime | None = None
         for param in self.params:
             arg = param.evaluate()
-            if arg is None:
-                return None
-            if max_value is None or arg > max_value:
-                max_value = arg
+            match arg:
+                case Sample(value=value, timestamp=timestamp):
+                    ts = timestamp
+                    if value is None:
+                        return arg
+                    if max_value is None or value > max_value:
+                        max_value = value
+                case Quantity():
+                    if max_value is None or arg > max_value:
+                        max_value = arg
+                case None:
+                    return None
+        if ts is not None:
+            return Sample(timestamp=ts, value=max_value)
+
         return max_value
 
 
-class Min(Function):
+class Min(Function[QuantityT]):
     """A function that returns the minimum of the arguments."""
 
     @property
@@ -98,13 +128,25 @@ class Min(Function):
         return "MIN"
 
     @override
-    def __call__(self) -> float | None:
+    def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the minimum of the arguments."""
-        min_value: float | None = None
+        min_value: QuantityT | None = None
+        ts: datetime | None = None
         for param in self.params:
             arg = param.evaluate()
-            if arg is None:
-                return None
-            if min_value is None or arg < min_value:
-                min_value = arg
+            match arg:
+                case Sample(value=value, timestamp=timestamp):
+                    ts = timestamp
+                    if value is None:
+                        return arg
+                    if min_value is None or value < min_value:
+                        min_value = value
+                case Quantity():
+                    if min_value is None or arg < min_value:
+                        min_value = arg
+                case None:
+                    return None
+        if ts is not None:
+            return Sample(timestamp=ts, value=min_value)
+
         return min_value
