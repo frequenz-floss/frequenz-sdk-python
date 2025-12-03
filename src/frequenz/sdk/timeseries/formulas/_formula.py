@@ -20,6 +20,7 @@ from ...actor import BackgroundService
 from .. import ReceiverFetcher, Sample
 from .._base_types import QuantityT
 from . import _ast
+from ._base_ast_node import AstNode
 from ._formula_evaluator import FormulaEvaluatingActor
 from ._functions import Coalesce, Max, Min
 
@@ -33,7 +34,7 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         self,
         *,
         name: str,
-        root: _ast.Node,
+        root: AstNode,
         create_method: Callable[[float], QuantityT],
         streams: list[_ast.TelemetryStream[QuantityT]],
         sub_formulas: list[Formula[QuantityT]] | None = None,
@@ -54,7 +55,7 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         """
         BackgroundService.__init__(self)
         self._name: str = name
-        self._root: _ast.Node = root
+        self._root: AstNode = root
         self._components: list[_ast.TelemetryStream[QuantityT]] = streams
         self._create_method: Callable[[float], QuantityT] = create_method
         self._sub_formulas: list[Formula[QuantityT]] = sub_formulas or []
@@ -154,7 +155,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def __init__(
         self,
-        formula: Formula[QuantityT] | _ast.Node,
+        formula: Formula[QuantityT] | AstNode,
         create_method: Callable[[float], QuantityT],
         streams: list[_ast.TelemetryStream[QuantityT]] | None = None,
         sub_formulas: list[Formula[QuantityT]] | None = None,
@@ -176,7 +177,7 @@ class FormulaBuilder(Generic[QuantityT]):
         """Sub-formulas whose lifetimes are managed by this formula."""
 
         if isinstance(formula, Formula):
-            self.root: _ast.Node = _ast.TelemetryStream(
+            self.root: AstNode = _ast.TelemetryStream(
                 source=str(formula),
                 stream=formula.new_receiver(),
             )
@@ -266,7 +267,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
-        right_nodes: list[_ast.Node] = []
+        right_nodes: list[AstNode] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)
@@ -299,7 +300,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
-        right_nodes: list[_ast.Node] = []
+        right_nodes: list[AstNode] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)
@@ -332,7 +333,7 @@ class FormulaBuilder(Generic[QuantityT]):
         other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
-        right_nodes: list[_ast.Node] = []
+        right_nodes: list[AstNode] = []
         for item in other:
             if isinstance(item, FormulaBuilder):
                 right_nodes.append(item.root)

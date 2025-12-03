@@ -16,6 +16,7 @@ from typing_extensions import override
 from ...actor import Actor
 from .._base_types import QuantityT, Sample
 from . import _ast
+from ._base_ast_node import AstNode
 from ._resampled_stream_fetcher import ResampledStreamFetcher
 
 _logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        root: _ast.Node,
+        root: AstNode,
         components: list[_ast.TelemetryStream[QuantityT]],
         create_method: Callable[[float], QuantityT],
         output_channel: Broadcast[Sample[QuantityT]],
@@ -47,7 +48,7 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
         """
         super().__init__()
 
-        self._root: _ast.Node = root
+        self._root: AstNode = root
         self._components: list[_ast.TelemetryStream[QuantityT]] = components
         self._create_method: Callable[[float], QuantityT] = create_method
         self._metric_fetcher: ResampledStreamFetcher | None = metric_fetcher

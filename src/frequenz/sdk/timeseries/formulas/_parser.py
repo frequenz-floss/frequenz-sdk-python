@@ -13,6 +13,7 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.sdk.timeseries._base_types import QuantityT
 
 from . import _ast, _token
+from ._base_ast_node import AstNode
 from ._formula import Formula
 from ._functions import Function
 from ._lexer import Lexer
@@ -63,7 +64,7 @@ class _Parser(Generic[QuantityT]):
         self._components: list[_ast.TelemetryStream[QuantityT]] = []
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    def _parse_term(self) -> _ast.Node | None:
+    def _parse_term(self) -> AstNode | None:
         factor = self._parse_factor()
         if factor is None:
             return None
@@ -87,7 +88,7 @@ class _Parser(Generic[QuantityT]):
 
         return factor
 
-    def _parse_factor(self) -> _ast.Node | None:
+    def _parse_factor(self) -> AstNode | None:
         unary = self._parse_unary()
 
         if unary is None:
@@ -109,11 +110,11 @@ class _Parser(Generic[QuantityT]):
 
         return unary
 
-    def _parse_unary(self) -> _ast.Node | None:
+    def _parse_unary(self) -> AstNode | None:
         token: _token.Token | None = self._lexer.peek()
         if token is not None and isinstance(token, _token.Minus):
             token = next(self._lexer)
-            primary: _ast.Node | None = self._parse_primary()
+            primary: AstNode | None = self._parse_primary()
             if primary is None:
                 raise ValueError(
                     f"Expected primary expression after unary '-' at position {token.span}"
@@ -124,11 +125,11 @@ class _Parser(Generic[QuantityT]):
 
         return self._parse_primary()
 
-    def _parse_bracketed(self) -> _ast.Node | None:
+    def _parse_bracketed(self) -> AstNode | None:
         oparen = next(self._lexer)  # consume '('
         assert isinstance(oparen, _token.OpenParen)
 
-        expr: _ast.Node | None = self._parse_term()
+        expr: AstNode | None = self._parse_term()
         if expr is None:
             raise ValueError(f"Expected expression after '(' at position {oparen.span}")
 
@@ -140,9 +141,9 @@ class _Parser(Generic[QuantityT]):
 
         return expr
 
-    def _parse_function_call(self) -> _ast.Node | None:
+    def _parse_function_call(self) -> AstNode | None:
         fn_name: _token.Token = next(self._lexer)
-        args: list[_ast.Node] = []
+        args: list[AstNode] = []
 
         token: _token.Token | None = self._lexer.peek()
         if token is None or not isinstance(token, _token.OpenParen):
@@ -176,7 +177,7 @@ class _Parser(Generic[QuantityT]):
             args=args,
         )
 
-    def _parse_primary(self) -> _ast.Node | None:
+    def _parse_primary(self) -> AstNode | None:
         token: _token.Token | None = self._lexer.peek()
         if token is None:
             return None

@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import abc
 import logging
 import math
 from collections.abc import AsyncIterator
@@ -16,33 +15,14 @@ from typing_extensions import override
 
 from ..._internal._math import is_close_to_zero
 from .._base_types import QuantityT, Sample
+from ._base_ast_node import AstNode
 from ._functions import Function
 
 _logger = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
-class Node(abc.ABC):
-    """An abstract syntax tree node representing a formula expression."""
-
-    span: tuple[int, int] | None = None
-
-    @abc.abstractmethod
-    def evaluate(self) -> float | None:
-        """Evaluate the expression and return its numerical value."""
-
-    @abc.abstractmethod
-    def format(self, wrap: bool = False) -> str:
-        """Return a string representation of the node."""
-
-    @override
-    def __str__(self) -> str:
-        """Return the string representation of the node."""
-        return self.format()
-
-
-@dataclass(kw_only=True)
-class TelemetryStream(Node, Generic[QuantityT]):
+class TelemetryStream(AstNode, Generic[QuantityT]):
     """A AST node that retrieves values from a component's telemetry stream."""
 
     source: str
@@ -74,11 +54,11 @@ class TelemetryStream(Node, Generic[QuantityT]):
 
 
 @dataclass(kw_only=True)
-class FunCall(Node):
+class FunCall(AstNode):
     """A function call in the formula."""
 
     function: Function
-    args: list[Node]
+    args: list[AstNode]
 
     @override
     def evaluate(self) -> float | None:
@@ -93,7 +73,7 @@ class FunCall(Node):
 
 
 @dataclass(kw_only=True)
-class Constant(Node):
+class Constant(AstNode):
     """A constant numerical value in the formula."""
 
     value: float
@@ -110,11 +90,11 @@ class Constant(Node):
 
 
 @dataclass(kw_only=True)
-class Add(Node):
+class Add(AstNode):
     """Addition operation node."""
 
-    left: Node
-    right: Node
+    left: AstNode
+    right: AstNode
 
     @override
     def evaluate(self) -> float | None:
@@ -135,11 +115,11 @@ class Add(Node):
 
 
 @dataclass(kw_only=True)
-class Sub(Node):
+class Sub(AstNode):
     """Subtraction operation node."""
 
-    left: Node
-    right: Node
+    left: AstNode
+    right: AstNode
 
     @override
     def evaluate(self) -> float | None:
@@ -160,11 +140,11 @@ class Sub(Node):
 
 
 @dataclass(kw_only=True)
-class Mul(Node):
+class Mul(AstNode):
     """Multiplication operation node."""
 
-    left: Node
-    right: Node
+    left: AstNode
+    right: AstNode
 
     @override
     def evaluate(self) -> float | None:
@@ -182,11 +162,11 @@ class Mul(Node):
 
 
 @dataclass(kw_only=True)
-class Div(Node):
+class Div(AstNode):
     """Division operation node."""
 
-    left: Node
-    right: Node
+    left: AstNode
+    right: AstNode
 
     @override
     def evaluate(self) -> float | None:
