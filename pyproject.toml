@@ -5,7 +5,7 @@
 requires = [
   "setuptools == 80.9.0",
   "setuptools_scm[toml] == 9.2.2",
-  "frequenz-repo-config[lib] == 0.13.6",
+  "frequenz-repo-config[lib] == 0.13.7",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -29,8 +29,8 @@ dependencies = [
   # Make sure to update the mkdocs.yml file when
   # changing the version
   # (plugins.mkdocstrings.handlers.python.import)
-  "frequenz-client-microgrid >= 0.9.0, < 0.10.0",
-  "frequenz-client-common >= 0.3.2, < 0.4.0",
+  "frequenz-client-microgrid >= 0.18.0, < 0.19.0",
+  "frequenz-client-common >= 0.3.6, < 0.4.0",
   "frequenz-channels >= 1.6.1, < 2.0.0",
   "frequenz-quantities[marshmallow] >= 1.0.0, < 2.0.0",
   "networkx >= 2.8, < 4",
@@ -49,8 +49,8 @@ email = "floss@frequenz.com"
 dev-flake8 = [
   "flake8 == 7.3.0",
   "flake8-docstrings == 1.7.0",
-  "flake8-pyproject == 1.2.3", # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.7.6",
+  "flake8-pyproject == 1.2.4", # For reading the flake8 config from pyproject.toml
+  "pydoclint == 0.8.3",
   "pydocstyle == 6.3.0",
 ]
 dev-formatting = ["black == 25.9.0", "isort == 6.1.0"]
@@ -64,7 +64,7 @@ dev-mkdocs = [
   "mkdocs-material == 9.6.23",
   "mkdocstrings[python] == 0.30.1",
   "mkdocstrings-python == 1.18.2",
-  "frequenz-repo-config[lib] == 0.13.6",
+  "frequenz-repo-config[lib] == 0.13.7",
 ]
 dev-mypy = [
   "mypy == 1.18.2",
@@ -74,17 +74,17 @@ dev-mypy = [
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
-dev-noxfile = ["nox == 2025.10.16", "frequenz-repo-config[lib] == 0.13.6"]
+dev-noxfile = ["nox == 2025.10.16", "frequenz-repo-config[lib] == 0.13.7"]
 dev-pylint = [
   "pylint == 3.3.8",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
-  "pytest == 8.4.2",
-  "frequenz-repo-config[extra-lint-examples] == 0.13.6",
+  "pytest == 9.0.1",
+  "frequenz-repo-config[extra-lint-examples] == 0.13.7",
   "pytest-mock == 3.15.1",
-  "pytest-asyncio == 1.2.0",
+  "pytest-asyncio == 1.3.0",
   "time-machine == 2.16.0",
   "async-solipsism == 0.8",
   "hypothesis == 6.144.1",

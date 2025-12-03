@@ -10,7 +10,7 @@ from datetime import datetime
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 from pytest_mock import MockerFixture
 
@@ -50,7 +50,7 @@ class MockResampler:
 
         def metric_senders(
             comp_ids: list[ComponentId],
-            metric_id: ComponentMetricId,
+            metric_id: Metric,
         ) -> list[Sender[Sample[Quantity]]]:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
@@ -70,45 +70,39 @@ class MockResampler:
 
         # Active power senders
         self._bat_inverter_power_senders = metric_senders(
-            bat_inverter_ids, ComponentMetricId.ACTIVE_POWER
+            bat_inverter_ids, Metric.AC_ACTIVE_POWER
         )
         self._pv_inverter_power_senders = metric_senders(
-            pv_inverter_ids, ComponentMetricId.ACTIVE_POWER
+            pv_inverter_ids, Metric.AC_ACTIVE_POWER
         )
-        self._ev_power_senders = metric_senders(evc_ids, ComponentMetricId.ACTIVE_POWER)
+        self._ev_power_senders = metric_senders(evc_ids, Metric.AC_ACTIVE_POWER)
 
-        self._chp_power_senders = metric_senders(
-            chp_ids, ComponentMetricId.ACTIVE_POWER
-        )
-        self._meter_power_senders = metric_senders(
-            meter_ids, ComponentMetricId.ACTIVE_POWER
-        )
+        self._chp_power_senders = metric_senders(chp_ids, Metric.AC_ACTIVE_POWER)
+        self._meter_power_senders = metric_senders(meter_ids, Metric.AC_ACTIVE_POWER)
         self._non_existing_component_sender = metric_senders(
-            [NON_EXISTING_COMPONENT_ID], ComponentMetricId.ACTIVE_POWER
+            [NON_EXISTING_COMPONENT_ID], Metric.AC_ACTIVE_POWER
         )[0]
 
         # Frequency senders
         self._bat_inverter_frequency_senders = metric_senders(
-            bat_inverter_ids, ComponentMetricId.FREQUENCY
+            bat_inverter_ids, Metric.AC_FREQUENCY
         )
-        self._meter_frequency_senders = metric_senders(
-            meter_ids, ComponentMetricId.FREQUENCY
-        )
+        self._meter_frequency_senders = metric_senders(meter_ids, Metric.AC_FREQUENCY)
 
         # Reactive power senders
         self._meter_reactive_power_senders = metric_senders(
-            meter_ids, ComponentMetricId.REACTIVE_POWER
+            meter_ids, Metric.AC_REACTIVE_POWER
         )
         self._bat_inverter_reactive_power_senders = metric_senders(
-            bat_inverter_ids, ComponentMetricId.REACTIVE_POWER
+            bat_inverter_ids, Metric.AC_REACTIVE_POWER
         )
         self._ev_reactive_power_senders = metric_senders(
-            evc_ids, ComponentMetricId.REACTIVE_POWER
+            evc_ids, Metric.AC_REACTIVE_POWER
         )
 
         def multi_phase_senders(
             ids: list[ComponentId],
-            metrics: tuple[ComponentMetricId, ComponentMetricId, ComponentMetricId],
+            metrics: tuple[Metric, Metric, Metric],
         ) -> list[list[Sender[Sample[Quantity]]]]:
             senders: list[list[Sender[Sample[Quantity]]]] = []
             for comp_id in ids:
@@ -155,9 +149,9 @@ class MockResampler:
             return multi_phase_senders(
                 ids,
                 (
-                    ComponentMetricId.CURRENT_PHASE_1,
-                    ComponentMetricId.CURRENT_PHASE_2,
-                    ComponentMetricId.CURRENT_PHASE_3,
+                    Metric.AC_CURRENT_PHASE_1,
+                    Metric.AC_CURRENT_PHASE_2,
+                    Metric.AC_CURRENT_PHASE_3,
                 ),
             )
 
@@ -167,9 +161,9 @@ class MockResampler:
             return multi_phase_senders(
                 ids,
                 (
-                    ComponentMetricId.VOLTAGE_PHASE_1,
-                    ComponentMetricId.VOLTAGE_PHASE_2,
-                    ComponentMetricId.VOLTAGE_PHASE_3,
+                    Metric.AC_VOLTAGE_PHASE_1_N,
+                    Metric.AC_VOLTAGE_PHASE_2_N,
+                    Metric.AC_VOLTAGE_PHASE_3_N,
                 ),
             )
 
@@ -179,9 +173,9 @@ class MockResampler:
             return multi_phase_senders(
                 ids,
                 (
-                    ComponentMetricId.ACTIVE_POWER_PHASE_1,
-                    ComponentMetricId.ACTIVE_POWER_PHASE_2,
-                    ComponentMetricId.ACTIVE_POWER_PHASE_3,
+                    Metric.AC_ACTIVE_POWER_PHASE_1,
+                    Metric.AC_ACTIVE_POWER_PHASE_2,
+                    Metric.AC_ACTIVE_POWER_PHASE_3,
                 ),
             )
 
@@ -242,7 +236,7 @@ class MockResampler:
             name = request.get_channel_name()
             if name in self._forward_tasks:
                 continue
-            input_chan_recv_name = f"{request.component_id}:{request.metric_id}"
+            input_chan_recv_name = f"{request.component_id}:{request.metric}"
             input_chan_recv = self._input_channels_receivers[input_chan_recv_name].pop()
             assert input_chan_recv is not None
             output_chan_sender: Sender[Sample[Quantity]] = (

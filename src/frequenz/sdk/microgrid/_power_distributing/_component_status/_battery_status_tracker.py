@@ -24,22 +24,14 @@ from datetime import datetime, timedelta, timezone
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    BatteryComponentState,
-    BatteryData,
-    BatteryRelayState,
-    ComponentCategory,
-    ComponentData,
-    ErrorLevel,
-    InverterComponentState,
-    InverterData,
-)
+from frequenz.client.microgrid.component import ComponentStateCode, Inverter
 from typing_extensions import override
 
 from frequenz.sdk._internal._asyncio import run_forever
 
 from ....actor._background_service import BackgroundService
 from ... import connection_manager
+from ..._old_component_data import BatteryData, ComponentData, InverterData
 from ._blocking_status import BlockingStatus
 from ._component_status import (
     ComponentStatus,
@@ -72,28 +64,34 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
     Status updates are sent out only when there is a status change.
     """
 
-    _battery_valid_relay: set[BatteryRelayState] = {BatteryRelayState.CLOSED}
+    _battery_valid_relay: frozenset[ComponentStateCode] = frozenset(
+        [ComponentStateCode.RELAY_CLOSED]
+    )
     """The list of valid relay states of a battery.
 
     A working battery in any other battery relay state will be reported as failing.
     """
 
-    _battery_valid_state: set[BatteryComponentState] = {
-        BatteryComponentState.IDLE,
-        BatteryComponentState.CHARGING,
-        BatteryComponentState.DISCHARGING,
-    }
+    _battery_valid_state: frozenset[ComponentStateCode] = frozenset(
+        [
+            ComponentStateCode.READY,
+            ComponentStateCode.CHARGING,
+            ComponentStateCode.DISCHARGING,
+        ]
+    )
     """The list of valid states of a battery.
 
     A working battery in any other battery state will be reported as failing.
     """
 
-    _inverter_valid_state: set[InverterComponentState] = {
-        InverterComponentState.STANDBY,
-        InverterComponentState.IDLE,
-        InverterComponentState.CHARGING,
-        InverterComponentState.DISCHARGING,
-    }
+    _inverter_valid_state: frozenset[ComponentStateCode] = frozenset(
+        [
+            ComponentStateCode.STANDBY,
+            ComponentStateCode.READY,
+            ComponentStateCode.CHARGING,
+            ComponentStateCode.DISCHARGING,
+        ]
+    )
     """The list of valid states of an inverter.
 
     A working inverter in any other inverter state will be reported as failing.
@@ -255,8 +253,10 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         """
         api_client = connection_manager.get().api_client
 
-        battery_receiver = await api_client.battery_data(self._battery.component_id)
-        inverter_receiver = await api_client.inverter_data(self._inverter.component_id)
+        battery_receiver = BatteryData.subscribe(api_client, self._battery.component_id)
+        inverter_receiver = InverterData.subscribe(
+            api_client, self._inverter.component_id
+        )
 
         battery = battery_receiver
         battery_timer = self._battery.data_recv_timer
@@ -371,15 +371,13 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         Returns:
             True if message has no critical error, False otherwise.
         """
-        critical = ErrorLevel.CRITICAL
-        critical_err = next((err for err in msg.errors if err.level == critical), None)
-        if critical_err is not None:
+        if msg.errors:
             last_status = self._last_status  # pylint: disable=protected-access
             if last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
-                    "Component %d has critical error: %s",
+                    "Component %d has errors: %s",
                     msg.component_id,
-                    str(critical_err),
+                    str(msg.errors),
                 )
             return False
         return True
@@ -394,14 +392,15 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             True if inverter is in correct state. False otherwise.
         """
         # Component state is not exposed to the user.
-        state = msg.component_state
+        component_states = msg.states
         # pylint: disable-next=protected-access
-        if state not in BatteryStatusTracker._inverter_valid_state:
+        valid_states = BatteryStatusTracker._inverter_valid_state
+        if not component_states & valid_states:
             if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
-                    "Inverter %d has invalid state: %s",
+                    "Inverter %d has invalid states: %s",
                     msg.component_id,
-                    state.name,
+                    msg.states,
                 )
             return False
         return True
@@ -416,25 +415,27 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
             True if battery is in correct state. False otherwise.
         """
         # Component state is not exposed to the user.
-        state = msg.component_state
+        component_states = msg.states
         # pylint: disable-next=protected-access
-        if state not in BatteryStatusTracker._battery_valid_state:
+        valid_states = BatteryStatusTracker._battery_valid_state
+        if not component_states & valid_states:
             if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
-                    "Battery %d has invalid state: %s",
+                    "Battery %d has invalid states: %s, expected: %s",
                     self.battery_id,
-                    state.name,
+                    msg.states,
+                    valid_states,
                 )
             return False
 
         # Component state is not exposed to the user.
-        relay_state = msg.relay_state
-        if relay_state not in BatteryStatusTracker._battery_valid_relay:
+        if not msg.states & BatteryStatusTracker._battery_valid_relay:
             if self._last_status == ComponentStatusEnum.WORKING:
                 _logger.warning(
-                    "Battery %d has invalid relay state: %s",
+                    "Battery %d has invalid states: %s, expected: %s",
                     self.battery_id,
-                    relay_state.name,
+                    msg.states,
+                    BatteryStatusTracker._battery_valid_relay,
                 )
             return False
         return True
@@ -484,9 +485,11 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
         graph = connection_manager.get().component_graph
         return next(
             (
-                comp.component_id
+                comp.id
                 for comp in graph.predecessors(battery_id)
-                if comp.category == ComponentCategory.INVERTER
+                # Using Inverter is way too general, see
+                # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
+                if isinstance(comp, Inverter)
             ),
             None,
         )

@@ -5,7 +5,8 @@
 
 import logging
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Component, Meter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -39,7 +40,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
                 successors.
         """
         builder = self._get_builder(
-            "pv-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "pv-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         component_graph = connection_manager.get().component_graph
@@ -78,10 +79,8 @@ class PVPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    primary_component.component_id,
-                    nones_are_zeros=(
-                        primary_component.category != ComponentCategory.METER
-                    ),
+                    primary_component.id,
+                    nones_are_zeros=not isinstance(primary_component, Meter),
                     fallback=fallback_formula,
                 )
         else:
@@ -90,8 +89,8 @@ class PVPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    component.component_id,
-                    nones_are_zeros=component.category != ComponentCategory.METER,
+                    component.id,
+                    nones_are_zeros=not isinstance(component, Meter),
                 )
 
         return builder.build()
@@ -122,7 +121,7 @@ class PVPowerFormula(FormulaGenerator[Power]):
             if len(fallback_components) == 0:
                 fallback_formulas[primary_component] = None
                 continue
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
 
             generator = PVPowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",

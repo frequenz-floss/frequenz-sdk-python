@@ -13,21 +13,17 @@ that will need to be updated in such cases.
 from __future__ import annotations
 
 import math
+from collections.abc import Set
 from dataclasses import dataclass, replace
 from datetime import datetime
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    BatteryComponentState,
+from frequenz.client.microgrid.component import ComponentErrorCode, ComponentStateCode
+
+from frequenz.sdk.microgrid._old_component_data import (
     BatteryData,
-    BatteryError,
-    BatteryRelayState,
-    EVChargerCableState,
-    EVChargerComponentState,
     EVChargerData,
-    InverterComponentState,
     InverterData,
-    InverterError,
     MeterData,
 )
 
@@ -51,9 +47,9 @@ class BatteryDataWrapper(BatteryData):
         power_inclusion_upper_bound: float = math.nan,
         power_exclusion_upper_bound: float = math.nan,
         temperature: float = math.nan,
-        relay_state: BatteryRelayState = (BatteryRelayState.UNSPECIFIED),
-        component_state: BatteryComponentState = (BatteryComponentState.UNSPECIFIED),
-        errors: list[BatteryError] | None = None,
+        states: Set[ComponentStateCode] = frozenset(),
+        warnings: Set[ComponentErrorCode] = frozenset(),
+        errors: Set[ComponentErrorCode] = frozenset(),
     ) -> None:
         """Initialize the BatteryDataWrapper.
 
@@ -72,9 +68,9 @@ class BatteryDataWrapper(BatteryData):
             power_inclusion_upper_bound=power_inclusion_upper_bound,
             power_exclusion_upper_bound=power_exclusion_upper_bound,
             temperature=temperature,
-            relay_state=relay_state,
-            component_state=component_state,
-            errors=errors or [],
+            states=states,
+            warnings=warnings,
+            errors=errors,
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> BatteryDataWrapper:
@@ -92,7 +88,7 @@ class BatteryDataWrapper(BatteryData):
         return replace(self, timestamp=new_timestamp)
 
 
-@dataclass(frozen=True)
+@dataclass
 class InverterDataWrapper(InverterData):
     """Wrapper for the InverterData with default arguments."""
 
@@ -119,8 +115,9 @@ class InverterDataWrapper(InverterData):
             math.nan,
         ),
         frequency: float = 50.0,
-        component_state: InverterComponentState = InverterComponentState.UNSPECIFIED,
-        errors: list[InverterError] | None = None,
+        states: Set[ComponentStateCode] = frozenset(),
+        warnings: Set[ComponentErrorCode] = frozenset(),
+        errors: Set[ComponentErrorCode] = frozenset(),
     ) -> None:
         """Initialize the InverterDataWrapper.
 
@@ -140,9 +137,10 @@ class InverterDataWrapper(InverterData):
             active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
             reactive_power=reactive_power,
             reactive_power_per_phase=reactive_power_per_phase,
-            component_state=component_state,
             frequency=frequency,
-            errors=errors or [],
+            states=states,
+            warnings=warnings,
+            errors=errors,
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> InverterDataWrapper:
@@ -160,7 +158,7 @@ class InverterDataWrapper(InverterData):
         return replace(self, timestamp=new_timestamp)
 
 
-@dataclass(frozen=True)
+@dataclass
 class EvChargerDataWrapper(EVChargerData):
     """Wrapper for the EvChargerData with default arguments."""
 
@@ -187,8 +185,9 @@ class EvChargerDataWrapper(EVChargerData):
             math.nan,
         ),
         frequency: float = 50.0,
-        cable_state: EVChargerCableState = EVChargerCableState.UNSPECIFIED,
-        component_state: EVChargerComponentState = EVChargerComponentState.UNSPECIFIED,
+        states: Set[ComponentStateCode] = frozenset(),
+        warnings: Set[ComponentErrorCode] = frozenset(),
+        errors: Set[ComponentErrorCode] = frozenset(),
     ) -> None:
         """Initialize the EvChargerDataWrapper.
 
@@ -209,8 +208,9 @@ class EvChargerDataWrapper(EVChargerData):
             reactive_power=reactive_power,
             reactive_power_per_phase=reactive_power_per_phase,
             frequency=frequency,
-            cable_state=cable_state,
-            component_state=component_state,
+            states=states,
+            warnings=warnings,
+            errors=errors,
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> EvChargerDataWrapper:
@@ -228,7 +228,7 @@ class EvChargerDataWrapper(EVChargerData):
         return replace(self, timestamp=new_timestamp)
 
 
-@dataclass(frozen=True)
+@dataclass
 class MeterDataWrapper(MeterData):
     """Wrapper for the MeterData with default arguments."""
 
@@ -251,6 +251,9 @@ class MeterDataWrapper(MeterData):
         current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
         frequency: float = math.nan,
+        states: Set[ComponentStateCode] = frozenset(),
+        warnings: Set[ComponentErrorCode] = frozenset(),
+        errors: Set[ComponentErrorCode] = frozenset(),
     ) -> None:
         """Initialize the MeterDataWrapper.
 
@@ -267,6 +270,9 @@ class MeterDataWrapper(MeterData):
             current_per_phase=current_per_phase,
             voltage_per_phase=voltage_per_phase,
             frequency=frequency,
+            states=states,
+            warnings=warnings,
+            errors=errors,
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> MeterDataWrapper:

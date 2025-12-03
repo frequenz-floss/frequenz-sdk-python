@@ -17,12 +17,8 @@ from frequenz.channels import (
     selected_from,
 )
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    EVChargerData,
-    MicrogridApiClient,
-)
+from frequenz.client.microgrid import ApiClientError, MicrogridApiClient
+from frequenz.client.microgrid.component import EvCharger
 from frequenz.quantities import Power, Voltage
 from typing_extensions import override
 
@@ -30,6 +26,7 @@ from ....._internal._asyncio import run_forever
 from ....._internal._math import is_close_to_zero
 from .....timeseries import Sample3Phase
 from .... import _data_pipeline, connection_manager
+from ...._old_component_data import EVChargerData
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, EVChargerStatusTracker
 from ...request import Request
@@ -113,9 +110,9 @@ class EVChargerManager(ComponentManager):
     def _get_ev_charger_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all EV chargers present in the component graph."""
         return {
-            evc.component_id
+            evc.id
             for evc in connection_manager.get().component_graph.components(
-                component_categories={ComponentCategory.EV_CHARGER}
+                matching_types=EvCharger
             )
         }
 
@@ -224,7 +221,7 @@ class EVChargerManager(ComponentManager):
         """Run the main event loop of the EV charger manager."""
         api = connection_manager.get().api_client
         ev_charger_data_rx = merge(
-            *[await api.ev_charger_data(evc_id) for evc_id in self._ev_charger_ids]
+            *(EVChargerData.subscribe(api, evc_id) for evc_id in self._ev_charger_ids)
         )
         target_power_rx = self._target_power_channel.new_receiver()
         latest_target_powers: dict[ComponentId, Power] = {}
@@ -309,10 +306,10 @@ class EVChargerManager(ComponentManager):
             Power distribution result, corresponding to the result of the API
                 request.
         """
-        tasks: dict[ComponentId, asyncio.Task[None]] = {}
+        tasks: dict[ComponentId, asyncio.Task[datetime | None]] = {}
         for component_id, power in target_power_changes.items():
             tasks[component_id] = asyncio.create_task(
-                api.set_power(component_id, power.as_watts())
+                api.set_component_power_active(component_id, power.as_watts())
             )
         _, pending = await asyncio.wait(
             tasks.values(),

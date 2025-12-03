@@ -9,7 +9,9 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
+
+from ...microgrid._old_component_data import TransitionalMetric
 
 
 @dataclass(frozen=True, eq=False)
@@ -22,10 +24,10 @@ class ComponentMetricsData:
     timestamp: datetime
     """The timestamp for all the metrics."""
 
-    metrics: Mapping[ComponentMetricId, float]
+    metrics: Mapping[Metric | TransitionalMetric, float]
     """The values for each metric."""
 
-    def get(self, metric: ComponentMetricId) -> float | None:
+    def get(self, metric: Metric | TransitionalMetric) -> float | None:
         """Get metric value.
 
         Args:

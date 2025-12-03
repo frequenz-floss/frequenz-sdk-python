@@ -3,7 +3,8 @@
 
 """Formula generator from component graph."""
 
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Meter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power, ReactivePower
 
 from ....microgrid import connection_manager
@@ -35,13 +36,9 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
         if self._config.component_ids is None:
             raise RuntimeError("Power formula without component ids is not supported.")
 
-        components = component_graph.components(
-            component_ids=set(self._config.component_ids)
-        )
+        components = component_graph.components(matching_ids=self._config.component_ids)
 
-        not_found_components = self._config.component_ids - {
-            c.component_id for c in components
-        }
+        not_found_components = self._config.component_ids - {c.id for c in components}
         if not_found_components:
             raise RuntimeError(
                 f"Unable to find {not_found_components} components in the component graph. ",
@@ -52,8 +49,8 @@ class SimpleFormulaBase(FormulaGenerator[QuantityT]):
                 builder.push_oper("+")
 
             builder.push_component_metric(
-                component.component_id,
-                nones_are_zeros=component.category != ComponentCategory.METER,
+                component.id,
+                nones_are_zeros=not isinstance(component, Meter),
             )
 
         return builder.build()
@@ -78,7 +75,7 @@ class SimplePowerFormula(SimpleFormulaBase[Power]):
         """
         builder = self._get_builder(
             "simple_power_formula",
-            ComponentMetricId.ACTIVE_POWER,
+            Metric.AC_ACTIVE_POWER,
             Power.from_watts,
         )
         return self._generate(builder)
@@ -103,7 +100,7 @@ class SimpleReactivePowerFormula(SimpleFormulaBase[ReactivePower]):
         """
         builder = self._get_builder(
             "simple_reactive_power_formula",
-            ComponentMetricId.REACTIVE_POWER,
+            Metric.AC_REACTIVE_POWER,
             ReactivePower.from_volt_amperes_reactive,
         )
         return self._generate(builder)

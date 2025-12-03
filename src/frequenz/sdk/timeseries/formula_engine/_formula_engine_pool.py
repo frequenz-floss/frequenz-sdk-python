@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid import ComponentMetricId
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 
 from ..._internal._channels import ChannelRegistry
@@ -59,7 +59,7 @@ class FormulaEnginePool:
     def from_string(
         self,
         formula: str,
-        component_metric_id: ComponentMetricId,
+        metric: Metric,
         *,
         nones_are_zeros: bool = False,
     ) -> FormulaEngine[Quantity]:
@@ -67,15 +67,15 @@ class FormulaEnginePool:
 
         Args:
             formula: formula to execute.
-            component_metric_id: The metric ID to use when fetching receivers from the
-                resampling actor.
+            metric: The metric to use when fetching receivers from the resampling
+                actor.
             nones_are_zeros: Whether to treat None values from the stream as 0s.  If
                 False, the returned value will be a None.
 
         Returns:
             A FormulaReceiver that streams values with the formulas applied.
         """
-        channel_key = formula + component_metric_id.value
+        channel_key = formula + str(metric.value)
         if channel_key in self._string_engines:
             return self._string_engines[channel_key]
 
@@ -84,7 +84,7 @@ class FormulaEnginePool:
             formula_name=formula,
             channel_registry=self._channel_registry,
             resampler_subscription_sender=self._resampler_subscription_sender,
-            metric_id=component_metric_id,
+            metric=metric,
             create_method=Quantity,
         )
         formula_engine = builder.from_string(formula, nones_are_zeros=nones_are_zeros)

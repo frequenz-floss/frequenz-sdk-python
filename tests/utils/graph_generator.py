@@ -3,26 +3,40 @@
 
 """Generate graphs from component data structures."""
 
-from dataclasses import replace
-from typing import Any, overload
+from typing import Any, cast
 
+from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
+from frequenz.client.microgrid.component import (
+    AcEvCharger,
+    Battery,
+    BatteryInverter,
+    Chp,
     Component,
     ComponentCategory,
-    ComponentType,
-    Connection,
-    GridMetadata,
+    ComponentConnection,
+    DcEvCharger,
+    EvCharger,
+    EvChargerType,
+    GridConnectionPoint,
+    HybridInverter,
+    Inverter,
     InverterType,
+    LiIonBattery,
+    Meter,
+    SolarInverter,
+    UnspecifiedInverter,
 )
 
 from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
+
+_MICROGRID_ID = MicrogridId(1)
 
 
 class GraphGenerator:
     """Utilities to generate graphs from component data structures."""
 
-    SUFFIXES = {
+    SUFFIXES: dict[ComponentCategory, int] = {
         ComponentCategory.CHP: 5,
         ComponentCategory.EV_CHARGER: 6,
         ComponentCategory.METER: 7,
@@ -119,38 +133,10 @@ class GraphGenerator:
             ],
         )
 
-    @overload
-    def component(
-        self, other: Component, comp_type: ComponentType | None = None
-    ) -> Component:
-        """Just return the given component.
-
-        Args:
-            other: the component to return.
-            comp_type: the component type to set, ignored
-
-        Returns:
-            the given component.
-        """
-
-    @overload
-    def component(
-        self, other: ComponentCategory, comp_type: ComponentType | None = None
-    ) -> Component:
-        """Create a new component with the next available id for the given category.
-
-        Args:
-            other: the component category to get the id for.
-            comp_type: the component type to set.
-
-        Returns:
-            the next available component id for the given category.
-        """
-
     def component(
         self,
         other: ComponentCategory | Component,
-        comp_type: ComponentType | None = None,
+        comp_type: InverterType | EvChargerType | None = None,
     ) -> Component:
         """Make or return a new component.
 
@@ -161,13 +147,65 @@ class GraphGenerator:
         Returns:
             the next available component id for the given category.
         """
-        if isinstance(other, Component):
-            return other
-
-        assert isinstance(other, ComponentCategory)
-        category = other
-
-        return Component(self.new_id()[category], category, comp_type)
+        match other:
+            case Component():
+                return other
+            case ComponentCategory.CHP:
+                return Chp(
+                    id=self.new_id()[other],
+                    microgrid_id=_MICROGRID_ID,
+                )
+            case ComponentCategory.METER:
+                return Meter(
+                    id=self.new_id()[other],
+                    microgrid_id=_MICROGRID_ID,
+                )
+            case ComponentCategory.EV_CHARGER:
+                match comp_type:
+                    case EvChargerType.AC:
+                        return AcEvCharger(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case EvChargerType.DC:
+                        return DcEvCharger(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case _:
+                        assert False, "Unsupported EvChargerType"
+            case ComponentCategory.INVERTER:
+                match comp_type:
+                    case None:
+                        # Will probably be updated later based on the children
+                        return UnspecifiedInverter(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case InverterType.BATTERY:
+                        return BatteryInverter(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case InverterType.SOLAR:
+                        return SolarInverter(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case InverterType.HYBRID:
+                        return HybridInverter(
+                            id=self.new_id()[other],
+                            microgrid_id=_MICROGRID_ID,
+                        )
+                    case _:
+                        assert False, "Unsupported InverterType"
+            case ComponentCategory.BATTERY:
+                return LiIonBattery(
+                    id=self.new_id()[other],
+                    microgrid_id=_MICROGRID_ID,
+                )
+            case _:
+                assert False, "Unsupported ComponentCategory"
 
     def components(self, *component_categories: ComponentCategory) -> list[Component]:
         """Create a list of components with the next available id for each category.
@@ -181,14 +219,16 @@ class GraphGenerator:
         return [self.component(category) for category in component_categories]
 
     @staticmethod
-    def grid() -> Component:
+    def grid() -> GridConnectionPoint:
         """Get a new grid component with default id.
 
         Returns:
             a new grid component with default id.
         """
-        return Component(
-            ComponentId(1), ComponentCategory.GRID, None, GridMetadata(None)
+        return GridConnectionPoint(
+            id=ComponentId(1),
+            microgrid_id=_MICROGRID_ID,
+            rated_fuse_current=1_000_000,
         )
 
     def to_graph(self, components: Any) -> _MicrogridComponentGraph:
@@ -257,7 +297,7 @@ class GraphGenerator:
 
     def _to_graph(
         self, parent: Component, children: Any
-    ) -> tuple[list[Component], list[Connection]]:
+    ) -> tuple[list[Component], list[ComponentConnection]]:
         """Convert a list of components to a graph.
 
         Args:
@@ -271,34 +311,43 @@ class GraphGenerator:
             ValueError: if the input is invalid.
         """
 
-        def inverter_type(category: ComponentCategory) -> InverterType | None:
-            if category == ComponentCategory.BATTERY:
-                return InverterType.BATTERY
-            return None
-
         def update_inverter_type(successor: Component) -> None:
             nonlocal parent
-            if parent.category == ComponentCategory.INVERTER:
-                if comp_type := inverter_type(successor.category):
-                    parent = replace(parent, type=comp_type)
+            if isinstance(parent, Inverter):
+                match successor.category:
+                    case ComponentCategory.BATTERY:
+                        parent = BatteryInverter(
+                            id=parent.id,
+                            microgrid_id=parent.microgrid_id,
+                            operational_lifetime=parent.operational_lifetime,
+                            name=parent.name,
+                            manufacturer=parent.manufacturer,
+                            model_name=parent.model_name,
+                            rated_bounds=parent.rated_bounds,
+                            category_specific_metadata=parent.category_specific_metadata,
+                        )
+                    case _:
+                        pass
 
         if isinstance(children, (Component, ComponentCategory)):
             rhs = self.component(children)
             update_inverter_type(rhs)
-            return [parent, rhs], [Connection(parent.component_id, rhs.component_id)]
+            return [parent, rhs], [
+                ComponentConnection(source=parent.id, destination=rhs.id)
+            ]
         if isinstance(children, tuple):
             assert len(children) == 2
             comp, con = self._to_graph(self.component(children[0]), children[1])
             update_inverter_type(comp[0])
             return [parent] + comp, con + [
-                Connection(parent.component_id, comp[0].component_id)
+                ComponentConnection(source=parent.id, destination=comp[0].id)
             ]
         if isinstance(children, list):
             comp = []
             con = []
             for _component in children:
                 sub_components: list[Component]
-                sub_con: list[Connection]
+                sub_con: list[ComponentConnection]
 
                 if isinstance(_component, tuple):
                     sub_parent = self.component(_component[0])
@@ -312,7 +361,9 @@ class GraphGenerator:
                 update_inverter_type(sub_components[0])
                 comp += sub_components
                 con += sub_con + [
-                    Connection(parent.component_id, sub_components[0].component_id)
+                    ComponentConnection(
+                        source=parent.id, destination=sub_components[0].id
+                    )
                 ]
             return [parent] + comp, con
 
@@ -346,33 +397,32 @@ def test_graph_generator_simple() -> None:
         )
     )
 
-    meters = list(graph.components(component_categories={ComponentCategory.METER}))
-    meters.sort(key=lambda x: x.component_id)
+    meters = list(graph.components(matching_types=Meter))
+    meters.sort(key=lambda x: x.id)
     assert len(meters) == 4
-    assert len(graph.successors(meters[0].component_id)) == 4
-    assert graph.predecessors(meters[1].component_id) == {meters[0]}
-    assert graph.predecessors(meters[2].component_id) == {meters[0]}
-    assert graph.predecessors(meters[3].component_id) == {meters[0]}
+    assert len(graph.successors(meters[0].id)) == 4
+    assert graph.predecessors(meters[1].id) == {meters[0]}
+    assert graph.predecessors(meters[2].id) == {meters[0]}
+    assert graph.predecessors(meters[3].id) == {meters[0]}
 
-    inverters = list(
-        graph.components(component_categories={ComponentCategory.INVERTER})
+    inverters: list[Inverter] = cast(
+        list[Inverter],
+        list(graph.components(matching_types=Inverter)),
     )
-    inverters.sort(key=lambda x: x.component_id)
+    inverters.sort(key=lambda x: x.id)
     assert len(inverters) == 3
 
-    assert len(graph.successors(inverters[0].component_id)) == 0
+    assert len(graph.successors(inverters[0].id)) == 0
     assert inverters[0].type == InverterType.SOLAR
 
-    assert len(graph.successors(inverters[1].component_id)) == 1
+    assert len(graph.successors(inverters[1].id)) == 1
     assert inverters[1].type == InverterType.BATTERY
 
-    assert len(graph.successors(inverters[2].component_id)) == 1
+    assert len(graph.successors(inverters[2].id)) == 1
     assert inverters[2].type == InverterType.BATTERY
 
-    assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
-    assert (
-        len(graph.components(component_categories={ComponentCategory.EV_CHARGER})) == 1
-    )
+    assert len(graph.components(matching_types=Battery)) == 2
+    assert len(graph.components(matching_types=EvCharger)) == 1
 
     graph.validate()
 
@@ -396,18 +446,22 @@ def test_graph_generator_no_grid_meter() -> None:
         ]
     )
 
-    meters = list(graph.components(component_categories={ComponentCategory.METER}))
+    meters: list[Meter] = cast(
+        list[Meter],
+        list(graph.components(matching_types=Meter)),
+    )
     assert len(meters) == 1
-    assert len(graph.successors(meters[0].component_id)) == 1
+    assert len(graph.successors(meters[0].id)) == 1
 
-    inverters = list(
-        graph.components(component_categories={ComponentCategory.INVERTER})
+    inverters: list[Inverter] = cast(
+        list[Inverter],
+        list(graph.components(matching_types=Inverter)),
     )
     assert len(inverters) == 2
 
-    assert len(graph.successors(inverters[0].component_id)) == 1
-    assert len(graph.successors(inverters[1].component_id)) == 1
+    assert len(graph.successors(inverters[0].id)) == 1
+    assert len(graph.successors(inverters[1].id)) == 1
 
-    assert len(graph.components(component_categories={ComponentCategory.BATTERY})) == 2
+    assert len(graph.components(matching_types=Battery)) == 2
 
     graph.validate()

@@ -6,7 +6,8 @@
 import logging
 from typing import Callable
 
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Component, Meter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -46,7 +47,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 meter.
         """
         builder = self._get_builder(
-            "producer_power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "producer_power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         component_graph = connection_manager.get().component_graph
@@ -72,8 +73,8 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
             )
             return builder.build()
 
-        is_not_meter: Callable[[Component], bool] = (
-            lambda component: component.category != ComponentCategory.METER
+        is_not_meter: Callable[[Component], bool] = lambda component: not isinstance(
+            component, Meter
         )
 
         if self._config.allow_fallback:
@@ -87,7 +88,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
 
                 # should only be the case if the component is not a meter
                 builder.push_component_metric(
-                    primary_component.component_id,
+                    primary_component.id,
                     nones_are_zeros=is_not_meter(primary_component),
                     fallback=fallback_formula,
                 )
@@ -97,7 +98,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                     builder.push_oper("+")
 
                 builder.push_component_metric(
-                    component.component_id,
+                    component.id,
                     nones_are_zeros=is_not_meter(component),
                 )
 
@@ -130,7 +131,7 @@ class ProducerPowerFormula(FormulaGenerator[Power]):
                 fallback_formulas[primary_component] = None
                 continue
 
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
             generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,

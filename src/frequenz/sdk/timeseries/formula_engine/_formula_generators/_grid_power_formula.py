@@ -4,7 +4,8 @@
 """Formula generator from component graph for Grid Power."""
 
 
-from frequenz.client.microgrid import Component, ComponentMetricId
+from frequenz.client.microgrid.component import Component
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from .._formula_engine import FormulaEngine
@@ -31,7 +32,7 @@ class GridPowerFormula(GridPowerFormulaBase[Power]):
         """
         builder = self._get_builder(
             "grid-power",
-            ComponentMetricId.ACTIVE_POWER,
+            Metric.AC_ACTIVE_POWER,
             Power.from_watts,
         )
         return self._generate(builder)
@@ -63,7 +64,7 @@ class GridPowerFormula(GridPowerFormulaBase[Power]):
                 fallback_formulas[primary_component] = None
                 continue
 
-            fallback_ids = [c.component_id for c in fallback_components]
+            fallback_ids = [c.id for c in fallback_components]
             generator = SimplePowerFormula(
                 f"{self._namespace}_fallback_{fallback_ids}",
                 self._channel_registry,

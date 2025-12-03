@@ -8,7 +8,8 @@ import logging
 from collections import abc
 
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Chp, Meter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 
 from ....microgrid import connection_manager
@@ -41,7 +42,7 @@ class CHPPowerFormula(FormulaGenerator[Power]):
 
         """
         builder = self._get_builder(
-            "chp-power", ComponentMetricId.ACTIVE_POWER, Power.from_watts
+            "chp-power", Metric.AC_ACTIVE_POWER, Power.from_watts
         )
 
         chp_meter_ids = self._get_chp_meters()
@@ -70,31 +71,27 @@ class CHPPowerFormula(FormulaGenerator[Power]):
             FormulaGenerationError: If there's no dedicated meter attached to every CHP.
         """
         component_graph = connection_manager.get().component_graph
-        chps = list(
-            comp
-            for comp in component_graph.components()
-            if comp.category == ComponentCategory.CHP
-        )
+        chps = component_graph.components(matching_types=Chp)
 
         chp_meters: set[ComponentId] = set()
         for chp in chps:
-            predecessors = component_graph.predecessors(chp.component_id)
+            predecessors = component_graph.predecessors(chp.id)
             if len(predecessors) != 1:
                 raise FormulaGenerationError(
-                    f"CHP {chp.component_id} has {len(predecessors)} predecessors. "
+                    f"CHP {chp.id} has {len(predecessors)} predecessors. "
                     " Expected exactly one."
                 )
             meter = next(iter(predecessors))
-            if meter.category != ComponentCategory.METER:
+            if not isinstance(meter, Meter):
                 raise FormulaGenerationError(
-                    f"CHP {chp.component_id} has a predecessor of category "
+                    f"CHP {chp.id} has a predecessor of category "
                     f"{meter.category}. Expected ComponentCategory.METER."
                 )
-            meter_successors = component_graph.successors(meter.component_id)
+            meter_successors = component_graph.successors(meter.id)
             if not all(successor in chps for successor in meter_successors):
                 raise FormulaGenerationError(
-                    f"Meter {meter.component_id} connected to CHP {chp.component_id}"
+                    f"Meter {meter.id} connected to CHP {chp.id}"
                     "has non-chp successors."
                 )
-            chp_meters.add(meter.component_id)
+            chp_meters.add(meter.id)
         return chp_meters

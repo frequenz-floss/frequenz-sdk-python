@@ -6,21 +6,18 @@
 import asyncio
 import collections.abc
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from frequenz.channels import LatestValueCache, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import (
-    ApiClientError,
-    ComponentCategory,
-    InverterData,
-    InverterType,
-)
+from frequenz.client.microgrid import ApiClientError
+from frequenz.client.microgrid.component import SolarInverter
 from frequenz.quantities import Power
 from typing_extensions import override
 
 from ....._internal._math import is_close_to_zero
 from .... import connection_manager
+from ...._old_component_data import InverterData
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, PVInverterStatusTracker
 from ...request import Request
@@ -79,7 +76,7 @@ class PVManager(ComponentManager):
         """Start the PV inverter manager."""
         self._component_data_caches = {
             inv_id: LatestValueCache(
-                await connection_manager.get().api_client.inverter_data(inv_id),
+                InverterData.subscribe(connection_manager.get().api_client, inv_id),
                 unique_id=f"{type(self).__name__}«{hex(id(self))}»:inverter«{inv_id}»",
             )
             for inv_id in self._pv_inverter_ids
@@ -188,10 +185,10 @@ class PVManager(ComponentManager):
         remaining_power: Power,
     ) -> None:
         api_client = connection_manager.get().api_client
-        tasks: dict[ComponentId, asyncio.Task[None]] = {}
+        tasks: dict[ComponentId, asyncio.Task[datetime | None]] = {}
         for component_id, power in allocations.items():
             tasks[component_id] = asyncio.create_task(
-                api_client.set_power(component_id, power.as_watts())
+                api_client.set_component_power_active(component_id, power.as_watts())
             )
         _, pending = await asyncio.wait(
             tasks.values(),
@@ -256,9 +253,8 @@ class PVManager(ComponentManager):
     def _get_pv_inverter_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all PV inverters present in the component graph."""
         return {
-            inv.component_id
+            inv.id
             for inv in connection_manager.get().component_graph.components(
-                component_categories={ComponentCategory.INVERTER}
+                matching_types=SolarInverter
             )
-            if inv.type == InverterType.SOLAR
         }

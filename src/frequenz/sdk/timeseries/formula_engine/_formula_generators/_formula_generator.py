@@ -14,7 +14,8 @@ from typing import Generic
 
 from frequenz.channels import Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import Component, ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import Component, GridConnectionPoint, Meter
+from frequenz.client.microgrid.metrics import Metric
 
 from ...._internal._channels import ChannelRegistry
 from ....microgrid import connection_manager
@@ -88,7 +89,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
     def _get_builder(
         self,
         name: str,
-        component_metric_id: ComponentMetricId,
+        metric: Metric,
         create_method: Callable[[float], QuantityT],
     ) -> ResampledFormulaBuilder[QuantityT]:
         builder = ResampledFormulaBuilder(
@@ -96,7 +97,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             formula_name=name,
             channel_registry=self._channel_registry,
             resampler_subscription_sender=self._resampler_subscription_sender,
-            metric_id=component_metric_id,
+            metric=metric,
             create_method=create_method,
         )
         return builder
@@ -113,11 +114,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         component_graph = connection_manager.get().component_graph
         grid_component = next(
-            iter(
-                component_graph.components(
-                    component_categories={ComponentCategory.GRID}
-                )
-            ),
+            iter(component_graph.components(matching_types=GridConnectionPoint)),
             None,
         )
         if grid_component is None:
@@ -136,7 +133,7 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         """
         grid_component = self._get_grid_component()
         component_graph = connection_manager.get().component_graph
-        grid_successors = component_graph.successors(grid_component.component_id)
+        grid_successors = component_graph.successors(grid_component.id)
 
         if not grid_successors:
             raise ComponentNotFound("No components found in the component graph.")
@@ -183,10 +180,10 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
         fallbacks: dict[Component, set[Component]] = {}
 
         for component in components:
-            if component.category == ComponentCategory.METER:
+            if isinstance(component, Meter):
                 fallbacks[component] = self._get_meter_fallback_components(component)
             else:
-                predecessors = graph.predecessors(component.component_id)
+                predecessors = graph.predecessors(component.id)
                 if len(predecessors) == 1:
                     predecessor = predecessors.pop()
                     if self._is_primary_fallback_pair(predecessor, component):
@@ -209,10 +206,10 @@ class FormulaGenerator(ABC, Generic[QuantityT]):
             A set of fallback components for the given meter.
             An empty set is returned if the meter has no fallbacks.
         """
-        assert meter.category == ComponentCategory.METER
+        assert isinstance(meter, Meter)
 
         graph = connection_manager.get().component_graph
-        successors = graph.successors(meter.component_id)
+        successors = graph.successors(meter.id)
 
         # All fallbacks has to be of the same type and category.
         if (

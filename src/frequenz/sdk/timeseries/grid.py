@@ -13,7 +13,8 @@ import uuid
 from dataclasses import dataclass
 
 from frequenz.channels import Sender
-from frequenz.client.microgrid._component import ComponentCategory, ComponentMetricId
+from frequenz.client.microgrid.component import GridConnectionPoint
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, ReactivePower
 
 from .._internal._channels import ChannelRegistry
@@ -112,7 +113,7 @@ class Grid:
             A FormulaEngine that will calculate and stream grid reactive power.
         """
         engine = self._formula_pool.from_reactive_power_formula_generator(
-            f"grid-{ComponentMetricId.REACTIVE_POWER.value}",
+            f"grid-{Metric.AC_REACTIVE_POWER.value}",
             GridReactivePowerFormula,
         )
         assert isinstance(engine, FormulaEngine)
@@ -186,33 +187,29 @@ def initialize(
 
     grid_connections = list(
         connection_manager.get().component_graph.components(
-            component_categories={ComponentCategory.GRID},
+            matching_types=GridConnectionPoint
         )
     )
 
-    grid_connections_count = len(grid_connections)
-
     fuse: Fuse | None = None
-
-    match grid_connections_count:
+    match len(grid_connections):
         case 0:
             fuse = Fuse(max_current=Current.zero())
             _logger.info(
                 "No grid connection found for this microgrid. "
-                "This is normal for an islanded microgrid."
+                "This is normal for an islanded microgrid. Setting the grid connection "
+                "fuse to zero as no electricity can flow from/to the grid."
             )
         case 1:
-            metadata = grid_connections[0].metadata
-            if metadata is None:
-                _logger.warning(
-                    "Unable to get grid metadata, the grid connection point is "
-                    "considered to have no fuse"
-                )
-            elif metadata.fuse is None:
+            grid_connection_point = grid_connections[0]
+            assert isinstance(grid_connection_point, GridConnectionPoint)
+            rated_fuse_current = grid_connection_point.rated_fuse_current
+            if rated_fuse_current is None:
                 _logger.warning("The grid connection point does not have a fuse")
             else:
-                fuse = Fuse(max_current=Current.from_amperes(metadata.fuse.max_current))
-        case _:
+                fuse = Fuse(max_current=Current.from_amperes(rated_fuse_current))
+                _logger.info("Grid connection fuse: %s", fuse)
+        case grid_connections_count:
             raise RuntimeError(
                 f"Expected at most one grid connection, got {grid_connections_count}"
             )

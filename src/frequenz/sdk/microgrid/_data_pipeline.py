@@ -18,7 +18,7 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, InverterType
+from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 
 from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm, DefaultPower
 
@@ -105,23 +105,25 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=Algorithm.SHIFTING_MATRYOSHKA,
-            component_category=ComponentCategory.BATTERY,
             default_power=DefaultPower.ZERO,
+            component_class=Battery,
         )
         self._ev_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=Algorithm.MATRYOSHKA,
-            component_category=ComponentCategory.EV_CHARGER,
             default_power=DefaultPower.MAX,
+            component_class=EvCharger,
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=Algorithm.MATRYOSHKA,
-            component_category=ComponentCategory.INVERTER,
-            component_type=InverterType.SOLAR,
             default_power=DefaultPower.MIN,
+            # Using SolarInverter might be too specific, maybe we need to also pass
+            # HybridInverter, see
+            # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
+            component_class=SolarInverter,
         )
 
         self._logical_meter: LogicalMeter | None = None

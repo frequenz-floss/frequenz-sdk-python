@@ -14,7 +14,7 @@ from typing import assert_never
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ComponentCategory, ComponentType, InverterType
+from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
@@ -49,8 +49,7 @@ class PowerManagingActor(Actor):
         channel_registry: ChannelRegistry,
         algorithm: Algorithm,
         default_power: DefaultPower,
-        component_category: ComponentCategory,
-        component_type: ComponentType | None = None,
+        component_class: type[Battery | EvCharger | SolarInverter],
     ):
         """Create a new instance of the power manager.
 
@@ -64,19 +63,10 @@ class PowerManagingActor(Actor):
             channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
             default_power: The default power to use for the components.
-            component_category: The category of the component this power manager
-                instance is going to support.
-            component_type: The type of the component of the given category that this
-                actor is responsible for.  This is used only when the component category
-                is not enough to uniquely identify the component.  For example, when the
-                category is `ComponentCategory.INVERTER`, the type is needed to identify
-                the inverter as a solar inverter or a battery inverter.  This can be
-                `None` when the component category is enough to uniquely identify the
-                component.
+            component_class: The class of component this instance is going to support.
         """
-        self._component_category = component_category
-        self._component_type = component_type
         self._default_power = default_power
+        self._component_class = component_class
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
@@ -153,39 +143,32 @@ class PowerManagingActor(Actor):
 
         Args:
             component_ids: The component IDs for which to add a bounds tracker.
-
-        Raises:
-            NotImplementedError: When the pool type is not supported.
         """
         bounds_receiver: Receiver[SystemBounds]
-        if self._component_category is ComponentCategory.BATTERY:
+        if issubclass(self._component_class, Battery):
             battery_pool = _data_pipeline.new_battery_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             # pylint: disable-next=protected-access
             bounds_receiver = battery_pool._system_power_bounds.new_receiver()
-        elif self._component_category is ComponentCategory.EV_CHARGER:
+        elif issubclass(self._component_class, EvCharger):
             ev_charger_pool = _data_pipeline.new_ev_charger_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             # pylint: disable-next=protected-access
             bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
-        elif (
-            self._component_category is ComponentCategory.INVERTER
-            and self._component_type is InverterType.SOLAR
-        ):
+        elif issubclass(self._component_class, SolarInverter):
             pv_pool = _data_pipeline.new_pv_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             # pylint: disable-next=protected-access
             bounds_receiver = pv_pool._system_power_bounds.new_receiver()
         else:
-            err = (
-                "PowerManagingActor: Unsupported component category: "
-                f"{self._component_category}"
+            _logger.error(
+                "PowerManagingActor: Unsupported component class: %s",
+                self._component_class.__name__,
             )
-            _logger.error(err)
-            raise NotImplementedError(err)
+            assert_never(self._component_class)
 
         self._system_bounds[component_ids] = SystemBounds(
             timestamp=datetime.now(tz=timezone.utc),

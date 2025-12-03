@@ -8,12 +8,12 @@ from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import InverterData
 from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
+from ...microgrid._old_component_data import InverterData
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from .._base_types import Bounds, SystemBounds
 
@@ -108,12 +108,8 @@ class PVSystemBoundsTracker(BackgroundService):
         status_rx = self._status_receiver
         pv_data_rx = merge(
             *(
-                await asyncio.gather(
-                    *(
-                        api_client.inverter_data(component_id)
-                        for component_id in self._component_ids
-                    )
-                )
+                InverterData.subscribe(api_client, component_id)
+                for component_id in self._component_ids
             )
         )
 
