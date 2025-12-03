@@ -143,7 +143,7 @@ class _Parser(Generic[QuantityT]):
 
     def _parse_function_call(self) -> AstNode | None:
         fn_name: _token.Token = next(self._lexer)
-        args: list[AstNode] = []
+        params: list[AstNode] = []
 
         token: _token.Token | None = self._lexer.peek()
         if token is None or not isinstance(token, _token.OpenParen):
@@ -153,12 +153,12 @@ class _Parser(Generic[QuantityT]):
 
         _ = next(self._lexer)  # consume '('
         while True:
-            arg = self._parse_term()
-            if arg is None:
+            param = self._parse_term()
+            if param is None:
                 raise ValueError(
                     f"Expected argument in function call at position {fn_name.span}"
                 )
-            args.append(arg)
+            params.append(param)
 
             token = self._lexer.peek()
             if token is not None and isinstance(token, _token.Comma):
@@ -173,8 +173,7 @@ class _Parser(Generic[QuantityT]):
 
         return _ast.FunCall(
             span=fn_name.span,
-            function=Function.from_string(fn_name.value),
-            args=args,
+            function=Function.from_string(fn_name.value, params),
         )
 
     def _parse_primary(self) -> AstNode | None:

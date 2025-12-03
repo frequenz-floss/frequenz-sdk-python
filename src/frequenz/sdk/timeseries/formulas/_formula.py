@@ -284,8 +284,7 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            function=Coalesce(),
-            args=[self.root] + right_nodes,
+            function=Coalesce([self.root] + right_nodes),
         )
 
         return FormulaBuilder(
@@ -317,8 +316,7 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            function=Min(),
-            args=[self.root] + right_nodes,
+            function=Min([self.root] + right_nodes),
         )
 
         return FormulaBuilder(
@@ -350,8 +348,7 @@ class FormulaBuilder(Generic[QuantityT]):
                 right_nodes.append(_ast.Constant(value=item.base_value))
 
         new_root = _ast.FunCall(
-            function=Max(),
-            args=[self.root] + right_nodes,
+            function=Max([self.root] + right_nodes),
         )
 
         return FormulaBuilder(

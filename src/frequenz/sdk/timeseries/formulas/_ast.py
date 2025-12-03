@@ -58,18 +58,16 @@ class FunCall(AstNode):
     """A function call in the formula."""
 
     function: Function
-    args: list[AstNode]
 
     @override
     def evaluate(self) -> float | None:
         """Evaluate the function call with its arguments."""
-        return self.function(arg.evaluate() for arg in self.args)
+        return self.function()
 
     @override
     def format(self, wrap: bool = False) -> str:
         """Return a string representation of the function call node."""
-        args_str = ", ".join(str(arg) for arg in self.args)
-        return f"{self.function.name}({args_str})"
+        return self.function.format()
 
 
 @dataclass(kw_only=True)
