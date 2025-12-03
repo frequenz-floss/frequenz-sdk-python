@@ -186,6 +186,11 @@ The final target power can be accessed using the receiver returned from the
 method available for all pools, which also streams the bounds that an actor
 should comply with, based on its priority.
 
+### Working with other actors to control Batteries
+
+This section describes the details of the power manager's reconciliation
+algorithm for controlling batteries.
+
 #### Adding the power proposals of individual actors
 
 When an actor A calls the `propose_power` method with a power, the proposed
