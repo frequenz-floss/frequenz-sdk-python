@@ -201,35 +201,39 @@ This has the effect of adding the powers set by actors A and B.
 
 *Example 1*: Battery bounds available for use: -100kW to 100kW
 
-| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | 50kW      | 50kW         | 70kW      |
-| C     | 1        | -170kW .. 30kW  | None             | 50kW      | 30kW         | 100kW     |
-|       |          |                 |                  |           | target power | 100kW     |
+| Actor | Priority | Available Bounds | Requested Bounds | Requested Power | Adjusted Power | Aggregate Power |
+|------:|---------:|-----------------:|-----------------:|----------------:|---------------:|----------------:|
+|     A |        3 |  -100kW .. 100kW |             None |            20kW |           20kW |            20kW |
+|     B |        2 |   -120kW .. 80kW |             None |            50kW |           50kW |            70kW |
+|     C |        1 |   -170kW .. 30kW |             None |            50kW |           30kW |           100kW |
+|       |          |                  |                  |                 |   target power |           100kW |
 
-Actor A proposes a power of `20kW`, but no bounds.  In this case, actor B sees
-bounds shifted by A's proposal.  Actor B proposes a power of `50kW` on this
-shifted range, and if this is applied on to the original bounds (aka shift the
-bounds back to the original range), it would be `20kW + 50kW = 70kW`.
+1. Actor A sees the full system: Available Bounds = `-100kW .. 100kW`.  It
+   proposes a power of `20kW`, but no bounds.
 
-So Actor C sees bounds shifted by `70kW` from the original bounds, and sets
-`50kW` on this shifted range, but it can't exceed `30kW`, so its request gets
-limited to 30kW.  Shifting this back by `70kW`, the target power is calculated
-to be `100kW`.
+2. This becomes the operating point for actor B, so actor B sees bounds shifted
+   by A's proposal = `-120kW .. 80kW`.  It can operate only in this range.
+
+3. Actor B proposes a power of `50kW` on this shifted range, and if this is
+   applied on to the original bounds (aka shift the bounds back to the original
+   range), it would be `20kW + 50kW = 70kW`.
+
+4. So Actor C sees bounds shifted by `70kW` from the original bounds, and sets
+   `50kW` on this shifted range, but it can't exceed `30kW`, so its request gets
+   limited to 30kW.
+
+5. Shifting this back by `70kW`, the target power is calculated to be `100kW`.
 
 Irrespective of what any actor sets, the final power won't exceed the available
 battery bounds.
 
 *Example 2*:
 
-| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | -20kW     | -20kW        | 0kW       |
-|       |          |                 |                  |           | target power | 0kW       |
+| Actor | Priority | Available Bounds | Requested Bounds | Requested Power | Adjusted Power | Aggregate Power |
+|------:|---------:|-----------------:|-----------------:|----------------:|---------------:|----------------:|
+|     A |        3 |  -100kW .. 100kW |             None |            20kW |           20kW |            20kW |
+|     B |        2 |   -120kW .. 80kW |             None |           -20kW |          -20kW |             0kW |
+|       |          |                  |                  |                 |   target power |             0kW |
 
 Actors with exactly opposite requests cancel each other out.
 
@@ -241,39 +245,39 @@ and upper bounds or at least one of them), lower priority actors will see their
 
 *Example 1*: Battery bounds available for use: -100kW to 100kW
 
-| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 40kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -10kW     | -10kW        | 40kW      |
-| C     | 1        | -60kW .. 10kW   | None             | -20kW     | -20kW        | 20kW      |
-|       |          |                 |                  |           | target power | 20kW      |
+| Actor | Priority | Available Bounds | Requested Bounds | Requested Power | Adjusted Power | Aggregate Power |
+|------:|---------:|-----------------:|-----------------:|----------------:|---------------:|----------------:|
+|     A |        3 |  -100kW .. 100kW |   -20kW .. 100kW |            50kW |           50kW |            50kW |
+|     B |        2 |    -70kW .. 50kW |     -90kW .. 0kW |           -10kW |          -10kW |            40kW |
+|     C |        1 |    -60kW .. 10kW |             None |           -20kW |          -20kW |            20kW |
+|       |          |                  |                  |                 |   target power |            20kW |
 
-Actor A with the highest priority has the entire battery bounds available to it.
-It sets limited bounds of -20kW .. 100kW, and proposes a power of 50kW.
+1. Actor A with the highest priority has the entire battery bounds available to
+   it.  It sets limited bounds of `-20kW .. 100kW`, and proposes a power of
+   `50kW`.
 
-Actor B sees Actor A's limit of -20kW..100kW shifted by 50kW as -70kW..50kW, and
-can only propose powers within this range, which will get added (shifted back)
-to Actor A's proposed power.
+2. Actor B's operating point is now `50kW`.  So, Actor B sees Actor A's limit of
+   `-20kW..100kW` shifted by `50kW` as `-70kW..50kW`, and can only operate
+   within this range.
 
-Actor B tries to limit the bounds of actor C to -90kW .. 0kW, but it can only
-operate in the -70kW .. 50kW range because of bounds set by actor A, so its
-requested bounds get restricted to -70kW .. 0kW.
+3. Actor B tries to limit the bounds of actor C to `-90kW .. 0kW`, but it
+   doesn't have access to that full range and can only operate in the
+   `-70kW .. 50kW` range, so its specified bounds get restricted to
+   `-70kW .. 0kW`.
 
-Actor C sees this as -60kW .. 10kW, because it gets shifted by Actor B's
-proposed power of -10kW.
+4. Actor C sees this as `-60kW .. 10kW`, because it gets shifted by Actor B's
+   proposed power of `-10kW`.
 
-Actor C proposes a power within its bounds and the proposals of all the actors
-are added to get the target power.
+5. Actor C proposes a power within its bounds and the proposals of all the actors
+   are added to get the target power.
 
 *Example 2*:
 
-| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 50kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -90kW     | -70kW        | -20kW     |
-|       |          |                 |                  |           | target power | -20kW     |
+| Actor | Priority | Available Bounds | Requested Bounds | Requested Power | Adjusted Power | Aggregate Power |
+|------:|---------:|-----------------:|-----------------:|----------------:|---------------:|----------------:|
+|     A |        3 |  -100kW .. 100kW |   -20kW .. 100kW |            50kW |           50kW |            50kW |
+|     B |        2 |    -70kW .. 50kW |     -90kW .. 0kW |           -90kW |          -70kW |           -20kW |
+|       |          |                  |                  |                 |   target power |           -20kW |
 
 When an actor requests a power that's outside its available bounds, the closest
 available power is used.
@@ -282,19 +286,18 @@ available power is used.
 
 Battery bounds available for use: -100kW to 100kW
 
-| Priority | System Bounds     | Requested Bounds | Requested | Adjusted     | Aggregate |
-|          |                   |                  | Power     | Power        | Power     |
-|----------|-------------------|------------------|-----------|--------------|-----------|
-| 7        | -100 kW .. 100 kW | None             | 10 kW     | 10 kW        | 10 kW     |
-| 6        | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW     | 10 kW        | 20 kW     |
-| 5        | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW     | 70 kW        | 90 kW     |
-| 4        | -170 kW .. 0 kW   | None             | -120 kW   | -120 kW      | -30 kW    |
-| 3        | -50 kW .. 120 kW  | None             | 60 kW     | 60 kW        | 30 kW     |
-| 2        | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW     | 20 kW        | 50 kW     |
-| 1        | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW     | 10 kW        | 60 kW     |
-| 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
-| -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
-|          |                   |                  |           | Target Power | 50 kW     |
+| Priority |  Available Bounds | Requested Bounds | Requested Power | Adjusted Power | Aggregate Power |
+|---------:|------------------:|-----------------:|----------------:|---------------:|----------------:|
+|        7 | -100 kW .. 100 kW |             None |           10 kW |          10 kW |           10 kW |
+|        6 |  -110 kW .. 90 kW | -110 kW .. 80 kW |           10 kW |          10 kW |           20 kW |
+|        5 |  -120 kW .. 70 kW | -100 kW .. 80 kW |           80 kW |          70 kW |           90 kW |
+|        4 |   -170 kW .. 0 kW |             None |         -120 kW |        -120 kW |          -30 kW |
+|        3 |  -50 kW .. 120 kW |             None |           60 kW |          60 kW |           30 kW |
+|        2 |  -110 kW .. 60 kW |  -40 kW .. 30 kW |           20 kW |          20 kW |           50 kW |
+|        1 |   -60 kW .. 10 kW |  -50 kW .. 40 kW |           25 kW |          10 kW |           60 kW |
+|        0 |    -60 kW .. 0 kW |             None |           12 kW |           0 kW |           60 kW |
+|       -1 |    -60 kW .. 0 kW | -40 kW .. -10 kW |          -10 kW |         -10 kW |           50 kW |
+|          |                   |                  |                 |   Target Power |           50 kW |
 
 ## Withdrawing power proposals
 
@@ -311,7 +314,7 @@ default powers immediately.  These are:
 | Batteries          | Zero                                                 |
 | PV                 | Max production (Min power according to PSC)          |
 | EV Chargers        | Max consumption (Max power according to PSC)         |
-"""  # noqa: D205, D400
+"""  # noqa: D205, D400, E501
 
 from datetime import timedelta
 
