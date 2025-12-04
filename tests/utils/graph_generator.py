@@ -133,6 +133,7 @@ class GraphGenerator:
             ],
         )
 
+    # pylint: disable-next=too-many-branches
     def component(
         self,
         other: ComponentCategory | Component,

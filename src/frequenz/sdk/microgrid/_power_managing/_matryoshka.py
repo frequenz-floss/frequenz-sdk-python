@@ -181,18 +181,7 @@ class Matryoshka(BaseAlgorithm):
         if not self._validate_component_ids(component_ids, proposal, system_bounds):
             return None
 
-        if proposal is not None:
-            bucket = self._component_buckets.setdefault(component_ids, set())
-            if proposal in bucket:
-                bucket.remove(proposal)
-            if (
-                proposal.preferred_power is not None
-                or proposal.bounds.lower is not None
-                or proposal.bounds.upper is not None
-            ):
-                bucket.add(proposal)
-            elif not bucket:
-                del self._component_buckets[component_ids]
+        self._update_buckets(component_ids, proposal)
 
         # If there has not been any proposal for the given components, don't calculate a
         # target power and just return `None`.
@@ -222,6 +211,26 @@ class Matryoshka(BaseAlgorithm):
                     typing.assert_never(other)
 
         return target_power
+
+    def _update_buckets(
+        self, component_ids: frozenset[ComponentId], proposal: Proposal | None
+    ) -> None:
+        """Update the component buckets with the given proposal."""
+        if proposal is None:
+            return
+
+        if proposal is not None:
+            bucket = self._component_buckets.setdefault(component_ids, set())
+            if proposal in bucket:
+                bucket.remove(proposal)
+            if (
+                proposal.preferred_power is not None
+                or proposal.bounds.lower is not None
+                or proposal.bounds.upper is not None
+            ):
+                bucket.add(proposal)
+            elif not bucket:
+                del self._component_buckets[component_ids]
 
     @override
     def get_status(
