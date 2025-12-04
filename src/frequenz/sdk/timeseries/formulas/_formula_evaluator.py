@@ -53,8 +53,6 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
     @override
     async def _run(self) -> None:
         """Run the formula evaluator actor."""
-        if self._metric_fetcher is not None:
-            await self._metric_fetcher.subscribe()
         await synchronize_receivers(self._components)
 
         while True:

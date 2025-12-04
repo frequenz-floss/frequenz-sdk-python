@@ -13,7 +13,7 @@ from typing_extensions import override
 from ...actor import Actor
 from .._base_types import QuantityT, Sample3Phase
 from . import _ast
-from ._formula import Formula
+from ._formula import Formula, metric_fetcher
 from ._formula_evaluator import synchronize_receivers
 
 _logger = logging.getLogger(__name__)
@@ -45,17 +45,17 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
         self._components: list[_ast.TelemetryStream[QuantityT]] = [
             _ast.TelemetryStream(
                 source="phase_1",
-                stream=phase_1.new_receiver(),
+                metric_fetcher=metric_fetcher(phase_1),
                 create_method=phase_1._create_method,  # pylint: disable=protected-access
             ),
             _ast.TelemetryStream(
                 source="phase_2",
-                stream=phase_2.new_receiver(),
+                metric_fetcher=metric_fetcher(phase_2),
                 create_method=phase_2._create_method,  # pylint: disable=protected-access
             ),
             _ast.TelemetryStream(
                 source="phase_3",
-                stream=phase_3.new_receiver(),
+                metric_fetcher=metric_fetcher(phase_3),
                 create_method=phase_3._create_method,  # pylint: disable=protected-access
             ),
         ]

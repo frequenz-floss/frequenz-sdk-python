@@ -6,9 +6,11 @@
 import asyncio
 from collections import OrderedDict
 from collections.abc import Callable
-from datetime import datetime
-from unittest.mock import MagicMock
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock
 
+import async_solipsism
+import pytest
 from frequenz.channels import Broadcast, Receiver
 from frequenz.quantities import Quantity
 
@@ -18,6 +20,12 @@ from frequenz.sdk.timeseries.formulas._parser import parse
 from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
     ResampledStreamFetcher,
 )
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 class TestFormulas:
@@ -38,7 +46,7 @@ class TestFormulas:
             return channels[comp_id].new_receiver()
 
         telem_fetcher = MagicMock(spec=ResampledStreamFetcher)
-        telem_fetcher.fetch_stream = MagicMock(side_effect=stream_recv)
+        telem_fetcher.fetch_stream = AsyncMock(side_effect=stream_recv)
         formula = parse(
             name="f",
             formula=formula_str,
@@ -49,6 +57,7 @@ class TestFormulas:
 
         async with formula as formula:
             results_rx = formula.new_receiver()
+            await asyncio.sleep(0.1)  # Allow time for setup
             now = datetime.now()
             tests_passed = 0
             for io_pair in io_pairs:
@@ -304,12 +313,13 @@ class TestFormulaComposition:
         channels: OrderedDict[int, Broadcast[Sample[Quantity]]] = OrderedDict()
 
         def stream_recv(comp_id: int) -> Receiver[Sample[Quantity]]:
+            comp_id = int(comp_id)
             if comp_id not in channels:
                 channels[comp_id] = Broadcast(name=f"chan-#{comp_id}")
             return channels[comp_id].new_receiver()
 
         telem_fetcher = MagicMock(spec=ResampledStreamFetcher)
-        telem_fetcher.fetch_stream = MagicMock(side_effect=stream_recv)
+        telem_fetcher.fetch_stream = AsyncMock(side_effect=stream_recv)
         l1_formulas = [
             parse(
                 name=str(ctr),
@@ -325,16 +335,18 @@ class TestFormulaComposition:
         assert str(formula) == expected
 
         result_chan = formula.new_receiver()
+        await asyncio.sleep(0.1)
         now = datetime.now()
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
+            now += timedelta(seconds=1)
             _ = await asyncio.gather(
                 *[
-                    chan.new_sender().send(
-                        Sample(now, None if not value else Quantity(value))
-                    )
-                    for chan, value in zip(channels.values(), io_input)
+                    channels[comp_id]
+                    .new_sender()
+                    .send(Sample(now, None if not value else Quantity(value)))
+                    for comp_id, value in enumerate(io_input)
                 ]
             )
             next_val = await result_chan.receive()

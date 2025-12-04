@@ -5,11 +5,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import logging
+from collections.abc import Callable, Coroutine
 from typing import Generic
 
+from frequenz.channels import Receiver
 from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.quantities import Quantity
 
+from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._base_types import QuantityT
 
 from . import _ast, _token
@@ -19,6 +23,8 @@ from ._functions import Function
 from ._lexer import Lexer
 from ._peekable import Peekable
 from ._resampled_stream_fetcher import ResampledStreamFetcher
+
+_logger = logging.getLogger(__name__)
 
 
 def parse(
@@ -181,12 +187,19 @@ class _Parser(Generic[QuantityT]):
         if token is None:
             return None
 
+        def make_component_stream_fetcher(
+            f: ResampledStreamFetcher, cid: ComponentId
+        ) -> Callable[[], Coroutine[None, None, Receiver[Sample[Quantity]]]]:
+            return lambda: f.fetch_stream(cid)
+
         if isinstance(token, _token.Component):
             _ = next(self._lexer)  # consume token
             comp = _ast.TelemetryStream(
                 span=token.span,
                 source=f"#{token.id}",
-                stream=self._telemetry_fetcher.fetch_stream(ComponentId(int(token.id))),
+                metric_fetcher=make_component_stream_fetcher(
+                    self._telemetry_fetcher, ComponentId(int(token.id))
+                ),
                 create_method=self._create_method,
             )
             self._components.append(comp)

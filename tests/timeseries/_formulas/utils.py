@@ -18,7 +18,7 @@ from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
 )
 
 
-def get_resampled_stream(
+async def get_resampled_stream(
     namespace: str,
     comp_id: ComponentId,
     metric: Metric,
@@ -37,8 +37,10 @@ def get_resampled_stream(
     )
     # Resampled data is always `Quantity` type, so we need to convert it to the desired
     # output type.
-    return builder.fetch_stream(
-        comp_id,
+    return (
+        await builder.fetch_stream(
+            comp_id,
+        )
     ).map(
         lambda sample: Sample(
             sample.timestamp,

@@ -6,9 +6,10 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator, Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 
+from frequenz.channels import Receiver
 from frequenz.quantities import Quantity
 from typing_extensions import TypeIs, override
 
@@ -25,9 +26,23 @@ class TelemetryStream(AstNode[QuantityT]):
     """A AST node that retrieves values from a component's telemetry stream."""
 
     source: str
-    stream: AsyncIterator[Sample[QuantityT] | Sample[Quantity]]
+    metric_fetcher: (
+        Callable[
+            [], Coroutine[None, None, Receiver[Sample[QuantityT] | Sample[Quantity]]]
+        ]
+        | None
+    ) = None
     create_method: Callable[[float], QuantityT]
+    _stream: Receiver[Sample[QuantityT] | Sample[Quantity]] | None = None
     _latest_sample: Sample[QuantityT] | None = None
+
+    def __post_init__(self) -> None:
+        """Validate at least one of stream or metric_fetcher is set."""
+        if self._stream is None and self.metric_fetcher is None:
+            raise ValueError(
+                "Either stream or metric_fetcher must be provided for "
+                + "TelemetryStream node."
+            )
 
     @property
     def latest_sample(self) -> Sample[QuantityT] | None:
@@ -48,7 +63,13 @@ class TelemetryStream(AstNode[QuantityT]):
 
     async def fetch_next(self) -> None:
         """Fetch the next value for this component and store it internally."""
-        latest_sample = await anext(self.stream)
+        if self._stream is None:
+            await self._fetch_stream()
+        assert self._stream is not None
+
+        latest_sample = await anext(self._stream)
+        # pylint: disable-next=fixme
+        # TODO: convert to QuantityT if needed only at the end in the evaluator.
         if self._is_quantity_sample(latest_sample):
             assert latest_sample.value is not None
             self._latest_sample = Sample(
@@ -57,6 +78,14 @@ class TelemetryStream(AstNode[QuantityT]):
             )
         else:
             self._latest_sample = latest_sample
+
+    async def _fetch_stream(self) -> None:
+        """Subscribe to the telemetry stream for this component."""
+        if self._stream is not None:
+            return
+        if self.metric_fetcher is None:
+            raise RuntimeError("Metric fetcher is not set for TelemetryStream node.")
+        self._stream = await self.metric_fetcher()
 
     def _is_quantity_sample(
         self, sample: Sample[QuantityT] | Sample[Quantity]

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from typing import Generic
 
 from frequenz.channels import Broadcast, Receiver
@@ -25,6 +25,18 @@ from ._formula_evaluator import FormulaEvaluatingActor
 from ._functions import Coalesce, Max, Min
 
 _logger = logging.getLogger(__name__)
+
+
+def metric_fetcher(
+    formula: Formula[QuantityT],
+) -> Callable[[], Coroutine[None, None, Receiver[Sample[QuantityT]]]]:
+    """Fetch a receiver for the formula's output samples."""
+
+    async def fetcher(formula: Formula[QuantityT]) -> Receiver[Sample[QuantityT]]:
+        formula.start()
+        return formula.new_receiver()
+
+    return lambda: fetcher(formula)
 
 
 class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
@@ -178,7 +190,7 @@ class FormulaBuilder(Generic[QuantityT]):
         if isinstance(formula, Formula):
             self.root: AstNode[QuantityT] = _ast.TelemetryStream(
                 source=str(formula),
-                stream=formula.new_receiver(),
+                metric_fetcher=metric_fetcher(formula),
                 create_method=create_method,
             )
             self._streams.append(self.root)
@@ -197,7 +209,7 @@ class FormulaBuilder(Generic[QuantityT]):
         elif isinstance(other, Formula):
             right_node = _ast.TelemetryStream(
                 source=str(other),
-                stream=other.new_receiver(),
+                metric_fetcher=metric_fetcher(other),
                 create_method=self._create_method,
             )
             self._streams.append(right_node)
@@ -224,7 +236,7 @@ class FormulaBuilder(Generic[QuantityT]):
         elif isinstance(other, Formula):
             right_node = _ast.TelemetryStream(
                 source=str(other),
-                stream=other.new_receiver(),
+                metric_fetcher=metric_fetcher(other),
                 create_method=self._create_method,
             )
             self._streams.append(right_node)
@@ -278,7 +290,7 @@ class FormulaBuilder(Generic[QuantityT]):
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
-                    stream=item.new_receiver(),
+                    metric_fetcher=metric_fetcher(item),
                     create_method=self._create_method,
                 )
                 right_nodes.append(right_node)
@@ -311,7 +323,7 @@ class FormulaBuilder(Generic[QuantityT]):
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
-                    stream=item.new_receiver(),
+                    metric_fetcher=metric_fetcher(item),
                     create_method=self._create_method,
                 )
                 right_nodes.append(right_node)
@@ -344,7 +356,7 @@ class FormulaBuilder(Generic[QuantityT]):
             elif isinstance(item, Formula):
                 right_node = _ast.TelemetryStream(
                     source=str(item),
-                    stream=item.new_receiver(),
+                    metric_fetcher=metric_fetcher(item),
                     create_method=self._create_method,
                 )
                 right_nodes.append(right_node)

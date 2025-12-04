@@ -45,7 +45,7 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            grid_meter_recv = get_resampled_stream(
+            grid_meter_recv = await get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 mockgrid.meter_ids[0],
                 Metric.AC_ACTIVE_POWER,

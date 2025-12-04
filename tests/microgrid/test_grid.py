@@ -65,7 +65,7 @@ async def test_grid_power_1(mocker: MockerFixture) -> None:
 
         grid_power_recv = grid.power.new_receiver()
 
-        grid_meter_recv = get_resampled_stream(
+        grid_meter_recv = await get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
             Metric.AC_ACTIVE_POWER,
@@ -109,7 +109,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
         grid_power_recv = grid.power.new_receiver()
 
         component_receivers = [
-            get_resampled_stream(
+            await get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
                 Metric.AC_ACTIVE_POWER,
@@ -160,7 +160,7 @@ async def test_grid_reactive_power_1(mocker: MockerFixture) -> None:
 
         grid_power_recv = grid.reactive_power.new_receiver()
 
-        grid_meter_recv = get_resampled_stream(
+        grid_meter_recv = await get_resampled_stream(
             grid._formula_pool._namespace,  # pylint: disable=protected-access
             mockgrid.meter_ids[0],
             Metric.AC_REACTIVE_POWER,
@@ -204,7 +204,7 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
         grid_power_recv = grid.reactive_power.new_receiver()
 
         component_receivers = [
-            get_resampled_stream(
+            await get_resampled_stream(
                 grid._formula_pool._namespace,  # pylint: disable=protected-access
                 component_id,
                 Metric.AC_REACTIVE_POWER,

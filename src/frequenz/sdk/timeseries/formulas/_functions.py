@@ -69,7 +69,7 @@ class Coalesce(Function[QuantityT]):
         for param in self.params:
             arg = await param.evaluate()
             match arg:
-                case Sample(value=value, timestamp=timestamp):
+                case Sample(timestamp, value):
                     if value is not None:
                         return arg
                     ts = timestamp

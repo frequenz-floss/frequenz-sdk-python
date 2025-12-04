@@ -7,10 +7,11 @@ from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
 
+from frequenz.sdk.timeseries import Sample
+
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest, Metric
 from ...microgrid._old_component_data import TransitionalMetric
-from .. import Sample
 
 
 class ResampledStreamFetcher:
@@ -41,9 +42,7 @@ class ResampledStreamFetcher:
         )
         self._metric: Metric | TransitionalMetric = metric
 
-        self._pending_requests: list[ComponentMetricRequest] = []
-
-    def fetch_stream(
+    async def fetch_stream(
         self,
         component_id: ComponentId,
     ) -> Receiver[Sample[Quantity]]:
@@ -61,13 +60,8 @@ class ResampledStreamFetcher:
             self._metric,
             None,
         )
-        self._pending_requests.append(request)
+        await self._resampler_subscription_sender.send(request)
+
         return self._channel_registry.get_or_create(
             Sample[Quantity], request.get_channel_name()
         ).new_receiver()
-
-    async def subscribe(self) -> None:
-        """Subscribe to all resampled component metric streams."""
-        for request in self._pending_requests:
-            await self._resampler_subscription_sender.send(request)
-        self._pending_requests.clear()
