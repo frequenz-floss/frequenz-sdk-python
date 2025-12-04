@@ -295,6 +295,7 @@ class MeterData(ComponentData):
 
     @override
     @classmethod
+    # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
         if not samples.metric_samples:
@@ -700,6 +701,7 @@ class InverterData(ComponentData):  # pylint: disable=too-many-instance-attribut
 
     @override
     @classmethod
+    # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
         if not samples.metric_samples:
@@ -962,6 +964,7 @@ class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attribu
 
     @override
     @classmethod
+    # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
         if not samples.metric_samples:
