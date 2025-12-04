@@ -746,7 +746,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="How to work with other actors">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control Batteries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working with other actors to control Batteries">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -778,6 +787,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control PV inverters and EV chargers
+    </span>
+  </a>
   
 </li>
         
@@ -1705,7 +1723,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="How to work with other actors">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control Batteries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working with other actors to control Batteries">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1737,6 +1764,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control PV inverters and EV chargers
+    </span>
+  </a>
   
 </li>
         
@@ -2047,6 +2083,9 @@ calculate the target power for the components.</p>
   " href="../../reference/frequenz/sdk/timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a>
 method available for all pools, which also streams the bounds that an actor
 should comply with, based on its priority.</p>
+<h4 id="frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries">Working with other actors to control Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries" title="Permanent link">¤</a></h4>
+<p>This section describes the details of the power manager's reconciliation
+algorithm for controlling batteries.</p>
 <h5 id="frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors">Adding the power proposals of individual actors<a class="headerlink" href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" title="Permanent link">¤</a></h5>
 <p>When an actor A calls the <code>propose_power</code> method with a power, the proposed
 power of the lower priority actor will get added to actor A's power.  This works
@@ -2059,79 +2098,449 @@ as follows:</p>
 </ul>
 <p>This has the effect of adding the powers set by actors A and B.</p>
 <p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | 50kW      | 50kW         | 70kW      |
-| C     | 1        | -170kW .. 30kW  | None             | 50kW      | 30kW         | 100kW     |
-|       |          |                 |                  |           | target power | 100kW     |</p>
-<p>Actor A proposes a power of <code>20kW</code>, but no bounds.  In this case, actor B sees
-bounds shifted by A's proposal.  Actor B proposes a power of <code>50kW</code> on this
-shifted range, and if this is applied on to the original bounds (aka shift the
-bounds back to the original range), it would be <code>20kW + 50kW = 70kW</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-120kW .. 80kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">70kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-170kW .. 30kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">30kW</td>
+<td style="text-align: right;">100kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">100kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A sees the full system: Available Bounds = <code>-100kW .. 100kW</code>.  It
+   proposes a power of <code>20kW</code>, but no bounds.</p>
+</li>
+<li>
+<p>This becomes the operating point for actor B, so actor B sees bounds shifted
+   by A's proposal = <code>-120kW .. 80kW</code>.  It can operate only in this range.</p>
+</li>
+<li>
+<p>Actor B proposes a power of <code>50kW</code> on this shifted range, and if this is
+   applied on to the original bounds (aka shift the bounds back to the original
+   range), it would be <code>20kW + 50kW = 70kW</code>.</p>
+</li>
+<li>
 <p>So Actor C sees bounds shifted by <code>70kW</code> from the original bounds, and sets
-<code>50kW</code> on this shifted range, but it can't exceed <code>30kW</code>, so its request gets
-limited to 30kW.  Shifting this back by <code>70kW</code>, the target power is calculated
-to be <code>100kW</code>.</p>
+   <code>50kW</code> on this shifted range, but it can't exceed <code>30kW</code>, so its request gets
+   limited to 30kW.</p>
+</li>
+<li>
+<p>Shifting this back by <code>70kW</code>, the target power is calculated to be <code>100kW</code>.</p>
+</li>
+</ol>
 <p>Irrespective of what any actor sets, the final power won't exceed the available
 battery bounds.</p>
 <p><em>Example 2</em>:</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | -20kW     | -20kW        | 0kW       |
-|       |          |                 |                  |           | target power | 0kW       |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-120kW .. 80kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">0kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">0kW</td>
+</tr>
+</tbody>
+</table>
 <p>Actors with exactly opposite requests cancel each other out.</p>
 <h5 id="frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors">Limiting bounds for lower priority actors<a class="headerlink" href="#frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors" title="Permanent link">¤</a></h5>
 <p>When an actor A calls the <code>propose_power</code> method with bounds (either both lower
 and upper bounds or at least one of them), lower priority actors will see their
 (shifted) bounds restricted and can only propose power values within that range.</p>
 <p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 40kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -10kW     | -10kW        | 40kW      |
-| C     | 1        | -60kW .. 10kW   | None             | -20kW     | -20kW        | 20kW      |
-|       |          |                 |                  |           | target power | 20kW      |</p>
-<p>Actor A with the highest priority has the entire battery bounds available to it.
-It sets limited bounds of -20kW .. 100kW, and proposes a power of 50kW.</p>
-<p>Actor B sees Actor A's limit of -20kW..100kW shifted by 50kW as -70kW..50kW, and
-can only propose powers within this range, which will get added (shifted back)
-to Actor A's proposed power.</p>
-<p>Actor B tries to limit the bounds of actor C to -90kW .. 0kW, but it can only
-operate in the -70kW .. 50kW range because of bounds set by actor A, so its
-requested bounds get restricted to -70kW .. 0kW.</p>
-<p>Actor C sees this as -60kW .. 10kW, because it gets shifted by Actor B's
-proposed power of -10kW.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">-20kW .. 100kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-70kW .. 50kW</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-10kW</td>
+<td style="text-align: right;">-10kW</td>
+<td style="text-align: right;">40kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-60kW .. 10kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A with the highest priority has the entire battery bounds available to
+   it.  It sets limited bounds of <code>-20kW .. 100kW</code>, and proposes a power of
+   <code>50kW</code>.</p>
+</li>
+<li>
+<p>Actor B's operating point is now <code>50kW</code>.  So, Actor B sees Actor A's limit of
+   <code>-20kW..100kW</code> shifted by <code>50kW</code> as <code>-70kW..50kW</code>, and can only operate
+   within this range.</p>
+</li>
+<li>
+<p>Actor B tries to limit the bounds of actor C to <code>-90kW .. 0kW</code>, but it
+   doesn't have access to that full range and can only operate in the
+   <code>-70kW .. 50kW</code> range, so its specified bounds get restricted to
+   <code>-70kW .. 0kW</code>.</p>
+</li>
+<li>
+<p>Actor C sees this as <code>-60kW .. 10kW</code>, because it gets shifted by Actor B's
+   proposed power of <code>-10kW</code>.</p>
+</li>
+<li>
 <p>Actor C proposes a power within its bounds and the proposals of all the actors
-are added to get the target power.</p>
+   are added to get the target power.</p>
+</li>
+</ol>
 <p><em>Example 2</em>:</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 50kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -90kW     | -70kW        | -20kW     |
-|       |          |                 |                  |           | target power | -20kW     |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">-20kW .. 100kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-70kW .. 50kW</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-90kW</td>
+<td style="text-align: right;">-70kW</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+</tbody>
+</table>
 <p>When an actor requests a power that's outside its available bounds, the closest
 available power is used.</p>
 <h5 id="frequenz.sdk.microgrid--comprehensive-example">Comprehensive example<a class="headerlink" href="#frequenz.sdk.microgrid--comprehensive-example" title="Permanent link">¤</a></h5>
 <p>Battery bounds available for use: -100kW to 100kW</p>
-<p>| Priority | System Bounds     | Requested Bounds | Requested | Adjusted     | Aggregate |
-|          |                   |                  | Power     | Power        | Power     |
-|----------|-------------------|------------------|-----------|--------------|-----------|
-| 7        | -100 kW .. 100 kW | None             | 10 kW     | 10 kW        | 10 kW     |
-| 6        | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW     | 10 kW        | 20 kW     |
-| 5        | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW     | 70 kW        | 90 kW     |
-| 4        | -170 kW .. 0 kW   | None             | -120 kW   | -120 kW      | -30 kW    |
-| 3        | -50 kW .. 120 kW  | None             | 60 kW     | 60 kW        | 30 kW     |
-| 2        | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW     | 20 kW        | 50 kW     |
-| 1        | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW     | 10 kW        | 60 kW     |
-| 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
-| -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
-|          |                   |                  |           | Target Power | 50 kW     |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-100 kW .. 100 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">-110 kW .. 90 kW</td>
+<td style="text-align: right;">-110 kW .. 80 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">20 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-120 kW .. 70 kW</td>
+<td style="text-align: right;">-100 kW .. 80 kW</td>
+<td style="text-align: right;">80 kW</td>
+<td style="text-align: right;">70 kW</td>
+<td style="text-align: right;">90 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">-170 kW .. 0 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-120 kW</td>
+<td style="text-align: right;">-120 kW</td>
+<td style="text-align: right;">-30 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-50 kW .. 120 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">60 kW</td>
+<td style="text-align: right;">60 kW</td>
+<td style="text-align: right;">30 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-110 kW .. 60 kW</td>
+<td style="text-align: right;">-40 kW .. 30 kW</td>
+<td style="text-align: right;">20 kW</td>
+<td style="text-align: right;">20 kW</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-60 kW .. 10 kW</td>
+<td style="text-align: right;">-50 kW .. 40 kW</td>
+<td style="text-align: right;">25 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">60 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-60 kW .. 0 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">12 kW</td>
+<td style="text-align: right;">0 kW</td>
+<td style="text-align: right;">60 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">-1</td>
+<td style="text-align: right;">-60 kW .. 0 kW</td>
+<td style="text-align: right;">-40 kW .. -10 kW</td>
+<td style="text-align: right;">-10 kW</td>
+<td style="text-align: right;">-10 kW</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">Target Power</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+</tbody>
+</table>
+<h4 id="frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers">Working with other actors to control PV inverters and EV chargers<a class="headerlink" href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers" title="Permanent link">¤</a></h4>
+<p>The power manager reconciles power proposals for PV inverters and EV chargers
+similarly to batteries, but with one key difference:</p>
+<p>There is no shifting of operating point between actors, and the powers are not
+added together.</p>
+<p>Higher priority actors can strictly limit the bounds available to lower priority
+actors, but the power proposals by lower priority actors take precedence, as
+long as they are within the bounds set by higher priority actors.</p>
+<p>This is because PV inverters can only produce power (negative power according to
+the PSC), and EV chargers can only consume power (positive power according to
+the PSC), and shifting bounds would make ranges available to actors that a PV
+inverter or EV charger can't operate in.</p>
+<p><em>A PV pool Example</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">-100kW .. 0W</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">-50kW</td>
+<td style="text-align: right;">-50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-100kW</td>
+<td style="text-align: right;">-75kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">D</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">-60kW .. -60kW</td>
+<td style="text-align: right;">-60kW</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">E</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-60kW .. -60kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">Final Power</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A with the highest priority has access to the entire range of the PV
+   inverters.  In this case <code>-100kW .. 0W</code>.</p>
+</li>
+<li>
+<p>It wants to limit production to a maximum of <code>-90kW</code>, so it sets bounds of
+   <code>-90kW .. 0W</code>.  It also proposes a power of <code>-20kW</code>.  If there are no lower
+   priority actors, that power will get set to the inverters.  But here, it gets
+   <em>overridden</em> by lower priority actors.</p>
+</li>
+<li>
+<p>Actor B limits the bounds further, and proposes its preferred power.</p>
+</li>
+<li>
+<p>Actor C proposes <code>-100kW</code>, which is outside of what Actor B has allowed, so it
+   gets clamped to <code>-75kW</code>, which is the closest Actor C can get to its requested
+   power in its available range of <code>-75kW .. -20kW</code>.</p>
+</li>
+<li>
+<p>Actor D wants exactly <code>-60kW</code>, so it clamps the bounds to <code>-60kW .. -60kW</code>, and
+   sets <code>-60kW</code>, making sure Actor E or other lower priority actors can't change
+   the power further.</p>
+</li>
+</ol>
 <h3 id="frequenz.sdk.microgrid--withdrawing-power-proposals">Withdrawing power proposals<a class="headerlink" href="#frequenz.sdk.microgrid--withdrawing-power-proposals" title="Permanent link">¤</a></h3>
 <p>An actor can withdraw its power proposal by calling <code>propose_power</code> with <code>None</code>
 target_power and <code>None</code> bounds (which are the default anyway).  As soon as an actor

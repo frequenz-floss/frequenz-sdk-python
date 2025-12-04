@@ -1528,7 +1528,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="How to work with other actors">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control Batteries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working with other actors to control Batteries">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1560,6 +1569,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with other actors to control PV inverters and EV chargers
+    </span>
+  </a>
   
 </li>
         
@@ -1993,6 +2011,9 @@ calculate the target power for the components.</p>
   " href="../timeseries/battery_pool/#frequenz.sdk.timeseries.battery_pool.BatteryPool.power_status"><code>power_status</code></a>
 method available for all pools, which also streams the bounds that an actor
 should comply with, based on its priority.</p>
+<h5 id="frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries">Working with other actors to control Batteries<a class="headerlink" href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-batteries" title="Permanent link">¤</a></h5>
+<p>This section describes the details of the power manager's reconciliation
+algorithm for controlling batteries.</p>
 <h6 id="frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors">Adding the power proposals of individual actors<a class="headerlink" href="#frequenz.sdk.microgrid--adding-the-power-proposals-of-individual-actors" title="Permanent link">¤</a></h6>
 <p>When an actor A calls the <code>propose_power</code> method with a power, the proposed
 power of the lower priority actor will get added to actor A's power.  This works
@@ -2005,79 +2026,449 @@ as follows:</p>
 </ul>
 <p>This has the effect of adding the powers set by actors A and B.</p>
 <p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | 50kW      | 50kW         | 70kW      |
-| C     | 1        | -170kW .. 30kW  | None             | 50kW      | 30kW         | 100kW     |
-|       |          |                 |                  |           | target power | 100kW     |</p>
-<p>Actor A proposes a power of <code>20kW</code>, but no bounds.  In this case, actor B sees
-bounds shifted by A's proposal.  Actor B proposes a power of <code>50kW</code> on this
-shifted range, and if this is applied on to the original bounds (aka shift the
-bounds back to the original range), it would be <code>20kW + 50kW = 70kW</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-120kW .. 80kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">70kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-170kW .. 30kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">30kW</td>
+<td style="text-align: right;">100kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">100kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A sees the full system: Available Bounds = <code>-100kW .. 100kW</code>.  It
+   proposes a power of <code>20kW</code>, but no bounds.</p>
+</li>
+<li>
+<p>This becomes the operating point for actor B, so actor B sees bounds shifted
+   by A's proposal = <code>-120kW .. 80kW</code>.  It can operate only in this range.</p>
+</li>
+<li>
+<p>Actor B proposes a power of <code>50kW</code> on this shifted range, and if this is
+   applied on to the original bounds (aka shift the bounds back to the original
+   range), it would be <code>20kW + 50kW = 70kW</code>.</p>
+</li>
+<li>
 <p>So Actor C sees bounds shifted by <code>70kW</code> from the original bounds, and sets
-<code>50kW</code> on this shifted range, but it can't exceed <code>30kW</code>, so its request gets
-limited to 30kW.  Shifting this back by <code>70kW</code>, the target power is calculated
-to be <code>100kW</code>.</p>
+   <code>50kW</code> on this shifted range, but it can't exceed <code>30kW</code>, so its request gets
+   limited to 30kW.</p>
+</li>
+<li>
+<p>Shifting this back by <code>70kW</code>, the target power is calculated to be <code>100kW</code>.</p>
+</li>
+</ol>
 <p>Irrespective of what any actor sets, the final power won't exceed the available
 battery bounds.</p>
 <p><em>Example 2</em>:</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | None             | 20kW      | 20kW         | 20kW      |
-| B     | 2        | -120kW .. 80kW  | None             | -20kW     | -20kW        | 0kW       |
-|       |          |                 |                  |           | target power | 0kW       |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-120kW .. 80kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">0kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">0kW</td>
+</tr>
+</tbody>
+</table>
 <p>Actors with exactly opposite requests cancel each other out.</p>
 <h6 id="frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors">Limiting bounds for lower priority actors<a class="headerlink" href="#frequenz.sdk.microgrid--limiting-bounds-for-lower-priority-actors" title="Permanent link">¤</a></h6>
 <p>When an actor A calls the <code>propose_power</code> method with bounds (either both lower
 and upper bounds or at least one of them), lower priority actors will see their
 (shifted) bounds restricted and can only propose power values within that range.</p>
 <p><em>Example 1</em>: Battery bounds available for use: -100kW to 100kW</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 40kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -10kW     | -10kW        | 40kW      |
-| C     | 1        | -60kW .. 10kW   | None             | -20kW     | -20kW        | 20kW      |
-|       |          |                 |                  |           | target power | 20kW      |</p>
-<p>Actor A with the highest priority has the entire battery bounds available to it.
-It sets limited bounds of -20kW .. 100kW, and proposes a power of 50kW.</p>
-<p>Actor B sees Actor A's limit of -20kW..100kW shifted by 50kW as -70kW..50kW, and
-can only propose powers within this range, which will get added (shifted back)
-to Actor A's proposed power.</p>
-<p>Actor B tries to limit the bounds of actor C to -90kW .. 0kW, but it can only
-operate in the -70kW .. 50kW range because of bounds set by actor A, so its
-requested bounds get restricted to -70kW .. 0kW.</p>
-<p>Actor C sees this as -60kW .. 10kW, because it gets shifted by Actor B's
-proposed power of -10kW.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">-20kW .. 100kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-70kW .. 50kW</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-10kW</td>
+<td style="text-align: right;">-10kW</td>
+<td style="text-align: right;">40kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-60kW .. 10kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">20kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A with the highest priority has the entire battery bounds available to
+   it.  It sets limited bounds of <code>-20kW .. 100kW</code>, and proposes a power of
+   <code>50kW</code>.</p>
+</li>
+<li>
+<p>Actor B's operating point is now <code>50kW</code>.  So, Actor B sees Actor A's limit of
+   <code>-20kW..100kW</code> shifted by <code>50kW</code> as <code>-70kW..50kW</code>, and can only operate
+   within this range.</p>
+</li>
+<li>
+<p>Actor B tries to limit the bounds of actor C to <code>-90kW .. 0kW</code>, but it
+   doesn't have access to that full range and can only operate in the
+   <code>-70kW .. 50kW</code> range, so its specified bounds get restricted to
+   <code>-70kW .. 0kW</code>.</p>
+</li>
+<li>
+<p>Actor C sees this as <code>-60kW .. 10kW</code>, because it gets shifted by Actor B's
+   proposed power of <code>-10kW</code>.</p>
+</li>
+<li>
 <p>Actor C proposes a power within its bounds and the proposals of all the actors
-are added to get the target power.</p>
+   are added to get the target power.</p>
+</li>
+</ol>
 <p><em>Example 2</em>:</p>
-<p>| Actor | Priority | System Bounds   | Requested Bounds | Requested | Adjusted     | Aggregate |
-|       |          |                 |                  | Power     | Power        | Power     |
-|-------|----------|-----------------|------------------|-----------|--------------|-----------|
-| A     | 3        | -100kW .. 100kW | -20kW .. 100kW   | 50kW      | 50kW         | 50kW      |
-| B     | 2        | -70kW .. 50kW   | -90kW .. 0kW     | -90kW     | -70kW        | -20kW     |
-|       |          |                 |                  |           | target power | -20kW     |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-100kW .. 100kW</td>
+<td style="text-align: right;">-20kW .. 100kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+<td style="text-align: right;">50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-70kW .. 50kW</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-90kW</td>
+<td style="text-align: right;">-70kW</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">target power</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+</tbody>
+</table>
 <p>When an actor requests a power that's outside its available bounds, the closest
 available power is used.</p>
 <h6 id="frequenz.sdk.microgrid--comprehensive-example">Comprehensive example<a class="headerlink" href="#frequenz.sdk.microgrid--comprehensive-example" title="Permanent link">¤</a></h6>
 <p>Battery bounds available for use: -100kW to 100kW</p>
-<p>| Priority | System Bounds     | Requested Bounds | Requested | Adjusted     | Aggregate |
-|          |                   |                  | Power     | Power        | Power     |
-|----------|-------------------|------------------|-----------|--------------|-----------|
-| 7        | -100 kW .. 100 kW | None             | 10 kW     | 10 kW        | 10 kW     |
-| 6        | -110 kW .. 90 kW  | -110 kW .. 80 kW | 10 kW     | 10 kW        | 20 kW     |
-| 5        | -120 kW .. 70 kW  | -100 kW .. 80 kW | 80 kW     | 70 kW        | 90 kW     |
-| 4        | -170 kW .. 0 kW   | None             | -120 kW   | -120 kW      | -30 kW    |
-| 3        | -50 kW .. 120 kW  | None             | 60 kW     | 60 kW        | 30 kW     |
-| 2        | -110 kW .. 60 kW  | -40 kW .. 30 kW  | 20 kW     | 20 kW        | 50 kW     |
-| 1        | -60 kW .. 10 kW   | -50 kW .. 40 kW  | 25 kW     | 10 kW        | 60 kW     |
-| 0        | -60 kW .. 0 kW    | None             | 12 kW     | 0 kW         | 60 kW     |
-| -1       | -60 kW .. 0 kW    | -40 kW .. -10 kW | -10 kW    | -10 kW       | 50 kW     |
-|          |                   |                  |           | Target Power | 50 kW     |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+<th style="text-align: right;">Aggregate Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-100 kW .. 100 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">-110 kW .. 90 kW</td>
+<td style="text-align: right;">-110 kW .. 80 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">20 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-120 kW .. 70 kW</td>
+<td style="text-align: right;">-100 kW .. 80 kW</td>
+<td style="text-align: right;">80 kW</td>
+<td style="text-align: right;">70 kW</td>
+<td style="text-align: right;">90 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">-170 kW .. 0 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-120 kW</td>
+<td style="text-align: right;">-120 kW</td>
+<td style="text-align: right;">-30 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-50 kW .. 120 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">60 kW</td>
+<td style="text-align: right;">60 kW</td>
+<td style="text-align: right;">30 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-110 kW .. 60 kW</td>
+<td style="text-align: right;">-40 kW .. 30 kW</td>
+<td style="text-align: right;">20 kW</td>
+<td style="text-align: right;">20 kW</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-60 kW .. 10 kW</td>
+<td style="text-align: right;">-50 kW .. 40 kW</td>
+<td style="text-align: right;">25 kW</td>
+<td style="text-align: right;">10 kW</td>
+<td style="text-align: right;">60 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-60 kW .. 0 kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">12 kW</td>
+<td style="text-align: right;">0 kW</td>
+<td style="text-align: right;">60 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">-1</td>
+<td style="text-align: right;">-60 kW .. 0 kW</td>
+<td style="text-align: right;">-40 kW .. -10 kW</td>
+<td style="text-align: right;">-10 kW</td>
+<td style="text-align: right;">-10 kW</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">Target Power</td>
+<td style="text-align: right;">50 kW</td>
+</tr>
+</tbody>
+</table>
+<h5 id="frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers">Working with other actors to control PV inverters and EV chargers<a class="headerlink" href="#frequenz.sdk.microgrid--working-with-other-actors-to-control-pv-inverters-and-ev-chargers" title="Permanent link">¤</a></h5>
+<p>The power manager reconciles power proposals for PV inverters and EV chargers
+similarly to batteries, but with one key difference:</p>
+<p>There is no shifting of operating point between actors, and the powers are not
+added together.</p>
+<p>Higher priority actors can strictly limit the bounds available to lower priority
+actors, but the power proposals by lower priority actors take precedence, as
+long as they are within the bounds set by higher priority actors.</p>
+<p>This is because PV inverters can only produce power (negative power according to
+the PSC), and EV chargers can only consume power (positive power according to
+the PSC), and shifting bounds would make ranges available to actors that a PV
+inverter or EV charger can't operate in.</p>
+<p><em>A PV pool Example</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actor</th>
+<th style="text-align: right;">Priority</th>
+<th style="text-align: right;">Available Bounds</th>
+<th style="text-align: right;">Requested Bounds</th>
+<th style="text-align: right;">Requested Power</th>
+<th style="text-align: right;">Adjusted Power</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">A</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">-100kW .. 0W</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-20kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">B</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-90kW .. 0kW</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">-50kW</td>
+<td style="text-align: right;">-50kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">C</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-100kW</td>
+<td style="text-align: right;">-75kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">D</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-75kW .. -20kW</td>
+<td style="text-align: right;">-60kW .. -60kW</td>
+<td style="text-align: right;">-60kW</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+<tr>
+<td style="text-align: right;">E</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-60kW .. -60kW</td>
+<td style="text-align: right;">None</td>
+<td style="text-align: right;">-20kW</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">Final Power</td>
+<td style="text-align: right;">-60kW</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>Actor A with the highest priority has access to the entire range of the PV
+   inverters.  In this case <code>-100kW .. 0W</code>.</p>
+</li>
+<li>
+<p>It wants to limit production to a maximum of <code>-90kW</code>, so it sets bounds of
+   <code>-90kW .. 0W</code>.  It also proposes a power of <code>-20kW</code>.  If there are no lower
+   priority actors, that power will get set to the inverters.  But here, it gets
+   <em>overridden</em> by lower priority actors.</p>
+</li>
+<li>
+<p>Actor B limits the bounds further, and proposes its preferred power.</p>
+</li>
+<li>
+<p>Actor C proposes <code>-100kW</code>, which is outside of what Actor B has allowed, so it
+   gets clamped to <code>-75kW</code>, which is the closest Actor C can get to its requested
+   power in its available range of <code>-75kW .. -20kW</code>.</p>
+</li>
+<li>
+<p>Actor D wants exactly <code>-60kW</code>, so it clamps the bounds to <code>-60kW .. -60kW</code>, and
+   sets <code>-60kW</code>, making sure Actor E or other lower priority actors can't change
+   the power further.</p>
+</li>
+</ol>
 <h4 id="frequenz.sdk.microgrid--withdrawing-power-proposals">Withdrawing power proposals<a class="headerlink" href="#frequenz.sdk.microgrid--withdrawing-power-proposals" title="Permanent link">¤</a></h4>
 <p>An actor can withdraw its power proposal by calling <code>propose_power</code> with <code>None</code>
 target_power and <code>None</code> bounds (which are the default anyway).  As soon as an actor
@@ -2330,55 +2721,55 @@ will be unavailable from the corresponding component pools.</p>
 
             <details class="quote">
               <summary>Source code in <code>src/frequenz/sdk/microgrid/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-333">333</a></span>
-<span class="normal"><a href="#__codelineno-0-334">334</a></span>
-<span class="normal"><a href="#__codelineno-0-335">335</a></span>
-<span class="normal"><a href="#__codelineno-0-336">336</a></span>
-<span class="normal"><a href="#__codelineno-0-337">337</a></span>
-<span class="normal"><a href="#__codelineno-0-338">338</a></span>
-<span class="normal"><a href="#__codelineno-0-339">339</a></span>
-<span class="normal"><a href="#__codelineno-0-340">340</a></span>
-<span class="normal"><a href="#__codelineno-0-341">341</a></span>
-<span class="normal"><a href="#__codelineno-0-342">342</a></span>
-<span class="normal"><a href="#__codelineno-0-343">343</a></span>
-<span class="normal"><a href="#__codelineno-0-344">344</a></span>
-<span class="normal"><a href="#__codelineno-0-345">345</a></span>
-<span class="normal"><a href="#__codelineno-0-346">346</a></span>
-<span class="normal"><a href="#__codelineno-0-347">347</a></span>
-<span class="normal"><a href="#__codelineno-0-348">348</a></span>
-<span class="normal"><a href="#__codelineno-0-349">349</a></span>
-<span class="normal"><a href="#__codelineno-0-350">350</a></span>
-<span class="normal"><a href="#__codelineno-0-351">351</a></span>
-<span class="normal"><a href="#__codelineno-0-352">352</a></span>
-<span class="normal"><a href="#__codelineno-0-353">353</a></span>
-<span class="normal"><a href="#__codelineno-0-354">354</a></span>
-<span class="normal"><a href="#__codelineno-0-355">355</a></span>
-<span class="normal"><a href="#__codelineno-0-356">356</a></span>
-<span class="normal"><a href="#__codelineno-0-357">357</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-333"><a id="__codelineno-0-333" name="__codelineno-0-333"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span>
-</span><span id="__span-0-334"><a id="__codelineno-0-334" name="__codelineno-0-334"></a>    <span class="n">server_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">,</span>
-</span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336"></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337"></a>    <span class="n">api_power_request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
-</span><span id="__span-0-338"><a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-339"><a id="__codelineno-0-339" name="__codelineno-0-339"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the microgrid connection manager and the data pipeline.</span>
-</span><span id="__span-0-340"><a id="__codelineno-0-340" name="__codelineno-0-340"></a>
-</span><span id="__span-0-341"><a id="__codelineno-0-341" name="__codelineno-0-341"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-342"><a id="__codelineno-0-342" name="__codelineno-0-342"></a><span class="sd">        server_url: The location of the microgrid API server in the form of a URL.</span>
-</span><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343"></a><span class="sd">            The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,</span>
-</span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344"></a><span class="sd">            where the port should be an int between `0` and `65535` (defaulting to</span>
-</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345"></a><span class="sd">            `9090`) and ssl should be a boolean (defaulting to false). For example:</span>
-</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346"></a><span class="sd">            `grpc://localhost:1090?ssl=true`.</span>
-</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347"></a><span class="sd">        resampler_config: Configuration for the resampling actor.</span>
-</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="sd">        api_power_request_timeout: Timeout to use when making power requests to</span>
-</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349"></a><span class="sd">            the microgrid API.  When requests to components timeout, they will</span>
-</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="sd">            be marked as blocked for a short duration, during which time they</span>
-</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="sd">            will be unavailable from the corresponding component pools.</span>
-</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353"></a>    <span class="k">await</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">server_url</span><span class="p">)</span>
-</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354"></a>    <span class="k">await</span> <span class="n">_data_pipeline</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span>
-</span><span id="__span-0-355"><a id="__codelineno-0-355" name="__codelineno-0-355"></a>        <span class="n">resampler_config</span><span class="p">,</span>
-</span><span id="__span-0-356"><a id="__codelineno-0-356" name="__codelineno-0-356"></a>        <span class="n">api_power_request_timeout</span><span class="o">=</span><span class="n">api_power_request_timeout</span><span class="p">,</span>
-</span><span id="__span-0-357"><a id="__codelineno-0-357" name="__codelineno-0-357"></a>    <span class="p">)</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-388">388</a></span>
+<span class="normal"><a href="#__codelineno-0-389">389</a></span>
+<span class="normal"><a href="#__codelineno-0-390">390</a></span>
+<span class="normal"><a href="#__codelineno-0-391">391</a></span>
+<span class="normal"><a href="#__codelineno-0-392">392</a></span>
+<span class="normal"><a href="#__codelineno-0-393">393</a></span>
+<span class="normal"><a href="#__codelineno-0-394">394</a></span>
+<span class="normal"><a href="#__codelineno-0-395">395</a></span>
+<span class="normal"><a href="#__codelineno-0-396">396</a></span>
+<span class="normal"><a href="#__codelineno-0-397">397</a></span>
+<span class="normal"><a href="#__codelineno-0-398">398</a></span>
+<span class="normal"><a href="#__codelineno-0-399">399</a></span>
+<span class="normal"><a href="#__codelineno-0-400">400</a></span>
+<span class="normal"><a href="#__codelineno-0-401">401</a></span>
+<span class="normal"><a href="#__codelineno-0-402">402</a></span>
+<span class="normal"><a href="#__codelineno-0-403">403</a></span>
+<span class="normal"><a href="#__codelineno-0-404">404</a></span>
+<span class="normal"><a href="#__codelineno-0-405">405</a></span>
+<span class="normal"><a href="#__codelineno-0-406">406</a></span>
+<span class="normal"><a href="#__codelineno-0-407">407</a></span>
+<span class="normal"><a href="#__codelineno-0-408">408</a></span>
+<span class="normal"><a href="#__codelineno-0-409">409</a></span>
+<span class="normal"><a href="#__codelineno-0-410">410</a></span>
+<span class="normal"><a href="#__codelineno-0-411">411</a></span>
+<span class="normal"><a href="#__codelineno-0-412">412</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span>
+</span><span id="__span-0-389"><a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="n">server_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-390"><a id="__codelineno-0-390" name="__codelineno-0-390"></a>    <span class="n">resampler_config</span><span class="p">:</span> <span class="n">ResamplerConfig</span><span class="p">,</span>
+</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392"></a>    <span class="n">api_power_request_timeout</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span>
+</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize the microgrid connection manager and the data pipeline.</span>
+</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395"></a>
+</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397"></a><span class="sd">        server_url: The location of the microgrid API server in the form of a URL.</span>
+</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398"></a><span class="sd">            The following format is expected: `grpc://hostname{:port}{?ssl=ssl}`,</span>
+</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="sd">            where the port should be an int between `0` and `65535` (defaulting to</span>
+</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="sd">            `9090`) and ssl should be a boolean (defaulting to false). For example:</span>
+</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a><span class="sd">            `grpc://localhost:1090?ssl=true`.</span>
+</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">        resampler_config: Configuration for the resampling actor.</span>
+</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403"></a><span class="sd">        api_power_request_timeout: Timeout to use when making power requests to</span>
+</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">            the microgrid API.  When requests to components timeout, they will</span>
+</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a><span class="sd">            be marked as blocked for a short duration, during which time they</span>
+</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a><span class="sd">            will be unavailable from the corresponding component pools.</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a>    <span class="k">await</span> <span class="n">connection_manager</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">server_url</span><span class="p">)</span>
+</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>    <span class="k">await</span> <span class="n">_data_pipeline</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span>
+</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a>        <span class="n">resampler_config</span><span class="p">,</span>
+</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411"></a>        <span class="n">api_power_request_timeout</span><span class="o">=</span><span class="n">api_power_request_timeout</span><span class="p">,</span>
+</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412"></a>    <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
