@@ -1778,7 +1778,7 @@ correspond to the specific microgrid configurations.</p>
 
 subgraph Left[Measurements only]
 direction LR
-  grid["Grid Connection"]
+  grid["Grid Connection Point"]
   consumer["Consumer"]
   pv["PV Arrays"]
   chp["CHP"]
@@ -1800,16 +1800,16 @@ chp --- junction
 junction --- bat
 junction --- ev</code></pre>
 <h4 id="frequenz.sdk.microgrid--grid">Grid<a class="headerlink" href="#frequenz.sdk.microgrid--grid" title="Permanent link">¤</a></h4>
-<p>This refers to a microgrid's connection to the external Grid.  The power flowing through
-this connection can be streamed through
+<p>This refers to a microgrid's <a href="../../../../user-guide/glossary/#grid-connection-point">grid-connection-point</a>.  The power flowing
+through this connection can be streamed through
 <a class="autorefs autorefs-internal" title="power
 
 
   
       property
   " href="../timeseries/grid/#frequenz.sdk.timeseries.grid.Grid.power"><code>grid_power</code></a>.</p>
-<p>In locations without a grid connection, this method remains accessible, and streams zero
-values.</p>
+<p>In locations without a grid connection point, this method remains accessible, and
+streams zero values.</p>
 <h4 id="frequenz.sdk.microgrid--consumer">Consumer<a class="headerlink" href="#frequenz.sdk.microgrid--consumer" title="Permanent link">¤</a></h4>
 <p>This is the main power consumer at the site of a microgrid, and often the
 <a href="../../../../user-guide/glossary/#load">load</a> the microgrid is built to support.  The power drawn by the consumer
