@@ -19,6 +19,8 @@ from frequenz.client.microgrid.component import (
     SolarInverter,
 )
 
+from frequenz.sdk.microgrid.component_graph import ComponentGraph
+
 
 @dataclass
 class ComponentGraphConfig:
@@ -107,3 +109,18 @@ def create_component_graph_structure(
         components.add(DcEvCharger(id=ev_id, microgrid_id=microgrid_id))
         connections.add(ComponentConnection(source=junction_id, destination=ev_id))
     return components, connections
+
+
+def component_graph_to_mermaid(comp_graph: ComponentGraph) -> str:
+    """Return a string representation of the component graph in Mermaid format."""
+
+    def component_to_mermaid(component: Component) -> str:
+        return f'"{component.id}"["{component}"]'
+
+    def connection_to_mermaid(connection: ComponentConnection) -> str:
+        return f'"{connection.source}" --> "{connection.destination}"'
+
+    components = "\n".join(map(component_to_mermaid, comp_graph.components()))
+    connections = "\n".join(map(connection_to_mermaid, comp_graph.connections()))
+
+    return f"graph TD\n{components}\n{connections}"

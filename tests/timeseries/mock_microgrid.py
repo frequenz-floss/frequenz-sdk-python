@@ -260,7 +260,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         for value in range(1, self._num_values + 1):
             timestamp = datetime.now(tz=timezone.utc)
-            val_to_send = value + int(int(comp_id) / 10)
+            val_to_send = value + int(comp_id) // 10
             # for inverters with component_id > 100, send only half the messages.
             if int(comp_id) % 10 == self.inverter_id_suffix:
                 if int(comp_id) < 100 or value <= 5:

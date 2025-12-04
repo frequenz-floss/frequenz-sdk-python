@@ -71,6 +71,7 @@ dev-mypy = [
   "types-Markdown == 3.9.0.20250906",
   "types-protobuf == 6.32.1.20250918",
   "types-setuptools == 80.9.0.20250822",
+  "types-networkx == 3.5.0.20251106",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
@@ -204,13 +205,7 @@ files = ["src", "tests", "examples", "benchmarks", "docs", "noxfile.py"]
 strict = true
 
 [[tool.mypy.overrides]]
-module = [
-  "async_solipsism",
-  "mkdocs_macros.*",
-  # The available stubs packages are outdated or incomplete (WIP/experimental):
-  # https://github.com/frequenz-floss/frequenz-sdk-python/issues/430
-  "networkx",
-]
+module = ["async_solipsism", "mkdocs_macros.*"]
 ignore_missing_imports = true
 
 [tool.setuptools_scm]

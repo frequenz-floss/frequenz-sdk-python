@@ -46,7 +46,7 @@ class ConnectionManager(ABC):
         """Get the MicrogridApiClient.
 
         Returns:
-            api client
+            The microgrid API client used by this connection manager.
         """
 
     @property
@@ -172,28 +172,23 @@ async def initialize(server_url: str) -> None:
             where the port should be an int between `0` and `65535` (defaulting to
             `9090`) and ssl should be a boolean (defaulting to false). For example:
             `grpc://localhost:1090?ssl=true`.
-
-    Raises:
-        AssertionError: If method was called more then once.
     """
     # From Doc: pylint just try to discourage this usage.
     # That doesn't mean you cannot use it.
     global _CONNECTION_MANAGER  # pylint: disable=global-statement
 
-    if _CONNECTION_MANAGER is not None:
-        raise AssertionError("MicrogridApi was already initialized.")
+    assert _CONNECTION_MANAGER is None, "MicrogridApi was already initialized."
 
     _logger.info("Connecting to microgrid at %s", server_url)
 
-    microgrid_api = _InsecureConnectionManager(server_url)
-    await microgrid_api._initialize()  # pylint: disable=protected-access
+    connection_manager = _InsecureConnectionManager(server_url)
+    await connection_manager._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
     # calling initialize() twice and in parallel.
-    if _CONNECTION_MANAGER is not None:
-        raise AssertionError("MicrogridApi was already initialized.")
+    assert _CONNECTION_MANAGER is None, "MicrogridApi was already initialized."
 
-    _CONNECTION_MANAGER = microgrid_api
+    _CONNECTION_MANAGER = connection_manager
 
 
 def get() -> ConnectionManager:

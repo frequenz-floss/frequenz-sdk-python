@@ -278,6 +278,7 @@ async def run_scenarios(
         AssertionError: If received metric is not as expected.
     """
     for idx, scenario in enumerate(scenarios):
+        _logger.info("Testing scenario: %d", idx)
         # Update data stream
         old_data = streamer.get_current_component_data(scenario.component_id)
         new_data = replace(old_data, **scenario.new_metrics)

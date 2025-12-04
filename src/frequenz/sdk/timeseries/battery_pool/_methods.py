@@ -252,11 +252,8 @@ class SendOnUpdate(MetricAggregator[T]):
                 latest_calculation_result = result
                 await sender.send(result)
 
-                if result is None:
-                    sleep_for = min_update_interval.total_seconds()
-                else:
-                    # Sleep for the rest of the time.
-                    # Then we won't send update more frequently then min_update_interval
-                    time_diff = datetime.now(tz=timezone.utc) - result.timestamp
-                    sleep_for = (min_update_interval - time_diff).total_seconds()
+                # Sleep for the rest of the time.
+                # Then we won't send update more frequently than min_update_interval
+                time_diff = datetime.now(tz=timezone.utc) - result.timestamp
+                sleep_for = (min_update_interval - time_diff).total_seconds()
                 await asyncio.sleep(sleep_for)
