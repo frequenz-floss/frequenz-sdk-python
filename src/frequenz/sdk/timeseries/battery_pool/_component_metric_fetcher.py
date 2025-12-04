@@ -23,8 +23,8 @@ from ..._internal._asyncio import AsyncConstructible
 from ..._internal._constants import MAX_BATTERY_DATA_AGE_SEC
 from ...microgrid import connection_manager
 from ...microgrid._data_sourcing.microgrid_api_source import (
-    _BatteryDataMethods,
-    _InverterDataMethods,
+    _BATTERY_DATA_METHODS,
+    _INVERTER_DATA_METHODS,
 )
 from ...microgrid._old_component_data import (
     BatteryData,
@@ -212,13 +212,13 @@ class LatestBatteryMetricsFetcher(LatestMetricsFetcher[BatteryData]):
 
     @override
     def _supported_metrics(self) -> set[Metric | TransitionalMetric]:
-        return set(_BatteryDataMethods.keys())
+        return set(_BATTERY_DATA_METHODS.keys())
 
     @override
     def _extract_metric(
         self, data: BatteryData, metric: Metric | TransitionalMetric
     ) -> float:
-        return _BatteryDataMethods[metric](data)
+        return _BATTERY_DATA_METHODS[metric](data)
 
     @override
     def _subscribe(self) -> Receiver[BatteryData]:
@@ -270,13 +270,13 @@ class LatestInverterMetricsFetcher(LatestMetricsFetcher[InverterData]):
 
     @override
     def _supported_metrics(self) -> set[Metric | TransitionalMetric]:
-        return set(_InverterDataMethods.keys())
+        return set(_INVERTER_DATA_METHODS.keys())
 
     @override
     def _extract_metric(
         self, data: InverterData, metric: Metric | TransitionalMetric
     ) -> float:
-        return _InverterDataMethods[metric](data)
+        return _INVERTER_DATA_METHODS[metric](data)
 
     @override
     def _subscribe(self) -> Receiver[InverterData]:

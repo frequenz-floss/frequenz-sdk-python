@@ -29,7 +29,7 @@ from ._component_metric_request import ComponentMetricRequest
 
 _logger = logging.getLogger(__name__)
 
-_MeterDataMethods: dict[Metric | TransitionalMetric, Callable[[MeterData], float]] = {
+_METER_DATA_METHODS: dict[Metric | TransitionalMetric, Callable[[MeterData], float]] = {
     Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
     Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
     Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
@@ -47,7 +47,7 @@ _MeterDataMethods: dict[Metric | TransitionalMetric, Callable[[MeterData], float
     Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
 }
 
-_BatteryDataMethods: dict[
+_BATTERY_DATA_METHODS: dict[
     Metric | TransitionalMetric, Callable[[BatteryData], float]
 ] = {
     Metric.BATTERY_SOC_PCT: lambda msg: msg.soc,
@@ -69,7 +69,7 @@ _BatteryDataMethods: dict[
     Metric.BATTERY_TEMPERATURE: lambda msg: msg.temperature,
 }
 
-_InverterDataMethods: dict[
+_INVERTER_DATA_METHODS: dict[
     Metric | TransitionalMetric, Callable[[InverterData], float]
 ] = {
     Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
@@ -101,7 +101,7 @@ _InverterDataMethods: dict[
     Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
 }
 
-_EVChargerDataMethods: dict[
+_EV_CHARGER_DATA_METHODS: dict[
     Metric | TransitionalMetric, Callable[[EVChargerData], float]
 ] = {
     Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
@@ -191,7 +191,7 @@ class MicrogridApiSource:
                 for the given battery.
         """
         for metric in requests:
-            if metric not in _BatteryDataMethods:
+            if metric not in _BATTERY_DATA_METHODS:
                 err = f"Unknown metric {metric} for Battery id {comp_id}"
                 _logger.error(err)
                 raise ValueError(err)
@@ -216,7 +216,7 @@ class MicrogridApiSource:
                 for the given EV Charger.
         """
         for metric in requests:
-            if metric not in _EVChargerDataMethods:
+            if metric not in _EV_CHARGER_DATA_METHODS:
                 err = f"Unknown metric {metric} for EvCharger id {comp_id}"
                 _logger.error(err)
                 raise ValueError(err)
@@ -241,7 +241,7 @@ class MicrogridApiSource:
                 for the given inverter.
         """
         for metric in requests:
-            if metric not in _InverterDataMethods:
+            if metric not in _INVERTER_DATA_METHODS:
                 err = f"Unknown metric {metric} for Inverter id {comp_id}"
                 _logger.error(err)
                 raise ValueError(err)
@@ -266,7 +266,7 @@ class MicrogridApiSource:
                 for the given meter.
         """
         for metric in requests:
-            if metric not in _MeterDataMethods:
+            if metric not in _METER_DATA_METHODS:
                 err = f"Unknown metric {metric} for Meter id {comp_id}"
                 _logger.error(err)
                 raise ValueError(err)
@@ -326,13 +326,13 @@ class MicrogridApiSource:
                 representing the given metric.
         """
         if category == ComponentCategory.BATTERY:
-            return _BatteryDataMethods[metric]
+            return _BATTERY_DATA_METHODS[metric]
         if category == ComponentCategory.INVERTER:
-            return _InverterDataMethods[metric]
+            return _INVERTER_DATA_METHODS[metric]
         if category == ComponentCategory.METER:
-            return _MeterDataMethods[metric]
+            return _METER_DATA_METHODS[metric]
         if category == ComponentCategory.EV_CHARGER:
-            return _EVChargerDataMethods[metric]
+            return _EV_CHARGER_DATA_METHODS[metric]
         err = f"Unknown component category {category}"
         _logger.error(err)
         raise ValueError(err)
