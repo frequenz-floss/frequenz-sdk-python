@@ -63,7 +63,7 @@ dev-mkdocs = [
   "mkdocs-macros-plugin == 1.5.0",
   "mkdocs-material == 9.7.0",
   "mkdocstrings[python] == 1.0.0",
-  "mkdocstrings-python == 1.18.2",
+  "mkdocstrings-python == 2.0.1",
   "frequenz-repo-config[lib] == 0.13.8",
 ]
 dev-mypy = [
