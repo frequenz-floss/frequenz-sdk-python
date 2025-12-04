@@ -26,6 +26,10 @@
 [common-v0.7]: https://github.com/frequenz-floss/frequenz-api-common/releases/tag/v0.7.0
 [common-v0.8]: https://github.com/frequenz-floss/frequenz-api-common/releases/tag/v0.8.0
 
+- The `FormulaEngine` is now replaced by a newly implemented `Formula` type.  This doesn't affect the high level interfaces.
+
+- The `ComponentGraph` has been replaced by the `frequenz-microgrid-component-graph` package, which provides python bindings for the rust implementation.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
