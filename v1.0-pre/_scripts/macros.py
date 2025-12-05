@@ -20,7 +20,7 @@ def define_env(env: macros.MacrosPlugin) -> None:
         env: The environment to define the macro functions in.
     """
 
-    @env.macro  # type: ignore[misc]
+    @env.macro  # type: ignore[untyped-decorator]
     def glossary(term: str, text: str | None = None) -> str:
         """Create a link to the glossary entry for the given term.
 
