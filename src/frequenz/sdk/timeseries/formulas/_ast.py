@@ -300,7 +300,7 @@ class Div(AstNode[QuantityT]):
     right: AstNode[QuantityT]
 
     @override
-    async def evaluate(self) -> QuantityT | None:
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the division of the left node by the right node."""
         left = await self.left.evaluate()
         right = await self.right.evaluate()
@@ -313,7 +313,7 @@ class Div(AstNode[QuantityT]):
                 if is_close_to_zero(right.value.base_value):
                     _logger.warning("Division by zero encountered in formula.")
                     return None
-                return left.value / right.value.base_value
+                return Sample(left.timestamp, left.value / right.value.base_value)
             case Quantity(), Quantity():
                 if is_close_to_zero(right.base_value):
                     _logger.warning("Division by zero encountered in formula.")
@@ -323,14 +323,18 @@ class Div(AstNode[QuantityT]):
                 if is_close_to_zero(right.base_value):
                     _logger.warning("Division by zero encountered in formula.")
                     return None
-                return None if left.value is None else left.value / right.base_value
+                return Sample(
+                    left.timestamp,
+                    None if left.value is None else left.value / right.base_value,
+                )
             case (Quantity(), Sample()):
-                if right.value is None:
-                    return None
-                if is_close_to_zero(right.value.base_value):
+                if right.value and is_close_to_zero(right.value.base_value):
                     _logger.warning("Division by zero encountered in formula.")
-                    return None
-                return left / right.value.base_value
+                    return Sample(right.timestamp, None)
+                return Sample(
+                    right.timestamp,
+                    None if right.value is None else left / right.value.base_value,
+                )
             case (None, _) | (_, None):
                 return None
         return None
