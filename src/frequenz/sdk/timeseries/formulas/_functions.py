@@ -6,7 +6,8 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import dataclass
+import asyncio
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Generic
 
@@ -14,7 +15,7 @@ from frequenz.quantities import Quantity
 from typing_extensions import override
 
 from .._base_types import QuantityT, Sample
-from ._base_ast_node import AstNode
+from ._base_ast_node import AstNode, NodeSynchronizer
 
 
 @dataclass
@@ -22,6 +23,9 @@ class Function(abc.ABC, Generic[QuantityT]):
     """A function that can be called in a formula expression."""
 
     params: list[AstNode[QuantityT]]
+    _synchronizer: NodeSynchronizer[QuantityT] = field(
+        init=False, default_factory=NodeSynchronizer
+    )
 
     @property
     @abc.abstractmethod
@@ -72,8 +76,9 @@ class Coalesce(Function[QuantityT]):
     async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the first non-None argument."""
         ts: datetime | None = None
-        for param in self.params:
-            arg = await param.evaluate()
+
+        args = await self._synchronizer.evaluate(self.params)
+        for arg in args:
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
@@ -104,8 +109,8 @@ class Max(Function[QuantityT]):
         """Return the maximum of the arguments."""
         max_value: QuantityT | None = None
         ts: datetime | None = None
-        for param in self.params:
-            arg = await param.evaluate()
+        args = await self._synchronizer.evaluate(self.params)
+        for arg in args:
             match arg:
                 case Sample(value=value, timestamp=timestamp):
                     ts = timestamp
@@ -138,8 +143,8 @@ class Min(Function[QuantityT]):
         """Return the minimum of the arguments."""
         min_value: QuantityT | None = None
         ts: datetime | None = None
-        for param in self.params:
-            arg = await param.evaluate()
+        args = await self._synchronizer.evaluate(self.params)
+        for arg in args:
             match arg:
                 case Sample(value=value, timestamp=timestamp):
                     ts = timestamp

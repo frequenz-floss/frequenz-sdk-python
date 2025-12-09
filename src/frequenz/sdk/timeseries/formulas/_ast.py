@@ -5,9 +5,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Callable, Coroutine
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from frequenz.channels import Receiver
 from frequenz.quantities import Quantity
@@ -15,7 +16,7 @@ from typing_extensions import TypeIs, override
 
 from ..._internal._math import is_close_to_zero
 from .._base_types import QuantityT, Sample
-from ._base_ast_node import AstNode
+from ._base_ast_node import AstNode, NodeSynchronizer
 from ._functions import Function
 
 _logger = logging.getLogger(__name__)
@@ -52,8 +53,7 @@ class TelemetryStream(AstNode[QuantityT]):
     @override
     async def evaluate(self) -> Sample[QuantityT] | None:
         """Return the base value of the latest sample for this component."""
-        if self._latest_sample is None:
-            raise ValueError("Next value has not been fetched yet.")
+        await self._fetch_next()
         return self._latest_sample
 
     @override
@@ -144,12 +144,14 @@ class Add(AstNode[QuantityT]):
 
     left: AstNode[QuantityT]
     right: AstNode[QuantityT]
+    _synchronizer: NodeSynchronizer[QuantityT] = field(
+        init=False, default_factory=NodeSynchronizer
+    )
 
     @override
     async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the addition of the left and right nodes."""
-        left = await self.left.evaluate()
-        right = await self.right.evaluate()
+        left, right = await self._synchronizer.evaluate([self.left, self.right])
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
@@ -207,13 +209,14 @@ class Sub(AstNode[QuantityT]):
 
     left: AstNode[QuantityT]
     right: AstNode[QuantityT]
+    _synchronizer: NodeSynchronizer[QuantityT] = field(
+        init=False, default_factory=NodeSynchronizer
+    )
 
     @override
     async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the subtraction of the right node from the left node."""
-        left = await self.left.evaluate()
-        right = await self.right.evaluate()
-        print("Sub.evaluate:", left, right)
+        left, right = await self._synchronizer.evaluate([self.left, self.right])
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
@@ -271,12 +274,14 @@ class Mul(AstNode[QuantityT]):
 
     left: AstNode[QuantityT]
     right: AstNode[QuantityT]
+    _synchronizer: NodeSynchronizer[QuantityT] = field(
+        init=False, default_factory=NodeSynchronizer
+    )
 
     @override
     async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the multiplication of the left and right nodes."""
-        left = await self.left.evaluate()
-        right = await self.right.evaluate()
+        left, right = await self._synchronizer.evaluate([self.left, self.right])
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
@@ -333,12 +338,14 @@ class Div(AstNode[QuantityT]):
 
     left: AstNode[QuantityT]
     right: AstNode[QuantityT]
+    _synchronizer: NodeSynchronizer[QuantityT] = field(
+        init=False, default_factory=NodeSynchronizer
+    )
 
     @override
     async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the division of the left node by the right node."""
-        left = await self.left.evaluate()
-        right = await self.right.evaluate()
+        left, right = await self._synchronizer.evaluate([self.left, self.right])
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
