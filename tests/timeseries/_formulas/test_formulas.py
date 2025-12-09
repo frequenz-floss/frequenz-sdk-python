@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import async_solipsism
 import pytest
 from frequenz.channels import Broadcast, Receiver
+from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
 
 from frequenz.sdk.timeseries import Sample
@@ -35,14 +36,17 @@ class TestFormulas:
         self,
         formula_str: str,
         expected: str,
+        component_ids: list[int],
         io_pairs: list[tuple[list[float | None], float | None]],
     ) -> None:
         """Run a formula test."""
-        channels: OrderedDict[int, Broadcast[Sample[Quantity]]] = OrderedDict()
+        channels: OrderedDict[ComponentId, Broadcast[Sample[Quantity]]] = OrderedDict()
+        for comp_id in component_ids:
+            channels[ComponentId(comp_id)] = Broadcast(
+                name=f"chan-#{comp_id}", resend_latest=True
+            )
 
-        def stream_recv(comp_id: int) -> Receiver[Sample[Quantity]]:
-            if comp_id not in channels:
-                channels[comp_id] = Broadcast(name=f"chan-#{comp_id}")
+        def stream_recv(comp_id: ComponentId) -> Receiver[Sample[Quantity]]:
             return channels[comp_id].new_receiver()
 
         telem_fetcher = MagicMock(spec=ResampledStreamFetcher)
@@ -60,6 +64,7 @@ class TestFormulas:
             await asyncio.sleep(0.1)  # Allow time for setup
             now = datetime.now()
             tests_passed = 0
+
             for io_pair in io_pairs:
                 io_input, io_output = io_pair
                 _ = await asyncio.gather(
@@ -67,7 +72,13 @@ class TestFormulas:
                         chan.new_sender().send(
                             Sample(now, None if not value else Quantity(value))
                         )
-                        for chan, value in zip(channels.values(), io_input)
+                        for chan, value in zip(
+                            [
+                                channels[ComponentId(comp_id)]
+                                for comp_id in component_ids
+                            ],
+                            io_input,
+                        )
                     ]
                 )
                 next_val = await results_rx.receive()
@@ -86,6 +97,7 @@ class TestFormulas:
         await self.run_test(
             "#2 - #4 + #5",
             "[f](#2 - #4 + #5)",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 13.0),
                 ([15.0, 17.0, 20.0], 18.0),
@@ -94,6 +106,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - #5",
             "[f](#2 + #4 - #5)",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 7.0),
                 ([15.0, 17.0, 20.0], 12.0),
@@ -102,6 +115,7 @@ class TestFormulas:
         await self.run_test(
             "#2 * #4 + #5",
             "[f](#2 * #4 + #5)",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 135.0),
                 ([15.0, 17.0, 20.0], 275.0),
@@ -110,6 +124,7 @@ class TestFormulas:
         await self.run_test(
             "#2 * #4 / #5",
             "[f](#2 * #4 / #5)",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 8.0),
                 ([15.0, 17.0, 20.0], 12.75),
@@ -118,6 +133,7 @@ class TestFormulas:
         await self.run_test(
             "#2 / #4 - #5",
             "[f](#2 / #4 - #5)",
+            [2, 4, 5],
             [
                 ([6.0, 12.0, 15.0], -14.5),
                 ([15.0, 20.0, 20.0], -19.25),
@@ -126,6 +142,7 @@ class TestFormulas:
         await self.run_test(
             "#2 - #4 - #5",
             "[f](#2 - #4 - #5)",
+            [2, 4, 5],
             [
                 ([6.0, 12.0, 15.0], -21.0),
                 ([15.0, 20.0, 20.0], -25.0),
@@ -134,6 +151,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 + #5",
             "[f](#2 + #4 + #5)",
+            [2, 4, 5],
             [
                 ([6.0, 12.0, 15.0], 33.0),
                 ([15.0, 20.0, 20.0], 55.0),
@@ -142,6 +160,7 @@ class TestFormulas:
         await self.run_test(
             "#2 / #4 / #5",
             "[f](#2 / #4 / #5)",
+            [2, 4, 5],
             [
                 ([30.0, 3.0, 5.0], 2.0),
                 ([15.0, 3.0, 2.0], 2.5),
@@ -153,6 +172,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - #5 * #6",
             "[f](#2 + #4 - #5 * #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], -8.0),
                 ([15.0, 17.0, 20.0, 1.5], 2.0),
@@ -161,6 +181,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + (#4 - #5) * #6",
             "[f](#2 + (#4 - #5) * #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 4.0),
                 ([15.0, 17.0, 20.0, 1.5], 10.5),
@@ -169,6 +190,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + (#4 - #5 * #6)",
             "[f](#2 + #4 - #5 * #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], -8.0),
                 ([15.0, 17.0, 20.0, 1.5], 2.0),
@@ -177,6 +199,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + (#4 - #5 - #6)",
             "[f](#2 + #4 - #5 - #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 5.0),
                 ([15.0, 17.0, 20.0, 1.5], 10.5),
@@ -185,6 +208,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - #5 - #6",
             "[f](#2 + #4 - #5 - #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 5.0),
                 ([15.0, 17.0, 20.0, 1.5], 10.5),
@@ -193,6 +217,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - (#5 - #6)",
             "[f](#2 + #4 - (#5 - #6))",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 9.0),
                 ([15.0, 17.0, 20.0, 1.5], 13.5),
@@ -201,6 +226,7 @@ class TestFormulas:
         await self.run_test(
             "(#2 + #4 - #5) * #6",
             "[f]((#2 + #4 - #5) * #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 14.0),
                 ([15.0, 17.0, 20.0, 1.5], 18.0),
@@ -209,6 +235,7 @@ class TestFormulas:
         await self.run_test(
             "(#2 + #4 - #5) / #6",
             "[f]((#2 + #4 - #5) / #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 3.5),
                 ([15.0, 17.0, 20.0, 1.5], 8.0),
@@ -217,6 +244,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - (#5 / #6)",
             "[f](#2 + #4 - #5 / #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], 14.5),
                 ([15.0, 17.0, 20.0, 5.0], 28.0),
@@ -226,6 +254,7 @@ class TestFormulas:
         await self.run_test(
             "#2 - #4 + #5",
             "[f](#2 - #4 + #5)",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 13.0),
                 ([None, 12.0, 15.0], None),
@@ -238,6 +267,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + #4 - (#5 * #6)",
             "[f](#2 + #4 - #5 * #6)",
+            [2, 4, 5, 6],
             [
                 ([10.0, 12.0, 15.0, 2.0], -8.0),
                 ([10.0, 12.0, 15.0, None], None),
@@ -252,6 +282,7 @@ class TestFormulas:
         await self.run_test(
             "#2 + MAX(#4, #5)",
             "[f](#2 + MAX(#4, #5))",
+            [2, 4, 5],
             [
                 ([10.0, 12.0, 15.0], 25.0),
             ],
@@ -259,6 +290,7 @@ class TestFormulas:
         await self.run_test(
             "MIN(#2, #4) + COALESCE(#5, 0.0)",
             "[f](MIN(#2, #4) + COALESCE(#5, 0.0))",
+            [2, 4, 5],
             [
                 ([4.0, 6.0, 5.0], 9.0),
                 ([-2.0, 1.0, 5.0], 3.0),
@@ -269,6 +301,7 @@ class TestFormulas:
         await self.run_test(
             "MIN(#23, 0.0) + COALESCE(MAX(#24 - #25, 0.0), 0.0)",
             "[f](MIN(#23, 0.0) + COALESCE(MAX(#24 - #25, 0.0), 0.0))",
+            [23, 24, 25],
             [
                 ([4.0, 6.0, 5.0], 1.0),
                 ([-2.0, 1.0, 5.0], -2.0),
@@ -311,6 +344,9 @@ class TestFormulaComposition:
     ) -> None:
         """Run a test with the specs provided."""
         channels: OrderedDict[int, Broadcast[Sample[Quantity]]] = OrderedDict()
+
+        for ctr in range(num_items):
+            channels[ctr] = Broadcast(name=f"chan-#{ctr}", resend_latest=True)
 
         def stream_recv(comp_id: int) -> Receiver[Sample[Quantity]]:
             comp_id = int(comp_id)
