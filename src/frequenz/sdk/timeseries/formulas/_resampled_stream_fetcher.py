@@ -60,8 +60,12 @@ class ResampledStreamFetcher:
             self._metric,
             None,
         )
+
+        chan = self._channel_registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        )
+        chan.resend_latest = True
+
         await self._resampler_subscription_sender.send(request)
 
-        return self._channel_registry.get_or_create(
-            Sample[Quantity], request.get_channel_name()
-        ).new_receiver()
+        return chan.new_receiver()
