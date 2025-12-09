@@ -31,3 +31,7 @@ class AstNode(abc.ABC, Generic[QuantityT]):
     def __str__(self) -> str:
         """Return the string representation of the node."""
         return self.format()
+
+    @abc.abstractmethod
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by this node."""

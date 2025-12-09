@@ -37,6 +37,12 @@ class Function(abc.ABC, Generic[QuantityT]):
         params_str = ", ".join(str(param) for param in self.params)
         return f"{self.name}({params_str})"
 
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        _ = await asyncio.gather(
+            *(param.subscribe() for param in self.params),
+        )
+
     @classmethod
     def from_string(
         cls, name: str, params: list[AstNode[QuantityT]]

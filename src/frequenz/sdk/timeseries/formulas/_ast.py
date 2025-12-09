@@ -61,10 +61,10 @@ class TelemetryStream(AstNode[QuantityT]):
         """Return a string representation of the telemetry stream node."""
         return f"{self.source}"
 
-    async def fetch_next(self) -> None:
+    async def _fetch_next(self) -> None:
         """Fetch the next value for this component and store it internally."""
         if self._stream is None:
-            await self._fetch_stream()
+            await self.subscribe()
         assert self._stream is not None
 
         latest_sample = await anext(self._stream)
@@ -79,10 +79,12 @@ class TelemetryStream(AstNode[QuantityT]):
         else:
             self._latest_sample = latest_sample
 
-    async def _fetch_stream(self) -> None:
+    @override
+    async def subscribe(self) -> None:
         """Subscribe to the telemetry stream for this component."""
         if self._stream is not None:
             return
+        _logger.debug("Subscribing to telemetry stream for %s", self.source)
         if self.metric_fetcher is None:
             raise RuntimeError("Metric fetcher is not set for TelemetryStream node.")
         self._stream = await self.metric_fetcher()
@@ -109,6 +111,11 @@ class FunCall(AstNode[QuantityT]):
         """Return a string representation of the function call node."""
         return self.function.format()
 
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        await self.function.subscribe()
+
 
 @dataclass(kw_only=True)
 class Constant(AstNode[QuantityT]):
@@ -125,6 +132,10 @@ class Constant(AstNode[QuantityT]):
     def format(self, wrap: bool = False) -> str:
         """Return a string representation of the constant node."""
         return str(self.value.base_value)
+
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
 
 
 @dataclass(kw_only=True)
@@ -180,6 +191,14 @@ class Add(AstNode[QuantityT]):
         if wrap:
             expr = f"({expr})"
         return expr
+
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        _ = await asyncio.gather(
+            self.left.subscribe(),
+            self.right.subscribe(),
+        )
 
 
 @dataclass(kw_only=True)
@@ -237,6 +256,14 @@ class Sub(AstNode[QuantityT]):
             expr = f"({expr})"
         return expr
 
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        _ = await asyncio.gather(
+            self.left.subscribe(),
+            self.right.subscribe(),
+        )
+
 
 @dataclass(kw_only=True)
 class Mul(AstNode[QuantityT]):
@@ -291,6 +318,14 @@ class Mul(AstNode[QuantityT]):
         """Return a string representation of the multiplication node."""
         return f"{self.left.format(True)} * {self.right.format(True)}"
 
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        _ = await asyncio.gather(
+            self.left.subscribe(),
+            self.right.subscribe(),
+        )
+
 
 @dataclass(kw_only=True)
 class Div(AstNode[QuantityT]):
@@ -343,3 +378,11 @@ class Div(AstNode[QuantityT]):
     def format(self, wrap: bool = False) -> str:
         """Return a string representation of the division node."""
         return f"{self.left.format(True)} / {self.right.format(True)}"
+
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        _ = await asyncio.gather(
+            self.left.subscribe(),
+            self.right.subscribe(),
+        )
