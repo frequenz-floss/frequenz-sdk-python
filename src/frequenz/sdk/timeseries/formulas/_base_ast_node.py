@@ -38,6 +38,10 @@ class AstNode(abc.ABC, Generic[QuantityT]):
     async def subscribe(self) -> None:
         """Subscribe to any data streams needed by this node."""
 
+    @abc.abstractmethod
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams used by this node."""
+
 
 class NodeSynchronizer(Generic[QuantityT]):
     """A helper class to synchronize multiple AST nodes."""

@@ -47,6 +47,12 @@ class Function(abc.ABC, Generic[QuantityT]):
             *(param.subscribe() for param in self.params),
         )
 
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by the function."""
+        _ = await asyncio.gather(
+            *(param.unsubscribe() for param in self.params),
+        )
+
     @classmethod
     def from_string(
         cls, name: str, params: list[AstNode[QuantityT]]

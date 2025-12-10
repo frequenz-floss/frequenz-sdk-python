@@ -89,6 +89,15 @@ class TelemetryStream(AstNode[QuantityT]):
             raise RuntimeError("Metric fetcher is not set for TelemetryStream node.")
         self._stream = await self.metric_fetcher()
 
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from the telemetry stream for this component."""
+        if self._stream is None:
+            return
+        _logger.debug("Unsubscribing from telemetry stream for %s", self.source)
+        self._stream.close()
+        self._stream = None
+
     def _is_quantity_sample(
         self, sample: Sample[QuantityT] | Sample[Quantity]
     ) -> TypeIs[Sample[Quantity]]:
@@ -116,6 +125,11 @@ class FunCall(AstNode[QuantityT]):
         """Subscribe to any data streams needed by the function."""
         await self.function.subscribe()
 
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by the function."""
+        await self.function.unsubscribe()
+
 
 @dataclass(kw_only=True)
 class Constant(AstNode[QuantityT]):
@@ -135,7 +149,11 @@ class Constant(AstNode[QuantityT]):
 
     @override
     async def subscribe(self) -> None:
-        """Subscribe to any data streams needed by the function."""
+        """No-op for constant node."""
+
+    @override
+    async def unsubscribe(self) -> None:
+        """No-op for constant node."""
 
 
 @dataclass(kw_only=True)
@@ -196,10 +214,18 @@ class Add(AstNode[QuantityT]):
 
     @override
     async def subscribe(self) -> None:
-        """Subscribe to any data streams needed by the function."""
+        """Subscribe to any data streams needed by this node."""
         _ = await asyncio.gather(
             self.left.subscribe(),
             self.right.subscribe(),
+        )
+
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by this node."""
+        _ = await asyncio.gather(
+            self.left.unsubscribe(),
+            self.right.unsubscribe(),
         )
 
 
@@ -261,10 +287,18 @@ class Sub(AstNode[QuantityT]):
 
     @override
     async def subscribe(self) -> None:
-        """Subscribe to any data streams needed by the function."""
+        """Subscribe to any data streams needed by this node."""
         _ = await asyncio.gather(
             self.left.subscribe(),
             self.right.subscribe(),
+        )
+
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by this node."""
+        _ = await asyncio.gather(
+            self.left.unsubscribe(),
+            self.right.unsubscribe(),
         )
 
 
@@ -325,10 +359,18 @@ class Mul(AstNode[QuantityT]):
 
     @override
     async def subscribe(self) -> None:
-        """Subscribe to any data streams needed by the function."""
+        """Subscribe to any data streams needed by this node."""
         _ = await asyncio.gather(
             self.left.subscribe(),
             self.right.subscribe(),
+        )
+
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by this node."""
+        _ = await asyncio.gather(
+            self.left.unsubscribe(),
+            self.right.unsubscribe(),
         )
 
 
@@ -388,8 +430,16 @@ class Div(AstNode[QuantityT]):
 
     @override
     async def subscribe(self) -> None:
-        """Subscribe to any data streams needed by the function."""
+        """Subscribe to any data streams needed by this node."""
         _ = await asyncio.gather(
             self.left.subscribe(),
             self.right.subscribe(),
+        )
+
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by this node."""
+        _ = await asyncio.gather(
+            self.left.unsubscribe(),
+            self.right.unsubscribe(),
         )
