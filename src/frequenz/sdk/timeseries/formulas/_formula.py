@@ -92,15 +92,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
     def new_receiver(self, *, limit: int = 50) -> Receiver[Sample[QuantityT]]:
         """Subscribe to the formula evaluator to get evaluated samples."""
         if not self._evaluator.is_running:
-            # raise RuntimeError(
-            #     f"Formula evaluator for '{self._root}' is not running. Please "
-            #     + "call `start()` on the formula before using it.",
-            # )
-            # _logger.warning(
-            #     "Formula evaluator for '%s' is not running. Starting it.  "
-            #     + "Please call `start()` on the formula before using it."
-            #     self._root,
-            # )
             self.start()
         return self._channel.new_receiver(limit=limit)
 
