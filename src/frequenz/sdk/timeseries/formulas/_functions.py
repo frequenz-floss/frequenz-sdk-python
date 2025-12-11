@@ -18,6 +18,33 @@ from .._base_types import QuantityT, Sample
 from ._base_ast_node import AstNode, NodeSynchronizer
 
 
+@dataclass(kw_only=True)
+class FunCall(AstNode[QuantityT]):
+    """A function call in the formula."""
+
+    function: Function[QuantityT]
+
+    @override
+    async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
+        """Evaluate the function call with its arguments."""
+        return await self.function()
+
+    @override
+    def format(self, wrap: bool = False) -> str:
+        """Return a string representation of the function call node."""
+        return self.function.format()
+
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to any data streams needed by the function."""
+        await self.function.subscribe()
+
+    @override
+    async def unsubscribe(self) -> None:
+        """Unsubscribe from any data streams needed by the function."""
+        await self.function.unsubscribe()
+
+
 @dataclass
 class Function(abc.ABC, Generic[QuantityT]):
     """A function that can be called in a formula expression."""

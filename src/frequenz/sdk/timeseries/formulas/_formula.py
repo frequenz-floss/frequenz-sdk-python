@@ -22,7 +22,7 @@ from .._base_types import QuantityT
 from . import _ast
 from ._base_ast_node import AstNode
 from ._formula_evaluator import FormulaEvaluatingActor
-from ._functions import Coalesce, Max, Min
+from ._functions import Coalesce, FunCall, Max, Min
 
 _logger = logging.getLogger(__name__)
 
@@ -299,7 +299,7 @@ class FormulaBuilder(Generic[QuantityT]):
             else:
                 right_nodes.append(_ast.Constant(value=item))
 
-        new_root = _ast.FunCall(
+        new_root = FunCall(
             function=Coalesce([self.root] + right_nodes),
         )
 
@@ -332,7 +332,7 @@ class FormulaBuilder(Generic[QuantityT]):
             else:
                 right_nodes.append(_ast.Constant(value=item))
 
-        new_root = _ast.FunCall(
+        new_root = FunCall(
             function=Min([self.root] + right_nodes),
         )
 
@@ -365,7 +365,7 @@ class FormulaBuilder(Generic[QuantityT]):
             else:
                 right_nodes.append(_ast.Constant(value=item))
 
-        new_root = _ast.FunCall(
+        new_root = FunCall(
             function=Max([self.root] + right_nodes),
         )
 

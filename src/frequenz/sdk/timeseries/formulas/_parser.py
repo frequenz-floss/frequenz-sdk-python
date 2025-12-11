@@ -19,7 +19,7 @@ from frequenz.sdk.timeseries._base_types import QuantityT
 from . import _ast, _token
 from ._base_ast_node import AstNode
 from ._formula import Formula
-from ._functions import Function
+from ._functions import FunCall, Function
 from ._lexer import Lexer
 from ._peekable import Peekable
 from ._resampled_stream_fetcher import ResampledStreamFetcher
@@ -177,7 +177,7 @@ class _Parser(Generic[QuantityT]):
                 f"Expected ',' or ')' in function call at position {fn_name.span}"
             )
 
-        return _ast.FunCall(
+        return FunCall(
             span=fn_name.span,
             function=Function.from_string(fn_name.value, params),
         )
