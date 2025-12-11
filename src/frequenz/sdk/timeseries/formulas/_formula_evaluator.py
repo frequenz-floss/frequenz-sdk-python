@@ -53,12 +53,24 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
         while True:
             try:
                 res = await self._root.evaluate()
-                timestamp = next(
-                    comp.latest_sample.timestamp
-                    for comp in self._components
-                    if comp.latest_sample is not None
-                )
-                next_sample = res if isinstance(res, Sample) else Sample(timestamp, res)
+                if isinstance(res, Sample):
+                    next_sample = res
+                else:
+                    timestamp = next(
+                        (
+                            comp.latest_sample.timestamp
+                            for comp in self._components
+                            if comp.latest_sample is not None
+                        ),
+                        None,
+                    )
+                    if timestamp is None:
+                        _logger.debug(
+                            "No input samples available; stopping formula evaluator. (%s)",
+                            self._root,
+                        )
+                        return
+                    next_sample = Sample(timestamp, res)
                 await self._output_sender.send(next_sample)
             except (StopAsyncIteration, ReceiverStoppedError):
                 _logger.debug(
