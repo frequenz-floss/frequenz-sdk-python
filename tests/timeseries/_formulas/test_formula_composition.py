@@ -230,10 +230,28 @@ class TestFormulaComposition:
             stack.push_async_callback(formula_max.stop)
             formula_max_rx = formula_max.new_receiver()
 
+            assert (
+                str(formula_min)
+                == "[grid_power_min]("
+                + "MIN([grid_power](COALESCE(#4, #7)), [chp_power](COALESCE(#5, #7, 0.0)))"
+                + ")"
+            )
+            assert (
+                str(formula_max)
+                == "[grid_power_max]("
+                + "MAX([grid_power](COALESCE(#4, #7)), [chp_power](COALESCE(#5, #7, 0.0)))"
+                + ")"
+            )
+
+            await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
+            # Because it got None for CHP (#5), it will then subscribe to the meter (#7).
+            # So we have to send again so it uses the meter value.
             await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
             await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
+            min_pow = await formula_min_rx.receive()
             min_pow = await formula_min_rx.receive()
             assert (
                 min_pow
@@ -243,6 +261,7 @@ class TestFormulaComposition:
 
             # Test max
             max_pow = await formula_max_rx.receive()
+            max_pow = await formula_max_rx.receive()
             assert (
                 max_pow
                 and max_pow.value
@@ -251,8 +270,11 @@ class TestFormulaComposition:
 
             await mockgrid.mock_resampler.send_meter_power([-100.0, -200.0])
             await mockgrid.mock_resampler.send_chp_power([None])
+            await mockgrid.mock_resampler.send_meter_power([-100.0, -200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
+            min_pow = await formula_min_rx.receive()
             min_pow = await formula_min_rx.receive()
             assert (
                 min_pow
@@ -261,6 +283,7 @@ class TestFormulaComposition:
             )
 
             # Test max
+            max_pow = await formula_max_rx.receive()
             max_pow = await formula_max_rx.receive()
             assert (
                 max_pow

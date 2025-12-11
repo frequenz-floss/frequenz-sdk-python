@@ -4,6 +4,7 @@
 """Tests for the Formula implementation."""
 
 import asyncio
+import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import datetime, timedelta
@@ -21,6 +22,8 @@ from frequenz.sdk.timeseries.formulas._parser import parse
 from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
     ResampledStreamFetcher,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -40,6 +43,7 @@ class TestFormulas:
         io_pairs: list[tuple[list[float | None], float | None]],
     ) -> None:
         """Run a formula test."""
+        _logger.debug("TESTING FORMULA: %s", formula_str)
         channels: OrderedDict[ComponentId, Broadcast[Sample[Quantity]]] = OrderedDict()
         for comp_id in component_ids:
             channels[ComponentId(comp_id)] = Broadcast(
@@ -67,6 +71,7 @@ class TestFormulas:
 
             for io_pair in io_pairs:
                 io_input, io_output = io_pair
+                now += timedelta(seconds=1)
                 _ = await asyncio.gather(
                     *[
                         chan.new_sender().send(
@@ -90,6 +95,7 @@ class TestFormulas:
                         and next_val.value.base_value == io_output
                     )
                 tests_passed += 1
+                _logger.debug("%s: Passed inputs: %s", tests_passed, io_input)
             assert tests_passed == len(io_pairs)
 
     async def test_simple(self) -> None:
@@ -288,6 +294,17 @@ class TestFormulas:
             ],
         )
         await self.run_test(
+            "#2 + COALESCE(#4, #5, 0.0)",
+            "[f](#2 + COALESCE(#4, #5, 0.0))",
+            [2, 4, 5],
+            [
+                ([10.0, 12.0, 15.0], 22.0),
+                ([10.0, None, 15.0], None),
+                ([10.0, None, 15.0], 25.0),
+                ([10.0, None, None], 10.0),
+            ],
+        )
+        await self.run_test(
             "MIN(#2, #4) + COALESCE(#5, 0.0)",
             "[f](MIN(#2, #4) + COALESCE(#5, 0.0))",
             [2, 4, 5],
@@ -370,6 +387,8 @@ class TestFormulaComposition:
 
         assert str(formula) == expected
 
+        _logger.debug("TESTING FORMULA: %s", expected)
+
         result_chan = formula.new_receiver()
         await asyncio.sleep(0.1)
         now = datetime.now()
@@ -394,6 +413,7 @@ class TestFormulaComposition:
                     and next_val.value.base_value == io_output
                 )
             tests_passed += 1
+            _logger.debug("%s: Passed inputs: %s", tests_passed, io_input)
         await formula.stop()
         assert tests_passed == len(io_pairs)
 
@@ -562,7 +582,9 @@ class TestFormulaComposition:
             lambda c2, c4, c5: c2.coalesce([c4, c5]),
             "[l2](COALESCE([0](#0), [1](#1), [2](#2)))",
             [
+                ([None, 12.0, 15.0], None),
                 ([None, 12.0, 15.0], 12.0),
+                ([None, None, 15.0], None),
                 ([None, None, 15.0], 15.0),
                 ([10.0, None, 15.0], 10.0),
                 ([None, None, None], None),
@@ -574,9 +596,14 @@ class TestFormulaComposition:
             lambda c2, c4, c5: (c2 * 5.0).coalesce([c4 / 2.0, c5]),
             "[l2](COALESCE([0](#0) * 5.0, [1](#1) / 2.0, [2](#2)))",
             [
+                ([None, 12.0, 15.0], None),
                 ([None, 12.0, 15.0], 6.0),
+                ([None, None, 15.0], None),
                 ([None, None, 15.0], 15.0),
                 ([10.0, None, 15.0], 50.0),
+                ([None, None, 15.0], None),
+                ([None, None, 15.0], None),
+                ([None, None, 15.0], 15.0),
                 ([None, None, None], None),
             ],
         )

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Generic
@@ -15,7 +16,10 @@ from frequenz.quantities import Quantity
 from typing_extensions import override
 
 from .._base_types import QuantityT, Sample
+from ._ast import Constant
 from ._base_ast_node import AstNode, NodeSynchronizer
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
@@ -99,6 +103,8 @@ class Function(abc.ABC, Generic[QuantityT]):
 class Coalesce(Function[QuantityT]):
     """A function that returns the first non-None argument."""
 
+    num_subscribed: int = 0
+
     @property
     @override
     def name(self) -> str:
@@ -110,22 +116,70 @@ class Coalesce(Function[QuantityT]):
         """Return the first non-None argument."""
         ts: datetime | None = None
 
-        args = await self._synchronizer.evaluate(self.params)
-        for arg in args:
+        if self.num_subscribed == 0:
+            await self._subscribe_next()
+
+        args = await self._synchronizer.evaluate(
+            self.params[: self.num_subscribed], sync_to_first_node=True
+        )
+        for ctr, arg in enumerate(args, start=1):
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
+                        # Found a non-None value, unsubscribe from subsequent params
+                        if ctr < self.num_subscribed:
+                            await self._unsubscribe_after(ctr)
                         return arg
                     ts = timestamp
                 case Quantity():
+                    # Found a non-None value, unsubscribe from subsequent params
+                    if ctr < self.num_subscribed:
+                        await self._unsubscribe_after(ctr)
                     if ts is not None:
                         return Sample(timestamp=ts, value=arg)
                     return arg
                 case None:
                     continue
+        # Don't have a non-None value yet, subscribe to the next parameter for
+        # next time and return None for now, unless the next value is a constant.
+        next_value: Sample[QuantityT] | QuantityT | None = None
+        await self._subscribe_next()
+
+        if isinstance(self.params[self.num_subscribed - 1], Constant):
+            next_value = await self.params[self.num_subscribed - 1].evaluate()
+        if isinstance(next_value, Sample):
+            return next_value
+
         if ts is not None:
-            return Sample(timestamp=ts, value=None)
-        return None
+            return Sample(timestamp=ts, value=next_value)
+        return next_value
+
+    @override
+    async def subscribe(self) -> None:
+        """Subscribe to the first parameter if not already subscribed."""
+        if self.num_subscribed == 0:
+            await self._subscribe_next()
+
+    async def _subscribe_next(self) -> None:
+        """Subscribe to the next parameter."""
+        if self.num_subscribed < len(self.params):
+            _logger.debug(
+                "Coalesce subscribing to param %d: %s",
+                self.num_subscribed + 1,
+                self.params[self.num_subscribed],
+            )
+            await self.params[self.num_subscribed].subscribe()
+            self.num_subscribed += 1
+
+    async def _unsubscribe_after(self, index: int) -> None:
+        """Unsubscribe from parameters after the given index."""
+        for param in self.params[index:]:
+            _logger.debug(
+                "Coalesce unsubscribing from param: %s",
+                param,
+            )
+            await param.unsubscribe()
+        self.num_subscribed = index
 
 
 class Max(Function[QuantityT]):

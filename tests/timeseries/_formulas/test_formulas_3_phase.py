@@ -82,6 +82,7 @@ class TestFormula3Phase:
         )
         builder = make_builder(p3_formula_1, p3_formula_2)
         formula = builder.build("l2")
+
         receiver = formula.new_receiver()
 
         await asyncio.sleep(0.1)
@@ -154,7 +155,9 @@ class TestFormula3Phase:
         await self.run_test(
             [
                 ([(4.0, 9.0, 16.0), (2.0, 13.0, 4.0)], (4.0, 9.0, 16.0)),
+                ([(-5.0, 10.0, None), (10.0, 5.0, None)], (-5.0, 10.0, None)),
                 ([(-5.0, 10.0, None), (10.0, 5.0, None)], (-5.0, 10.0, 0.0)),
+                ([(None, 2.0, 3.0), (2.0, None, 4.0)], (None, 2.0, 3.0)),
                 ([(None, 2.0, 3.0), (2.0, None, 4.0)], (2.0, 2.0, 3.0)),
             ],
             lambda f1, f2: f1.coalesce(
