@@ -5,6 +5,7 @@
 
 import abc
 import asyncio
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Generic
@@ -13,6 +14,8 @@ from typing_extensions import override
 
 from ...timeseries import Sample
 from ...timeseries._base_types import QuantityT
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
@@ -48,57 +51,84 @@ class NodeSynchronizer(Generic[QuantityT]):
 
     def __init__(self) -> None:
         """Initialize this instance."""
-        self._synchronized: bool = False
+        self._synchronized_nodes: int = 0
+        self._latest_values: dict[int, Sample[QuantityT] | QuantityT | None] = {}
 
     async def evaluate(
         self,
         nodes: list[AstNode[QuantityT]],
-        target_timestamp: datetime | None = None,
+        sync_to_first_node: bool = False,
     ) -> list[Sample[QuantityT] | QuantityT | None]:
         """Synchronize and evaluate multiple AST nodes.
 
         Args:
             nodes: The AST nodes to synchronize and evaluate.
-            target_timestamp: An optional maximum timestamp to synchronize to.
+            sync_to_first_node: If True, synchronize all nodes to the timestamp
+                of the first node. If False, synchronize to the latest timestamp
+                among all nodes.
 
         Returns:
             A list containing the evaluated values of the nodes.
-
-        Raises:
-            RuntimeError: If synchronization fails after multiple attempts.
         """
-        if not self._synchronized or target_timestamp is not None:
-            _ = await asyncio.gather(*(node.subscribe() for node in nodes))
-            values = [await node.evaluate() for node in nodes]
-
-            target_timestamp = max(
-                (value.timestamp for value in values if isinstance(value, Sample)),
-                default=None,
+        if self._synchronized_nodes != len(nodes) or self._latest_values:
+            _logger.debug(
+                "Synchronizing %d AST nodes (sync_to_first_node=%s).",
+                len(nodes),
+                sync_to_first_node,
             )
+            _ = await asyncio.gather(*(node.subscribe() for node in nodes))
+            values: list[Sample[QuantityT] | QuantityT | None] = []
+            for node in nodes:
+                value = self._latest_values.pop(id(node), None)
+                if value is None:
+                    value = await node.evaluate()
+                values.append(value)
+
+            if sync_to_first_node:
+                target_timestamp = None
+                for value in values:
+                    if isinstance(value, Sample):
+                        target_timestamp = value.timestamp
+                        break
+            else:
+                target_timestamp = max(
+                    (value.timestamp for value in values if isinstance(value, Sample)),
+                    default=None,
+                )
+
             if target_timestamp is None:
-                self._synchronized = True
+                self._synchronized_nodes = len(nodes)
                 return values
 
-            for i, value in enumerate(values):
-                if isinstance(value, Sample):
-                    ctr = 0
-                    while ctr < 10 and value.timestamp < target_timestamp:
-                        value = await nodes[i].evaluate()
-                        if not isinstance(value, Sample):
-                            raise RuntimeError(
-                                "Subsequent AST node evaluation did not return a Sample"
-                            )
-                        values[i] = value
-                        ctr += 1
-                    if ctr >= 10 and value.timestamp < target_timestamp:
-                        raise RuntimeError(
-                            "Could not synchronize AST node evaluations after 10 tries"
-                        )
-                    if value.timestamp > target_timestamp:
-                        values[i] = Sample(target_timestamp, None)
-
-            self._synchronized = True
-
-            return values
+            return await self._synchronize_to_timestamp(values, nodes, target_timestamp)
 
         return [await node.evaluate() for node in nodes]
+
+    async def _synchronize_to_timestamp(
+        self,
+        values: list[Sample[QuantityT] | QuantityT | None],
+        nodes: list[AstNode[QuantityT]],
+        target_timestamp: datetime,
+    ) -> list[Sample[QuantityT] | QuantityT | None]:
+        for i, value in enumerate(values):
+            if isinstance(value, Sample):
+                ctr = 0
+                while ctr < 10 and value.timestamp < target_timestamp:
+                    value = await nodes[i].evaluate()
+                    if not isinstance(value, Sample):
+                        raise RuntimeError(
+                            "Subsequent AST node evaluation did not return a Sample"
+                        )
+                    values[i] = value
+                    ctr += 1
+                if ctr >= 10 and value.timestamp < target_timestamp:
+                    raise RuntimeError(
+                        "Could not synchronize AST node evaluations after 10 tries"
+                    )
+                if value.timestamp > target_timestamp:
+                    self._latest_values[id(nodes[i])] = value
+                    values[i] = Sample(target_timestamp, None)
+
+        self._synchronized_nodes = len(nodes)
+
+        return values
