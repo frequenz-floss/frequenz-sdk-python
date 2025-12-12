@@ -36,9 +36,7 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     components = {grid_1, meter_2}
     connections = {ComponentConnection(source=grid_1.id, destination=meter_2.id)}
 
-    graph = gr.ComponentGraph[
-        Component, ComponentConnection, ComponentId
-    ](  # pylint: disable=protected-access
+    graph = gr.ComponentGraph[Component, ComponentConnection, ComponentId](
         components=components, connections=connections
     )
 
