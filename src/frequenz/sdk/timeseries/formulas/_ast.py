@@ -26,13 +26,19 @@ class TelemetryStream(AstNode[QuantityT]):
     """A AST node that retrieves values from a component's telemetry stream."""
 
     source: str
+    """The source formula string."""
+
     metric_fetcher: (
         Callable[
             [], Coroutine[None, None, Receiver[Sample[QuantityT] | Sample[Quantity]]]
         ]
         | None
     )
+    """A callable that fetches the telemetry stream for this component."""
+
     create_method: Callable[[float], QuantityT]
+    """A method to create QuantityT from a base float value."""
+
     _stream: Receiver[Sample[QuantityT] | Sample[Quantity]] | None = None
     _latest_sample: Sample[QuantityT] | None = None
 
@@ -100,6 +106,7 @@ class Constant(AstNode[QuantityT]):
     """A constant numerical value in the formula."""
 
     value: QuantityT
+    """The constant value."""
 
     @override
     async def evaluate(self) -> QuantityT | None:
@@ -125,7 +132,11 @@ class Add(AstNode[QuantityT]):
     """Addition operation node."""
 
     left: AstNode[QuantityT]
+    """The left operand."""
+
     right: AstNode[QuantityT]
+    """The right operand."""
+
     _synchronizer: NodeSynchronizer[QuantityT] = field(
         init=False, default_factory=NodeSynchronizer
     )
@@ -198,7 +209,11 @@ class Sub(AstNode[QuantityT]):
     """Subtraction operation node."""
 
     left: AstNode[QuantityT]
+    """The left operand."""
+
     right: AstNode[QuantityT]
+    """The right operand."""
+
     _synchronizer: NodeSynchronizer[QuantityT] = field(
         init=False, default_factory=NodeSynchronizer
     )
@@ -271,7 +286,11 @@ class Mul(AstNode[QuantityT]):
     """Multiplication operation node."""
 
     left: AstNode[QuantityT]
+    """The left operand."""
+
     right: AstNode[QuantityT]
+    """The right operand."""
+
     _synchronizer: NodeSynchronizer[QuantityT] = field(
         init=False, default_factory=NodeSynchronizer
     )
@@ -343,7 +362,11 @@ class Div(AstNode[QuantityT]):
     """Division operation node."""
 
     left: AstNode[QuantityT]
+    """The left operand."""
+
     right: AstNode[QuantityT]
+    """The right operand."""
+
     _synchronizer: NodeSynchronizer[QuantityT] = field(
         init=False, default_factory=NodeSynchronizer
     )
