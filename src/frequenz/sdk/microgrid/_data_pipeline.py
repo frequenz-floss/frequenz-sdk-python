@@ -20,13 +20,12 @@ from frequenz.channels import Broadcast, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 
-from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm, DefaultPower
-
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import ResamplerConfig
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
+from ._power_managing._base_classes import DefaultPower, PowerManagerAlgorithm
 from ._power_wrapper import PowerWrapper
 
 # A number of imports had to be done inside functions where they are used, to break
@@ -104,21 +103,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._battery_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.SHIFTING_MATRYOSHKA,
+            power_manager_algorithm=PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,
             default_power=DefaultPower.ZERO,
             component_class=Battery,
         )
         self._ev_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.MATRYOSHKA,
+            power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MAX,
             component_class=EvCharger,
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.MATRYOSHKA,
+            power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MIN,
             # Using SolarInverter might be too specific, maybe we need to also pass
             # HybridInverter, see

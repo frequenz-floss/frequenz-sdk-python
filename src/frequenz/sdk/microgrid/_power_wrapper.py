@@ -25,7 +25,7 @@ from ._power_distributing import (
     Request,
     Result,
 )
-from ._power_managing._base_classes import Algorithm, DefaultPower
+from ._power_managing._base_classes import DefaultPower, PowerManagerAlgorithm
 
 _logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
         channel_registry: ChannelRegistry,
         *,
         api_power_request_timeout: timedelta,
-        power_manager_algorithm: Algorithm,
+        power_manager_algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
         component_class: type[Battery | EvCharger | SolarInverter],
     ):
