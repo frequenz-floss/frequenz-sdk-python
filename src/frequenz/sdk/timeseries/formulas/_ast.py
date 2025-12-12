@@ -31,18 +31,10 @@ class TelemetryStream(AstNode[QuantityT]):
             [], Coroutine[None, None, Receiver[Sample[QuantityT] | Sample[Quantity]]]
         ]
         | None
-    ) = None
+    )
     create_method: Callable[[float], QuantityT]
     _stream: Receiver[Sample[QuantityT] | Sample[Quantity]] | None = None
     _latest_sample: Sample[QuantityT] | None = None
-
-    def __post_init__(self) -> None:
-        """Validate at least one of stream or metric_fetcher is set."""
-        if self._stream is None and self.metric_fetcher is None:
-            raise ValueError(
-                "Either stream or metric_fetcher must be provided for "
-                + "TelemetryStream node."
-            )
 
     @property
     def latest_sample(self) -> Sample[QuantityT] | None:
