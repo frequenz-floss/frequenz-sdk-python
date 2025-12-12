@@ -48,7 +48,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         name: str,
         root: AstNode[QuantityT],
         create_method: Callable[[float], QuantityT],
-        streams: list[_ast.TelemetryStream[QuantityT]],
         sub_formulas: list[Formula[QuantityT]] | None = None,
         metric_fetcher: ResampledStreamFetcher | None = None,
     ) -> None:
@@ -60,7 +59,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
             create_method: A method to generate the output values with.  If the
                 formula is for generating power values, this would be
                 `Power.from_watts`, for example.
-            streams: The telemetry streams that the formula depends on.
             sub_formulas: Any sub-formulas that this formula depends on.
             metric_fetcher: An optional metric fetcher that needs to be started
                 before the formula can be evaluated.
@@ -68,7 +66,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         BackgroundService.__init__(self)
         self._name: str = name
         self._root: AstNode[QuantityT] = root
-        self._components: list[_ast.TelemetryStream[QuantityT]] = streams
         self._create_method: Callable[[float], QuantityT] = create_method
         self._sub_formulas: list[Formula[QuantityT]] = sub_formulas or []
 
@@ -78,7 +75,6 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         )
         self._evaluator: FormulaEvaluatingActor[QuantityT] = FormulaEvaluatingActor(
             root=self._root,
-            components=self._components,
             output_channel=self._channel,
             metric_fetcher=metric_fetcher,
         )
@@ -383,6 +379,5 @@ class FormulaBuilder(Generic[QuantityT]):
             name=name,
             root=self.root,
             create_method=self._create_method,
-            streams=self._streams,
             sub_formulas=self._sub_formulas,
         )

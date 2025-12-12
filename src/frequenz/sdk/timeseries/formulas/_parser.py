@@ -67,7 +67,6 @@ class _Parser(Generic[QuantityT]):
         self._name: str = name
         self._lexer: Peekable[_token.Token] = Peekable(Lexer(formula))
         self._telemetry_fetcher: ResampledStreamFetcher = telemetry_fetcher
-        self._components: list[_ast.TelemetryStream[QuantityT]] = []
         self._create_method: Callable[[float], QuantityT] = create_method
 
     def _parse_term(self) -> AstNode[QuantityT] | None:
@@ -202,7 +201,6 @@ class _Parser(Generic[QuantityT]):
                 ),
                 create_method=self._create_method,
             )
-            self._components.append(comp)
             return comp
 
         if isinstance(token, _token.Number):
@@ -227,6 +225,5 @@ class _Parser(Generic[QuantityT]):
             name=self._name,
             root=expr,
             create_method=self._create_method,
-            streams=self._components,
             metric_fetcher=self._telemetry_fetcher,
         )

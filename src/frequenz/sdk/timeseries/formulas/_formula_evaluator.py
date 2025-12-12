@@ -11,7 +11,6 @@ from typing_extensions import override
 
 from ...actor import Actor
 from .._base_types import QuantityT, Sample
-from . import _ast
 from ._base_ast_node import AstNode
 from ._resampled_stream_fetcher import ResampledStreamFetcher
 
@@ -25,7 +24,6 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
         self,
         *,
         root: AstNode[QuantityT],
-        components: list[_ast.TelemetryStream[QuantityT]],
         output_channel: Broadcast[Sample[QuantityT]],
         metric_fetcher: ResampledStreamFetcher | None = None,
     ) -> None:
@@ -33,7 +31,6 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
 
         Args:
             root: The root node of the formula AST.
-            components: The telemetry streams that the formula depends on.
             output_channel: The channel to send evaluated samples to.
             metric_fetcher: An optional metric fetcher that needs to be started
                 before the formula can be evaluated.
@@ -41,7 +38,6 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
         super().__init__()
 
         self._root: AstNode[QuantityT] = root
-        self._components: list[_ast.TelemetryStream[QuantityT]] = components
         self._metric_fetcher: ResampledStreamFetcher | None = metric_fetcher
         self._output_channel: Broadcast[Sample[QuantityT]] = output_channel
 
@@ -56,21 +52,11 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
                 if isinstance(res, Sample):
                     next_sample = res
                 else:
-                    timestamp = next(
-                        (
-                            comp.latest_sample.timestamp
-                            for comp in self._components
-                            if comp.latest_sample is not None
-                        ),
-                        None,
+                    _logger.debug(
+                        "No input samples available; stopping formula evaluator. (%s)",
+                        self._root,
                     )
-                    if timestamp is None:
-                        _logger.debug(
-                            "No input samples available; stopping formula evaluator. (%s)",
-                            self._root,
-                        )
-                        return
-                    next_sample = Sample(timestamp, res)
+                    return
                 await self._output_sender.send(next_sample)
             except (StopAsyncIteration, ReceiverStoppedError):
                 _logger.debug(
