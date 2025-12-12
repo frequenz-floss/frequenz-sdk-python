@@ -23,9 +23,9 @@ from ...actor import Actor
 from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
 from ._base_classes import (
-    Algorithm,
     BaseAlgorithm,
     DefaultPower,
+    PowerManagerAlgorithm,
     Proposal,
     ReportRequest,
     _Report,
@@ -47,7 +47,7 @@ class PowerManagingActor(Actor):
         power_distributing_requests_sender: Sender[_power_distributing.Request],
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
         channel_registry: ChannelRegistry,
-        algorithm: Algorithm,
+        algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
         component_class: type[Battery | EvCharger | SolarInverter],
     ):
@@ -80,12 +80,12 @@ class PowerManagingActor(Actor):
         ] = {}
 
         match algorithm:
-            case Algorithm.MATRYOSHKA:
+            case PowerManagerAlgorithm.MATRYOSHKA:
                 self._algorithm: BaseAlgorithm = Matryoshka(
                     max_proposal_age=timedelta(seconds=60.0),
                     default_power=default_power,
                 )
-            case Algorithm.SHIFTING_MATRYOSHKA:
+            case PowerManagerAlgorithm.SHIFTING_MATRYOSHKA:
                 self._algorithm = ShiftingMatryoshka(
                     max_proposal_age=timedelta(seconds=60.0),
                     default_power=default_power,

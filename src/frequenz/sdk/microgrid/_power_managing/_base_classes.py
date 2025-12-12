@@ -213,7 +213,7 @@ class DefaultPower(enum.Enum):
     """The default power is the maximum power of the component."""
 
 
-class Algorithm(enum.Enum):
+class PowerManagerAlgorithm(enum.Enum):
     """The available algorithms for the power manager."""
 
     MATRYOSHKA = "matryoshka"

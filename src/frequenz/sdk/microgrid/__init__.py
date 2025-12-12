@@ -383,6 +383,7 @@ from ._data_pipeline import (
     producer,
     voltage_per_phase,
 )
+from ._power_managing import PowerManagerAlgorithm
 
 
 async def initialize(
@@ -390,6 +391,8 @@ async def initialize(
     resampler_config: ResamplerConfig,
     *,
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
+    # pylint: disable-next: line-too-long
+    battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
 ) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
 
@@ -404,15 +407,19 @@ async def initialize(
             the microgrid API.  When requests to components timeout, they will
             be marked as blocked for a short duration, during which time they
             will be unavailable from the corresponding component pools.
+        battery_power_manager_algorithm: The power manager algorithm to use for
+            batteries.
     """
     await connection_manager.initialize(server_url)
     await _data_pipeline.initialize(
         resampler_config,
         api_power_request_timeout=api_power_request_timeout,
+        battery_power_manager_algorithm=battery_power_manager_algorithm,
     )
 
 
 __all__ = [
+    "PowerManagerAlgorithm",
     "initialize",
     "consumer",
     "grid",

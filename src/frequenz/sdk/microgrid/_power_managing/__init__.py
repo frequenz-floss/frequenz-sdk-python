@@ -3,11 +3,11 @@
 
 """A power manager implementation."""
 
-from ._base_classes import Algorithm, Proposal, ReportRequest, _Report
+from ._base_classes import PowerManagerAlgorithm, Proposal, ReportRequest, _Report
 from ._power_managing_actor import PowerManagingActor
 
 __all__ = [
-    "Algorithm",
+    "PowerManagerAlgorithm",
     "PowerManagingActor",
     "Proposal",
     "_Report",

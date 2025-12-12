@@ -10,7 +10,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+- The power manager algorithm for batteries can now be changed from the default ShiftingMatryoshka, by passing it as an argument to `microgrid.initialize()`
 
 ## Bug Fixes
 

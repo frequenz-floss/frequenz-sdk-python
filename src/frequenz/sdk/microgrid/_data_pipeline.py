@@ -20,13 +20,12 @@ from frequenz.channels import Broadcast, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 
-from frequenz.sdk.microgrid._power_managing._base_classes import Algorithm, DefaultPower
-
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import ResamplerConfig
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
+from ._power_managing._base_classes import DefaultPower, PowerManagerAlgorithm
 from ._power_wrapper import PowerWrapper
 
 # A number of imports had to be done inside functions where they are used, to break
@@ -84,6 +83,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self,
         resampler_config: ResamplerConfig,
         api_power_request_timeout: timedelta = timedelta(seconds=5.0),
+        battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
     ) -> None:
         """Create a `DataPipeline` instance.
 
@@ -91,6 +91,8 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             resampler_config: Config to pass on to the resampler.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
+            battery_power_manager_algorithm: The power manager algorithm to use for
+                batteries.
         """
         self._resampler_config: ResamplerConfig = resampler_config
 
@@ -104,21 +106,21 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._battery_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.SHIFTING_MATRYOSHKA,
+            power_manager_algorithm=battery_power_manager_algorithm,
             default_power=DefaultPower.ZERO,
             component_class=Battery,
         )
         self._ev_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.MATRYOSHKA,
+            power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MAX,
             component_class=EvCharger,
         )
         self._pv_power_wrapper = PowerWrapper(
             self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
-            power_manager_algorithm=Algorithm.MATRYOSHKA,
+            power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MIN,
             # Using SolarInverter might be too specific, maybe we need to also pass
             # HybridInverter, see
@@ -515,6 +517,7 @@ _DATA_PIPELINE: _DataPipeline | None = None
 async def initialize(
     resampler_config: ResamplerConfig,
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
+    battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
 ) -> None:
     """Initialize a `DataPipeline` instance.
 
@@ -524,6 +527,8 @@ async def initialize(
             the microgrid API.  When requests to components timeout, they will
             be marked as blocked for a short duration, during which time they
             will be unavailable from the corresponding component pools.
+        battery_power_manager_algorithm: The power manager algorithm to use for
+            batteries.
 
     Raises:
         RuntimeError: if the DataPipeline is already initialized.
@@ -532,7 +537,9 @@ async def initialize(
 
     if _DATA_PIPELINE is not None:
         raise RuntimeError("DataPipeline is already initialized.")
-    _DATA_PIPELINE = _DataPipeline(resampler_config, api_power_request_timeout)
+    _DATA_PIPELINE = _DataPipeline(
+        resampler_config, api_power_request_timeout, battery_power_manager_algorithm
+    )
 
 
 def frequency() -> GridFrequency:
