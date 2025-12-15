@@ -27,9 +27,11 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([2.0, 3.0, 4.0, 5.0])
+            await mockgrid.mock_resampler.send_meter_power([-2.0, -3.0, -4.0, -5.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([-2.0, -3.0])
+            await mockgrid.mock_resampler.send_chp_power([-4.0, -5.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                14.0
+                -14.0
             )
 
     async def test_producer_power_no_chp(self, mocker: MockerFixture) -> None:
@@ -42,9 +44,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([2.0, 3.0])
+            await mockgrid.mock_resampler.send_meter_power([-2.0, -3.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([-2.0, -3.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                5.0
+                -5.0
             )
 
     async def test_producer_power_no_pv_no_consumer_meter(
@@ -59,10 +62,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_chp_power([2.0])
+            await mockgrid.mock_resampler.send_chp_power([-2.0])
 
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                2.0
+                -2.0
             )
 
     async def test_producer_power_no_pv(self, mocker: MockerFixture) -> None:
@@ -76,9 +79,10 @@ class TestProducer:
             stack.push_async_callback(producer.stop)
             producer_power_receiver = producer.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([20.0, 2.0])
+            await mockgrid.mock_resampler.send_meter_power([20.0, -2.0])
+            await mockgrid.mock_resampler.send_chp_power([-2.0])
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
-                2.0
+                -2.0
             )
 
     async def test_no_producer_power(self, mocker: MockerFixture) -> None:
@@ -95,95 +99,3 @@ class TestProducer:
             assert (await producer_power_receiver.receive()).value == Power.from_watts(
                 0.0
             )
-
-    async def test_producer_fallback_formula(self, mocker: MockerFixture) -> None:
-        """Test the producer power formula with fallback formulas."""
-        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
-        mockgrid.add_solar_inverters(2)
-        # CHP has no meter, so no fallback component
-        mockgrid.add_chps(1, no_meters=True)
-
-        async with mockgrid, AsyncExitStack() as stack:
-            producer = microgrid.producer()
-            stack.push_async_callback(producer.stop)
-            producer_power_receiver = producer.power.new_receiver()
-
-            # Note: ProducerPowerFormula has a "nones-are-zero" rule, that says:
-            # * if the meter value is None, it should be treated as None.
-            # * for other components None is treated as 0.
-
-            expected_input_output: list[
-                tuple[
-                    float,
-                    list[float | None],
-                    list[float | None],
-                    list[float | None],
-                    Power | None,
-                ]
-            ]
-            # fmt: off
-            expected_input_output = [
-                # (test number, [pv_meter_power], [pv_inverter_power], [chp_power], expected_power)
-                # Step 1: All components are available
-                # Add power from meters and chp
-                (1.1, [-1.0, -2.0], [None, -200.0], [300], Power.from_watts(297.0)),
-                (1.2, [-1.0, -10], [-100.0, -200.0], [400], Power.from_watts(389.0)),
-                # Step 2: The first meter is unavailable (None).
-                # Subscribe to the fallback inverter, but return None as the result,
-                # according to the "nones-are-zero" rule
-                (2.1, [None, -2.0], [-100, -200.0], [400], None),
-                # Step 3: First meter is unavailable (None). Fallback inverter provides
-                # a value.
-                # Add second meter, first inverter and chp power
-                (3.1, [None, -2.0], [-100, -200.0], [400], Power.from_watts(298.0)),
-                (3.2, [None, -2.0], [-50, -200.0], [300], Power.from_watts(248.0)),
-                # Step 4: Both first meter and its fallback inverter are unavailable
-                # (None). Return 0 from failing component according to the
-                # "nones-are-zero" rule.
-                (4.1, [None, -2.0], [None, -200.0], [300], Power.from_watts(298.0)),
-                (4.2, [None, -10.0], [-20.0, -200.0], [300], Power.from_watts(270.0)),
-                # Step 5: CHP is unavailable. Return 0 from failing component
-                # according to the "nones-are-zero" rule.
-                (5.1, [None, -10.0], [-20.0, -200.0], [None], Power.from_watts(-30.0)),
-                # Step 6: Both meters are unavailable (None). Subscribe for fallback inverter
-                (6.1, [None, None], [-20.0, -200.0], [None], None),
-                (6.2, [None, None], [-20.0, -200.0], [None], Power.from_watts(-220.0)),
-                (6.3, [None, None], [None, -200.0], [None], Power.from_watts(-200.0)),
-                # Step 7: All components are unavailable (None). Return 0 according to the
-                # "nones-are-zero" rule.
-                (7.1, [None, None], [None, None], [None], Power.from_watts(0)),
-                (7.2, [None, None], [None, None], [None], Power.from_watts(0)),
-                (7.3, [None, None], [None, None], [300.0], Power.from_watts(300.0)),
-                (7.4, [-200.0, None], [None, -100.0], [50.0], Power.from_watts(-250.0)),
-                (7.5, [-200.0, -200.0], [-10.0, -20.0], [50.0], Power.from_watts(-350.0)),
-                # Step 8: Meter is unavailable, start fallback formula.
-                (8.1, [None, -200.0], [-10.0, -100.0], [50.0], None),
-                (8.2, [None, -200.0], [-10.0, -100.0], [50.0], Power.from_watts(-160)),
-
-            ]
-            # fmt: on
-
-            for (
-                idx,
-                meter_power,
-                pv_inverter_power,
-                chp_power,
-                expected_power,
-            ) in expected_input_output:
-                print("----------------------------------------------------")
-                print(f"                Test step {idx}")
-                print("----------------------------------------------------")
-                await mockgrid.mock_resampler.send_chp_power(chp_power)
-                await mockgrid.mock_resampler.send_meter_power(meter_power)
-                await mockgrid.mock_resampler.send_pv_inverter_power(pv_inverter_power)
-                mockgrid.mock_resampler.next_ts()
-
-                result = await producer_power_receiver.receive()
-                assert result.value == expected_power, (
-                    f"Test step {idx} failed:"
-                    + f" meter_power: {meter_power}"
-                    + f" pv_inverter_power {pv_inverter_power}"
-                    + f" chp_power {chp_power}"
-                    + f" expected_power: {expected_power}"
-                    + f" actual_power: {result.value}"
-                )

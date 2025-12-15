@@ -4,8 +4,8 @@
 """An external interface for the BatteryPool.
 
 Allows for actors interested in operating on the same set of batteries to share
-underlying formula engine and metric calculator instances, but without having to specify
-their individual priorities with each request.
+underlying formula and metric calculator instances, but without having to
+specify their individual priorities with each request.
 """
 
 import asyncio
@@ -17,14 +17,10 @@ from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...microgrid import _power_distributing, _power_managing
+from ...microgrid import _power_distributing, _power_managing, connection_manager
 from ...timeseries import Sample
 from .._base_types import SystemBounds
-from ..formula_engine import FormulaEngine
-from ..formula_engine._formula_generators import (
-    BatteryPowerFormula,
-    FormulaGeneratorConfig,
-)
+from ..formulas._formula import Formula
 from ._battery_pool_reference_store import BatteryPoolReferenceStore
 from ._methods import SendOnUpdate
 from ._metric_calculator import (
@@ -195,31 +191,27 @@ class BatteryPool:
         return self._pool_ref_store._batteries
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the total power of the batteries in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate this metric is not already running, it will be
+        If a formula to calculate this metric is not already running, it will be
         started.
 
-        A receiver from the formula engine can be obtained by calling the `new_receiver`
+        A receiver from the formula can be obtained by calling the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all
+            A Formula that will calculate and stream the total power of all
                 batteries in the pool.
         """
-        engine = self._pool_ref_store._formula_pool.from_power_formula_generator(
+        return self._pool_ref_store._formula_pool.from_power_formula(
             "battery_pool_power",
-            BatteryPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._pool_ref_store._batteries,
-                allow_fallback=True,
+            connection_manager.get().component_graph.battery_formula(
+                self._pool_ref_store._batteries
             ),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     @property
     def soc(self) -> ReceiverFetcher[Sample[Percentage]]:

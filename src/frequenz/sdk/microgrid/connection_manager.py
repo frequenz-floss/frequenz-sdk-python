@@ -8,13 +8,19 @@ purpose is to provide the connection the microgrid API client and the microgrid
 component graph.
 """
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 
 from frequenz.client.common.microgrid import MicrogridId
-from frequenz.client.microgrid import Location, MicrogridApiClient, MicrogridInfo
-
-from .component_graph import ComponentGraph, _MicrogridComponentGraph
+from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.client.microgrid import (
+    Location,
+    MicrogridApiClient,
+    MicrogridInfo,
+)
+from frequenz.client.microgrid.component import Component, ComponentConnection
+from frequenz.microgrid_component_graph import ComponentGraph
 
 _logger = logging.getLogger(__name__)
 
@@ -51,7 +57,9 @@ class ConnectionManager(ABC):
 
     @property
     @abstractmethod
-    def component_graph(self) -> ComponentGraph:
+    def component_graph(
+        self,
+    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
         """Get component graph.
 
         Returns:
@@ -101,7 +109,9 @@ class _InsecureConnectionManager(ConnectionManager):
         self._client = MicrogridApiClient(server_url)
         # To create graph from the API client we need await.
         # So create empty graph here, and update it in `run` method.
-        self._graph = _MicrogridComponentGraph()
+        self._graph: (
+            ComponentGraph[Component, ComponentConnection, ComponentId] | None
+        ) = None
 
         self._microgrid: MicrogridInfo
         """The microgrid information."""
@@ -130,12 +140,19 @@ class _InsecureConnectionManager(ConnectionManager):
         return self._microgrid.location
 
     @property
-    def component_graph(self) -> ComponentGraph:
+    def component_graph(
+        self,
+    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
         """Get component graph.
 
         Returns:
             component graph
+
+        Raises:
+            RuntimeError: If the microgrid is not initialized yet.
         """
+        if self._graph is None:
+            raise RuntimeError("Microgrid not initialized yet.")
         return self._graph
 
     async def _update_client(self, server_url: str) -> None:
@@ -156,7 +173,11 @@ class _InsecureConnectionManager(ConnectionManager):
 
     async def _initialize(self) -> None:
         self._microgrid = await self._client.get_microgrid_info()
-        await self._graph.refresh_from_client(self._client)
+        components, connections = await asyncio.gather(
+            self._client.list_components(),
+            self._client.list_connections(),
+        )
+        self._graph = ComponentGraph(set(components), set(connections))
 
 
 _CONNECTION_MANAGER: ConnectionManager | None = None

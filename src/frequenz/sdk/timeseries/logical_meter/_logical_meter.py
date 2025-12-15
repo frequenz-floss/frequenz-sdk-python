@@ -10,11 +10,12 @@ from frequenz.channels import Sender
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power, Quantity
 
+from frequenz.sdk.microgrid import connection_manager
+
 from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
-from ..formula_engine import FormulaEngine
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
-from ..formula_engine._formula_generators import CHPPowerFormula
+from ..formulas._formula import Formula
+from ..formulas._formula_pool import FormulaPool
 
 
 class LogicalMeter:
@@ -79,8 +80,8 @@ class LogicalMeter:
 
         # Use a randomly generated uuid to create a unique namespace name for the local
         # meter to use when communicating with the resampling actor.
-        self._namespace = f"logical-meter-{uuid.uuid4()}"
-        self._formula_pool = FormulaEnginePool(
+        self._namespace: str = f"logical-meter-{uuid.uuid4()}"
+        self._formula_pool: FormulaPool = FormulaPool(
             self._namespace,
             self._channel_registry,
             self._resampler_subscription_sender,
@@ -90,10 +91,10 @@ class LogicalMeter:
         self,
         formula: str,
         metric: Metric,
-        *,
-        nones_are_zeros: bool = False,
-    ) -> FormulaEngine[Quantity]:
+    ) -> Formula[Quantity]:
         """Start execution of the given formula.
+
+        TODO: link to formula syntax.
 
         Formulas can have Component IDs that are preceeded by a pound symbol("#"), and
         these operators: +, -, *, /, (, ).
@@ -104,38 +105,32 @@ class LogicalMeter:
         Args:
             formula: formula to execute.
             metric: The metric to use when fetching receivers from the resampling actor.
-            nones_are_zeros: Whether to treat None values from the stream as 0s.  If
-                False, the returned value will be a None.
 
         Returns:
-            A FormulaEngine that applies the formula and streams values.
+            A Formula that applies the formula and streams values.
         """
-        return self._formula_pool.from_string(
-            formula, metric, nones_are_zeros=nones_are_zeros
-        )
+        return self._formula_pool.from_string(formula, metric)
 
     @property
-    def chp_power(self) -> FormulaEngine[Power]:
+    def chp_power(self) -> Formula[Power]:
         """Fetch the CHP power production in the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate CHP power production is not already running, it
+        If a formula to calculate CHP power production is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream CHP power production.
+            A Formula that will calculate and stream CHP power production.
         """
-        engine = self._formula_pool.from_power_formula_generator(
-            "chp_power",
-            CHPPowerFormula,
+        return self._formula_pool.from_power_formula(
+            channel_key="chp_power",
+            formula_str=connection_manager.get().component_graph.chp_formula(None),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()

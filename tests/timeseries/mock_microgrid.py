@@ -28,13 +28,13 @@ from frequenz.client.microgrid.component import (
     Meter,
     SolarInverter,
 )
+from frequenz.microgrid_component_graph import ComponentGraph
 from pytest_mock import MockerFixture
 
 from frequenz.sdk import microgrid
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid._old_component_data import ComponentData
-from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
 from frequenz.sdk.timeseries import ResamplerConfig2
 
 from ..utils import MockMicrogridClient
@@ -72,7 +72,9 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         sample_rate_s: float = 0.01,
         num_namespaces: int = 1,
         rated_fuse_current: int = 10_000,
-        graph: _MicrogridComponentGraph | None = None,
+        graph: (
+            ComponentGraph[Component, ComponentConnection, ComponentId] | None
+        ) = None,
         mocker: MockerFixture | None = None,
     ):
         """Create a new instance.
@@ -112,7 +114,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         )
 
         self._connections: set[ComponentConnection] = (
-            set() if graph is None else graph.connections()
+            set() if graph is None else set(graph.connections())
         )
 
         self._id_increment = 0 if graph is None else len(self._components)

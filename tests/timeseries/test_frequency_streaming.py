@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid
 from tests.utils import component_data_wrapper
 
-from ._formula_engine.utils import equal_float_lists
+from ._formulas.utils import equal_float_lists
 from .mock_microgrid import MockMicrogrid
 
 # pylint: disable=protected-access

@@ -21,7 +21,7 @@ from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import Result
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formulas._formula_pool import FormulaPool
 from ._methods import MetricAggregator
 
 
@@ -29,7 +29,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
     """A class for maintaining the shared state/tasks for a set of pool of batteries.
 
     This includes ownership of
-    - the formula engine pool and metric calculators.
+    - the formula pool and metric calculators.
     - the tasks for updating the battery status for the metric calculators.
 
     These are independent of the priority of the actors and can be shared between
@@ -117,7 +117,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._power_dist_results_fetcher: ReceiverFetcher[Result] = (
             power_distribution_results_fetcher
         )
-        self._formula_pool: FormulaEnginePool = FormulaEnginePool(
+        self._formula_pool: FormulaPool = FormulaPool(
             self._namespace,
             self._channel_registry,
             resampler_subscription_sender,

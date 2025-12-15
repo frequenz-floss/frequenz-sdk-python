@@ -18,7 +18,7 @@ from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import ComponentPoolStatus, Result
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
 from .._base_types import SystemBounds
-from ..formula_engine._formula_engine_pool import FormulaEnginePool
+from ..formulas._formula_pool import FormulaPool
 from ._system_bounds_tracker import PVSystemBoundsTracker
 
 
@@ -26,7 +26,7 @@ class PVPoolReferenceStore:
     """A class for maintaining the shared state/tasks for a set of pool of PV inverters.
 
     This includes ownership of
-    - the formula engine pool and metric calculators.
+    - the formula pool and metric calculators.
     - the tasks for calculating system bounds for the PV inverters.
 
     These are independent of the priority of the actors and can be shared between
@@ -83,7 +83,7 @@ class PVPoolReferenceStore:
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 
         self.namespace: str = f"pv-pool-{uuid.uuid4()}"
-        self.formula_pool = FormulaEnginePool(
+        self.formula_pool = FormulaPool(
             self.namespace,
             self.channel_registry,
             self.resampler_subscription_sender,

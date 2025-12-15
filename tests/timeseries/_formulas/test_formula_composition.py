@@ -51,62 +51,71 @@ class TestFormulaComposition:
                 Metric.AC_ACTIVE_POWER,
                 Power.from_watts,
             )
-            grid_power_recv = grid.power.new_receiver()
-            battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = pv_pool.power.new_receiver()
+            formula = (pv_pool.power + battery_pool.power).build("inv_power")
 
-            engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine.stop)
-            inv_calc_recv = engine.new_receiver()
+            async with (
+                pv_pool.power as pv_power,
+                battery_pool.power as battery_power,
+                formula,
+            ):
+                grid_power_recv = grid.power.new_receiver()
+                battery_power_recv = battery_power.new_receiver()
+                pv_power_recv = pv_power.new_receiver()
 
-            await mockgrid.mock_resampler.send_bat_inverter_power([10.0, 12.0, 14.0])
-            await mockgrid.mock_resampler.send_meter_power(
-                [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
-            )
-            await mockgrid.mock_resampler.send_pv_inverter_power([-100.0, -200.0])
+                inv_calc_recv = formula.new_receiver()
 
-            grid_pow = await grid_power_recv.receive()
-            pv_pow = await pv_power_recv.receive()
-            bat_pow = await battery_power_recv.receive()
-            main_pow = await grid_meter_recv.receive()
-            inv_calc_pow = await inv_calc_recv.receive()
+                await mockgrid.mock_resampler.send_bat_inverter_power(
+                    [10.0, 12.0, 14.0]
+                )
+                await mockgrid.mock_resampler.send_meter_power(
+                    [100.0, 10.0, 12.0, 14.0, -100.0, -200.0]
+                )
+                await mockgrid.mock_resampler.send_pv_inverter_power([-100.0, -200.0])
 
-            assert (
-                grid_pow is not None
-                and grid_pow.value is not None
-                and math.isclose(grid_pow.value.base_value, -164.0)
-            )  # 100 + 10 + 12 + 14 + -100 + -200
-            assert (
-                bat_pow is not None
-                and bat_pow.value is not None
-                and math.isclose(bat_pow.value.base_value, 36.0)
-            )  # 10 + 12 + 14
-            assert (
-                pv_pow is not None
-                and pv_pow.value is not None
-                and math.isclose(pv_pow.value.base_value, -300.0)
-            )  # -100 + -200
-            assert (
-                inv_calc_pow is not None
-                and inv_calc_pow.value is not None
-                and math.isclose(inv_calc_pow.value.base_value, -264.0)  # -300 + 36
-            )
-            assert (
-                main_pow is not None
-                and main_pow.value is not None
-                and math.isclose(main_pow.value.base_value, 100.0)
-            )
+                grid_pow = await grid_power_recv.receive()
+                pv_pow = await pv_power_recv.receive()
+                bat_pow = await battery_power_recv.receive()
+                main_pow = await grid_meter_recv.receive()
+                inv_calc_pow = await inv_calc_recv.receive()
 
-            assert math.isclose(
-                inv_calc_pow.value.base_value,
-                pv_pow.value.base_value + bat_pow.value.base_value,
-            )
-            assert math.isclose(
-                grid_pow.value.base_value,
-                inv_calc_pow.value.base_value + main_pow.value.base_value,
-            )
+                assert (
+                    grid_pow is not None
+                    and grid_pow.value is not None
+                    and math.isclose(grid_pow.value.base_value, -164.0)
+                )  # 100 + 10 + 12 + 14 + -100 + -200
+                assert (
+                    bat_pow is not None
+                    and bat_pow.value is not None
+                    and math.isclose(bat_pow.value.base_value, 36.0)
+                )  # 10 + 12 + 14
+                assert (
+                    pv_pow is not None
+                    and pv_pow.value is not None
+                    and math.isclose(pv_pow.value.base_value, -300.0)
+                )  # -100 + -200
+                assert (
+                    inv_calc_pow is not None
+                    and inv_calc_pow.value is not None
+                    and math.isclose(inv_calc_pow.value.base_value, -264.0)  # -300 + 36
+                )
+                assert (
+                    main_pow is not None
+                    and main_pow.value is not None
+                    and math.isclose(main_pow.value.base_value, 100.0)
+                )
 
-    async def test_formula_composition_missing_pv(self, mocker: MockerFixture) -> None:
+                assert math.isclose(
+                    inv_calc_pow.value.base_value,
+                    pv_pow.value.base_value + bat_pow.value.base_value,
+                )
+                assert math.isclose(
+                    grid_pow.value.base_value,
+                    inv_calc_pow.value.base_value + main_pow.value.base_value,
+                )
+
+    async def test_formula_composition_missing_pv(  # pylint: disable=too-many-locals
+        self, mocker: MockerFixture
+    ) -> None:
         """Test the composition of formulas with missing PV power data."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
         mockgrid.add_batteries(3)
@@ -122,29 +131,37 @@ class TestFormulaComposition:
             logical_meter = microgrid.logical_meter()
             stack.push_async_callback(logical_meter.stop)
 
-            battery_power_recv = battery_pool.power.new_receiver()
-            pv_power_recv = pv_pool.power.new_receiver()
-            engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine.stop)
+            formula = (pv_pool.power + battery_pool.power).build("inv_power")
+            stack.push_async_callback(formula.stop)
 
-            inv_calc_recv = engine.new_receiver()
+            async with (
+                formula,
+                battery_pool.power as battery_power,
+                pv_pool.power as pv_power,
+            ):
+                inv_calc_recv = formula.new_receiver()
+                battery_power_recv = battery_power.new_receiver()
+                pv_power_recv = pv_power.new_receiver()
 
-            for _ in range(10):
-                await mockgrid.mock_resampler.send_meter_power(
-                    [10.0 + count, 12.0 + count, 14.0 + count]
-                )
-                await mockgrid.mock_resampler.send_non_existing_component_value()
+                for _ in range(10):
+                    await mockgrid.mock_resampler.send_meter_power(
+                        [10.0 + count, 12.0 + count, 14.0 + count]
+                    )
+                    await mockgrid.mock_resampler.send_bat_inverter_power(
+                        [10.0 + count, 12.0 + count, 14.0 + count]
+                    )
+                    await mockgrid.mock_resampler.send_non_existing_component_value()
 
-                bat_pow = await battery_power_recv.receive()
-                pv_pow = await pv_power_recv.receive()
-                inv_pow = await inv_calc_recv.receive()
+                    bat_pow = await battery_power_recv.receive()
+                    pv_pow = await pv_power_recv.receive()
+                    inv_pow = await inv_calc_recv.receive()
 
-                assert inv_pow == bat_pow
-                assert (
-                    pv_pow.timestamp == inv_pow.timestamp
-                    and pv_pow.value == Power.from_watts(0.0)
-                )
-                count += 1
+                    assert inv_pow == bat_pow
+                    assert (
+                        pv_pow.timestamp == inv_pow.timestamp
+                        and pv_pow.value == Power.from_watts(0.0)
+                    )
+                    count += 1
 
         assert count == 10
 
@@ -166,10 +183,10 @@ class TestFormulaComposition:
 
             battery_power_recv = battery_pool.power.new_receiver()
             pv_power_recv = pv_pool.power.new_receiver()
-            engine = (pv_pool.power + battery_pool.power).build("inv_power")
-            stack.push_async_callback(engine.stop)
+            formula = (pv_pool.power + battery_pool.power).build("inv_power")
+            stack.push_async_callback(formula.stop)
 
-            inv_calc_recv = engine.new_receiver()
+            inv_calc_recv = formula.new_receiver()
 
             for _ in range(10):
                 await mockgrid.mock_resampler.send_pv_inverter_power(
@@ -191,7 +208,7 @@ class TestFormulaComposition:
 
     async def test_formula_composition_min_max(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with the min and max."""
-        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker, num_namespaces=2)
         mockgrid.add_chps(1)
 
         async with mockgrid, AsyncExitStack() as stack:
@@ -201,18 +218,23 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            engine_min = grid.power.min(logical_meter.chp_power).build("grid_power_min")
-            stack.push_async_callback(engine_min.stop)
-            engine_min_rx = engine_min.new_receiver()
+            formula_min = grid.power.min([logical_meter.chp_power]).build(
+                "grid_power_min"
+            )
+            stack.push_async_callback(formula_min.stop)
+            formula_min_rx = formula_min.new_receiver()
 
-            engine_max = grid.power.max(logical_meter.chp_power).build("grid_power_max")
-            stack.push_async_callback(engine_max.stop)
-            engine_max_rx = engine_max.new_receiver()
+            formula_max = grid.power.max([logical_meter.chp_power]).build(
+                "grid_power_max"
+            )
+            stack.push_async_callback(formula_max.stop)
+            formula_max_rx = formula_max.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([100.0, 200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
-            min_pow = await engine_min_rx.receive()
+            min_pow = await formula_min_rx.receive()
             assert (
                 min_pow
                 and min_pow.value
@@ -220,7 +242,7 @@ class TestFormulaComposition:
             )
 
             # Test max
-            max_pow = await engine_max_rx.receive()
+            max_pow = await formula_max_rx.receive()
             assert (
                 max_pow
                 and max_pow.value
@@ -228,9 +250,10 @@ class TestFormulaComposition:
             )
 
             await mockgrid.mock_resampler.send_meter_power([-100.0, -200.0])
+            await mockgrid.mock_resampler.send_chp_power([None])
 
             # Test min
-            min_pow = await engine_min_rx.receive()
+            min_pow = await formula_min_rx.receive()
             assert (
                 min_pow
                 and min_pow.value
@@ -238,7 +261,7 @@ class TestFormulaComposition:
             )
 
             # Test max
-            max_pow = await engine_max_rx.receive()
+            max_pow = await formula_max_rx.receive()
             assert (
                 max_pow
                 and max_pow.value
@@ -259,22 +282,22 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            engine_min = grid.power.min(Power.zero()).build("grid_power_min")
-            stack.push_async_callback(engine_min.stop)
-            engine_min_rx = engine_min.new_receiver()
+            formula_min = grid.power.min([Power.zero()]).build("grid_power_min")
+            stack.push_async_callback(formula_min.stop)
+            formula_min_rx = formula_min.new_receiver()
 
-            engine_max = grid.power.max(Power.zero()).build("grid_power_max")
-            stack.push_async_callback(engine_max.stop)
-            engine_max_rx = engine_max.new_receiver()
+            formula_max = grid.power.max([Power.zero()]).build("grid_power_max")
+            stack.push_async_callback(formula_max.stop)
+            formula_max_rx = formula_max.new_receiver()
 
             await mockgrid.mock_resampler.send_meter_power([100.0])
 
             # Test min
-            min_pow = await engine_min_rx.receive()
+            min_pow = await formula_min_rx.receive()
             assert min_pow and min_pow.value and min_pow.value.isclose(Power.zero())
 
             # Test max
-            max_pow = await engine_max_rx.receive()
+            max_pow = await formula_max_rx.receive()
             assert (
                 max_pow
                 and max_pow.value
@@ -284,7 +307,7 @@ class TestFormulaComposition:
             await mockgrid.mock_resampler.send_meter_power([-100.0])
 
             # Test min
-            min_pow = await engine_min_rx.receive()
+            min_pow = await formula_min_rx.receive()
             assert (
                 min_pow
                 and min_pow.value
@@ -292,7 +315,7 @@ class TestFormulaComposition:
             )
 
             # Test max
-            max_pow = await engine_max_rx.receive()
+            max_pow = await formula_max_rx.receive()
             assert max_pow and max_pow.value and max_pow.value.isclose(Power.zero())
 
     async def test_formula_composition_constant(  # pylint: disable=too-many-locals
@@ -308,20 +331,20 @@ class TestFormulaComposition:
             stack.push_async_callback(logical_meter.stop)
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
-            engine_add = (grid.power + Power.from_watts(50)).build(
+            formula_add = (grid.power + Power.from_watts(50)).build(
                 "grid_power_addition"
             )
-            stack.push_async_callback(engine_add.stop)
-            engine_sub = (grid.power - Power.from_watts(100)).build(
+            stack.push_async_callback(formula_add.stop)
+            formula_sub = (grid.power - Power.from_watts(100)).build(
                 "grid_power_subtraction"
             )
-            stack.push_async_callback(engine_sub.stop)
-            engine_mul = (grid.power * 2.0).build("grid_power_multiplication")
-            stack.push_async_callback(engine_mul.stop)
-            engine_div = (grid.power / 2.0).build("grid_power_division")
-            stack.push_async_callback(engine_div.stop)
+            stack.push_async_callback(formula_sub.stop)
+            formula_mul = (grid.power * 2.0).build("grid_power_multiplication")
+            stack.push_async_callback(formula_mul.stop)
+            formula_div = (grid.power / 2.0).build("grid_power_division")
+            stack.push_async_callback(formula_div.stop)
 
-            engine_composite = (
+            formula_composite = (
                 (
                     (grid.power + Power.from_watts(50.0)) / 2.0
                     + grid.power
@@ -334,7 +357,7 @@ class TestFormulaComposition:
 
             # Test addition
             grid_power_addition: Sample[Power] = (
-                await engine_add.new_receiver().receive()
+                await formula_add.new_receiver().receive()
             )
             assert grid_power_addition.value is not None
             assert math.isclose(
@@ -344,7 +367,7 @@ class TestFormulaComposition:
 
             # Test subtraction
             grid_power_subtraction: Sample[Power] = (
-                await engine_sub.new_receiver().receive()
+                await formula_sub.new_receiver().receive()
             )
             assert grid_power_subtraction.value is not None
             assert math.isclose(
@@ -354,7 +377,7 @@ class TestFormulaComposition:
 
             # Test multiplication
             grid_power_multiplication: Sample[Power] = (
-                await engine_mul.new_receiver().receive()
+                await formula_mul.new_receiver().receive()
             )
             assert grid_power_multiplication.value is not None
             assert math.isclose(
@@ -364,7 +387,7 @@ class TestFormulaComposition:
 
             # Test division
             grid_power_division: Sample[Power] = (
-                await engine_div.new_receiver().receive()
+                await formula_div.new_receiver().receive()
             )
             assert grid_power_division.value is not None
             assert math.isclose(
@@ -374,24 +397,24 @@ class TestFormulaComposition:
 
             # Test composite formula
             grid_power_composite: Sample[Power] = (
-                await engine_composite.new_receiver().receive()
+                await formula_composite.new_receiver().receive()
             )
             assert grid_power_composite.value is not None
             assert math.isclose(grid_power_composite.value.as_watts(), 310.0)
 
             # Test multiplication with a Quantity
             with pytest.raises(RuntimeError):
-                engine_assert = (grid.power * Power.from_watts(2.0)).build(  # type: ignore
+                formula_assert = (grid.power * Power.from_watts(2.0)).build(  # type: ignore
                     "grid_power_multiplication"
                 )
-                await engine_assert.new_receiver().receive()
+                await formula_assert.new_receiver().receive()
 
             # Test addition with a float
-            with pytest.raises(RuntimeError):
-                engine_assert = (grid.power + 2.0).build(  # type: ignore
+            with pytest.raises(AttributeError):
+                formula_assert = (grid.power + 2.0).build(  # type: ignore
                     "grid_power_multiplication"
                 )
-                await engine_assert.new_receiver().receive()
+                await formula_assert.new_receiver().receive()
 
     async def test_3_phase_formulas(self, mocker: MockerFixture) -> None:
         """Test 3 phase formulas current formulas and their composition."""
@@ -415,14 +438,21 @@ class TestFormulaComposition:
             grid_current_recv = grid.current_per_phase.new_receiver()
             ev_current_recv = ev_pool.current_per_phase.new_receiver()
 
-            engine = (grid.current_per_phase - ev_pool.current_per_phase).build(
+            formula = (grid.current_per_phase - ev_pool.current_per_phase).build(
                 "net_current"
             )
-            stack.push_async_callback(engine.stop)
-            net_current_recv = engine.new_receiver()
+            stack.push_async_callback(formula.stop)
+            net_current_recv = formula.new_receiver()
 
             for _ in range(10):
                 await mockgrid.mock_resampler.send_meter_current(
+                    [
+                        [10.0, 12.0, 14.0],
+                        [10.0, 12.0, 14.0],
+                        [10.0, 12.0, 14.0],
+                    ]
+                )
+                await mockgrid.mock_resampler.send_bat_inverter_current(
                     [
                         [10.0, 12.0, 14.0],
                         [10.0, 12.0, 14.0],

@@ -18,7 +18,7 @@ from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid._data_sourcing import ComponentMetricRequest
 from frequenz.sdk.timeseries import ResamplerConfig2, Sample
-from frequenz.sdk.timeseries.formula_engine._formula_generators._formula_generator import (
+from frequenz.sdk.timeseries.formulas._formula_pool import (
     NON_EXISTING_COMPONENT_ID,
 )
 
@@ -75,12 +75,15 @@ class MockResampler:
         self._pv_inverter_power_senders = metric_senders(
             pv_inverter_ids, Metric.AC_ACTIVE_POWER
         )
+        self._pv_inverter_reactive_power_senders = metric_senders(
+            pv_inverter_ids, Metric.AC_REACTIVE_POWER
+        )
         self._ev_power_senders = metric_senders(evc_ids, Metric.AC_ACTIVE_POWER)
 
         self._chp_power_senders = metric_senders(chp_ids, Metric.AC_ACTIVE_POWER)
         self._meter_power_senders = metric_senders(meter_ids, Metric.AC_ACTIVE_POWER)
         self._non_existing_component_sender = metric_senders(
-            [NON_EXISTING_COMPONENT_ID], Metric.AC_ACTIVE_POWER
+            [ComponentId(NON_EXISTING_COMPONENT_ID)], Metric.AC_ACTIVE_POWER
         )[0]
 
         # Frequency senders
@@ -284,6 +287,13 @@ class MockResampler:
         """Send the given values as resampler output for PV Inverter power."""
         assert len(values) == len(self._pv_inverter_power_senders)
         for chan, value in zip(self._pv_inverter_power_senders, values):
+            sample = self.make_sample(value)
+            await chan.send(sample)
+
+    async def send_pv_inverter_reactive_power(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for PV Inverter power."""
+        assert len(values) == len(self._pv_inverter_reactive_power_senders)
+        for chan, value in zip(self._pv_inverter_reactive_power_senders, values):
             sample = self.make_sample(value)
             await chan.send(sample)
 

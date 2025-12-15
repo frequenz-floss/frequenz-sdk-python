@@ -1,6 +1,6 @@
-# Formula Engine
+# Formulas
 
-::: frequenz.sdk.timeseries.formula_engine
+::: frequenz.sdk.timeseries.formulas
     options:
         members: None
         show_bases: false

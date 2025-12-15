@@ -5,54 +5,26 @@
 
 from contextlib import AsyncExitStack
 
+import frequenz.microgrid_component_graph as gr
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
-    ComponentCategory,
+    Component,
     ComponentConnection,
     GridConnectionPoint,
     Meter,
-    UnspecifiedComponent,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Current, Power, Quantity, ReactivePower
 from pytest_mock import MockerFixture
 
-import frequenz.sdk.microgrid.component_graph as gr
 from frequenz.sdk import microgrid
 from frequenz.sdk.timeseries import Fuse
-from tests.utils.graph_generator import GraphGenerator
 
-from ..timeseries._formula_engine.utils import equal_float_lists, get_resampled_stream
+from ..timeseries._formulas.utils import equal_float_lists, get_resampled_stream
 from ..timeseries.mock_microgrid import MockMicrogrid
 
 _MICROGRID_ID = MicrogridId(1)
-
-
-async def test_grid_1(mocker: MockerFixture) -> None:
-    """Test the grid connection module."""
-    # The tests here need to be in this exact sequence, because the grid connection
-    # is a singleton. Once it gets created, it stays in memory for the duration of
-    # the tests, unless we explicitly delete it.
-
-    # validate that islands with no grid connection are accepted.
-    unspec_1 = UnspecifiedComponent(id=ComponentId(1), microgrid_id=_MICROGRID_ID)
-    meter_2 = Meter(id=ComponentId(2), microgrid_id=_MICROGRID_ID)
-    components = {unspec_1, meter_2}
-    connections = {ComponentConnection(source=unspec_1.id, destination=meter_2.id)}
-
-    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
-        components=components, connections=connections
-    )
-
-    async with MockMicrogrid(graph=graph, mocker=mocker), AsyncExitStack() as stack:
-        grid = microgrid.grid()
-        assert grid is not None
-        stack.push_async_callback(grid.stop)
-
-        assert grid
-        assert grid.fuse
-        assert grid.fuse.max_current == Current.from_amperes(0.0)
 
 
 async def test_grid_2(mocker: MockerFixture) -> None:
@@ -64,7 +36,9 @@ async def test_grid_2(mocker: MockerFixture) -> None:
     components = {grid_1, meter_2}
     connections = {ComponentConnection(source=grid_1.id, destination=meter_2.id)}
 
-    graph = gr._MicrogridComponentGraph(  # pylint: disable=protected-access
+    graph = gr.ComponentGraph[
+        Component, ComponentConnection, ComponentId
+    ](  # pylint: disable=protected-access
         components=components, connections=connections
     )
 
@@ -151,6 +125,7 @@ async def test_grid_power_2(mocker: MockerFixture) -> None:
         for count in range(10):
             await mockgrid.mock_resampler.send_meter_power([20.0 + count, 12.0, -13.0])
             await mockgrid.mock_resampler.send_bat_inverter_power([0.0, -5.0])
+            await mockgrid.mock_resampler.send_pv_inverter_power([0.0])
             meter_sum = 0.0
             for recv in component_receivers:
                 val = await recv.receive()
@@ -246,6 +221,7 @@ async def test_grid_reactive_power_2(mocker: MockerFixture) -> None:
             await mockgrid.mock_resampler.send_meter_reactive_power(
                 [20.0 + count, 12.0, -13.0]
             )
+            await mockgrid.mock_resampler.send_pv_inverter_reactive_power([-13.0])
             await mockgrid.mock_resampler.send_bat_inverter_reactive_power([0.0, -5.0])
             meter_sum = 0.0
             for recv in component_receivers:
@@ -352,9 +328,13 @@ async def test_grid_production_consumption_power_consumer_meter(
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, 3.0, 4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, 3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0, -3.0, -4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.0, -3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([-4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
 
@@ -374,9 +354,13 @@ async def test_grid_production_consumption_power_no_grid_meter(
         grid_recv = grid.power.new_receiver()
 
         await mockgrid.mock_resampler.send_meter_power([2.5, 3.5, 4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([2.5, 3.5])
+        await mockgrid.mock_resampler.send_pv_inverter_power([4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(10.0)
 
         await mockgrid.mock_resampler.send_meter_power([3.0, -3.0, -4.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([3.0, -3.0])
+        await mockgrid.mock_resampler.send_pv_inverter_power([-4.0])
         assert (await grid_recv.receive()).value == Power.from_watts(-4.0)
 
 
@@ -395,158 +379,3 @@ async def test_consumer_power_2_grid_meters(mocker: MockerFixture) -> None:
 
         await mockgrid.mock_resampler.send_meter_power([1.0, 2.0])
         assert (await grid_recv.receive()).value == Power.from_watts(3.0)
-
-
-async def test_grid_fallback_formula_without_grid_meter(mocker: MockerFixture) -> None:
-    """Test the grid power formula without a grid meter."""
-    gen = GraphGenerator()
-    mockgrid = MockMicrogrid(
-        graph=gen.to_graph(
-            (
-                [
-                    ComponentCategory.METER,  # Consumer meter
-                    (
-                        ComponentCategory.METER,  # meter with 2 inverters
-                        [
-                            (
-                                ComponentCategory.INVERTER,
-                                [ComponentCategory.BATTERY],
-                            ),
-                            (
-                                ComponentCategory.INVERTER,
-                                [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
-                            ),
-                        ],
-                    ),
-                    (ComponentCategory.INVERTER, ComponentCategory.BATTERY),
-                ]
-            )
-        ),
-        mocker=mocker,
-    )
-
-    async with mockgrid, AsyncExitStack() as stack:
-        grid = microgrid.grid()
-        stack.push_async_callback(grid.stop)
-        consumer_power_receiver = grid.power.new_receiver()
-
-        # Note: GridPowerFormula has a "nones-are-zero" rule, that says:
-        # * if the meter value is None, it should be treated as None.
-        # * for other components None is treated as 0.
-
-        # fmt: off
-        expected_input_output: list[
-            tuple[list[float | None], list[float | None],  Power | None]
-        ] = [
-            # ([consumer_meter, bat1_meter], [bat1_1_inv, bat1_2_inv, bat2_inv], expected_power)
-            ([100, -200], [-300, -300, 50], Power.from_watts(-50)),
-            ([500, 100], [100, 1000, -200,], Power.from_watts(400)),
-            # Consumer meter is invalid - consumer meter has no fallback.
-            # Formula should return None as defined in nones-are-zero rule.
-            ([None, 100], [100, 1000, -200,], None),
-            ([None, -50], [100, 100, -200,], None),
-            ([500, 100], [100, 50, -200,], Power.from_watts(400)),
-            # bat1_inv is invalid.
-            # Return None and subscribe for fallback devices.
-            # Next call should return formula result with pv_inv value.
-            ([500, None], [100, 1000, -200,], None),
-            ([500, None], [100, -1000, -200,], Power.from_watts(-600)),
-            ([500, None], [-100, 200, 50], Power.from_watts(650)),
-            # Second Battery inverter is invalid. This component has no fallback.
-            # return 0 instead of None as defined in nones-are-zero rule.
-            ([2000, None], [-200, 1000, None], Power.from_watts(2800)),
-            ([2000, 1000], [-200, 1000, None], Power.from_watts(3000)),
-            # battery start working
-            ([2000, 10], [-200, 1000, 100], Power.from_watts(2110)),
-            # No primary value, start fallback formula
-            ([2000, None], [-200, 1000, 100], None),
-            ([2000, None], [-200, 1000, 100], Power.from_watts(2900)),
-        ]
-        # fmt: on
-
-        for idx, (
-            meter_power,
-            bat_inv_power,
-            expected_power,
-        ) in enumerate(expected_input_output):
-            await mockgrid.mock_resampler.send_meter_power(meter_power)
-            await mockgrid.mock_resampler.send_bat_inverter_power(bat_inv_power)
-            mockgrid.mock_resampler.next_ts()
-
-            result = await consumer_power_receiver.receive()
-            assert result.value == expected_power, (
-                f"Test case {idx} failed:"
-                + f" meter_power: {meter_power}"
-                + f" bat_inverter_power {bat_inv_power}"
-                + f" expected_power: {expected_power}"
-                + f" actual_power: {result.value}"
-            )
-
-
-async def test_grid_fallback_formula_with_grid_meter(mocker: MockerFixture) -> None:
-    """Test the grid power formula without a grid meter."""
-    gen = GraphGenerator()
-    mockgrid = MockMicrogrid(
-        graph=gen.to_graph(
-            (
-                ComponentCategory.METER,  # Grid meter
-                [
-                    (
-                        ComponentCategory.METER,  # meter with 2 inverters
-                        [
-                            (
-                                ComponentCategory.INVERTER,
-                                [ComponentCategory.BATTERY],
-                            ),
-                            (
-                                ComponentCategory.INVERTER,
-                                [ComponentCategory.BATTERY, ComponentCategory.BATTERY],
-                            ),
-                        ],
-                    ),
-                    (ComponentCategory.INVERTER, ComponentCategory.BATTERY),
-                ],
-            )
-        ),
-        mocker=mocker,
-    )
-
-    async with mockgrid, AsyncExitStack() as stack:
-        grid = microgrid.grid()
-        stack.push_async_callback(grid.stop)
-        consumer_power_receiver = grid.power.new_receiver()
-
-        # Note: GridPowerFormula has a "nones-are-zero" rule, that says:
-        # * if the meter value is None, it should be treated as None.
-        # * for other components None is treated as 0.
-
-        # fmt: off
-        expected_input_output: list[
-            tuple[list[float | None], list[float | None],  Power | None]
-        ] = [
-            # ([grid_meter, bat1_meter], [bat1_1_inv, bat1_2_inv, bat2_inv], expected_power)
-            ([100, -200], [-300, -300, 50], Power.from_watts(100)),
-            ([-100, 100], [100, 1000, -200,], Power.from_watts(-100)),
-            ([None, 100], [100, 1000, -200,], None),
-            ([None, -50], [100, 100, -200,], None),
-            ([500, 100], [100, 50, -200,], Power.from_watts(500)),
-        ]
-        # fmt: on
-
-        for idx, (
-            meter_power,
-            bat_inv_power,
-            expected_power,
-        ) in enumerate(expected_input_output):
-            await mockgrid.mock_resampler.send_meter_power(meter_power)
-            await mockgrid.mock_resampler.send_bat_inverter_power(bat_inv_power)
-            mockgrid.mock_resampler.next_ts()
-
-            result = await consumer_power_receiver.receive()
-            assert result.value == expected_power, (
-                f"Test case {idx} failed:"
-                + f" meter_power: {meter_power}"
-                + f" bat_inverter_power {bat_inv_power}"
-                + f" expected_power: {expected_power}"
-                + f" actual_power: {result.value}"
-            )

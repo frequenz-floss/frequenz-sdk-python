@@ -12,15 +12,11 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Current, Power
 
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...microgrid import _power_distributing, _power_managing
+from ...microgrid import _power_distributing, _power_managing, connection_manager
 from ...timeseries import Bounds
 from .._base_types import SystemBounds
-from ..formula_engine import FormulaEngine, FormulaEngine3Phase
-from ..formula_engine._formula_generators import (
-    EVChargerCurrentFormula,
-    EVChargerPowerFormula,
-    FormulaGeneratorConfig,
-)
+from ..formulas._formula import Formula
+from ..formulas._formula_3_phase import Formula3Phase
 from ._ev_charger_pool_reference_store import EVChargerPoolReferenceStore
 from ._result_types import EVChargerPoolReport
 
@@ -118,58 +114,50 @@ class EVChargerPool:
         return self._pool_ref_store.component_ids
 
     @property
-    def current_per_phase(self) -> FormulaEngine3Phase[Current]:
+    def current_per_phase(self) -> Formula3Phase[Current]:
         """Fetch the total current for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger current is not already running, it
+        If a formula to calculate EV Charger current is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total current of all EV
+            A Formula that will calculate and stream the total current of all EV
                 Chargers.
         """
-        engine = (
-            self._pool_ref_store.formula_pool.from_3_phase_current_formula_generator(
-                "ev_charger_total_current",
-                EVChargerCurrentFormula,
-                FormulaGeneratorConfig(
-                    component_ids=self._pool_ref_store.component_ids
-                ),
-            )
+        return self._pool_ref_store.formula_pool.from_current_3_phase_formula(
+            "ev_charger_total_current",
+            connection_manager.get().component_graph.ev_charger_formula(
+                self._pool_ref_store.component_ids
+            ),
         )
-        assert isinstance(engine, FormulaEngine3Phase)
-        return engine
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the total power for the EV Chargers in the pool.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        If a formula engine to calculate EV Charger power is not already running, it
+        If a formula to calculate EV Charger power is not already running, it
         will be started.
 
-        A receiver from the formula engine can be created using the `new_receiver`
+        A receiver from the formula can be created using the `new_receiver`
         method.
 
         Returns:
-            A FormulaEngine that will calculate and stream the total power of all EV
+            A Formula that will calculate and stream the total power of all EV
                 Chargers.
         """
-        engine = self._pool_ref_store.formula_pool.from_power_formula_generator(
+        return self._pool_ref_store.formula_pool.from_power_formula(
             "ev_charger_power",
-            EVChargerPowerFormula,
-            FormulaGeneratorConfig(
-                component_ids=self._pool_ref_store.component_ids,
+            connection_manager.get().component_graph.ev_charger_formula(
+                self._pool_ref_store.component_ids
             ),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     @property
     def power_status(self) -> ReceiverFetcher[EVChargerPoolReport]:

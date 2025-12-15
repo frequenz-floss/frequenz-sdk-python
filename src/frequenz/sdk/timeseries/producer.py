@@ -9,10 +9,10 @@ from frequenz.channels import Sender
 from frequenz.quantities import Power
 
 from .._internal._channels import ChannelRegistry
+from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
-from .formula_engine import FormulaEngine
-from .formula_engine._formula_engine_pool import FormulaEnginePool
-from .formula_engine._formula_generators import ProducerPowerFormula
+from .formulas._formula import Formula
+from .formulas._formula_pool import FormulaPool
 
 
 class Producer:
@@ -52,8 +52,8 @@ class Producer:
         ```
     """
 
-    _formula_pool: FormulaEnginePool
-    """The formula engine pool to generate producer metrics."""
+    _formula_pool: FormulaPool
+    """The formula pool to generate producer metrics."""
 
     def __init__(
         self,
@@ -67,34 +67,32 @@ class Producer:
             resampler_subscription_sender: The sender to use for resampler subscriptions.
         """
         namespace = f"producer-{uuid.uuid4()}"
-        self._formula_pool = FormulaEnginePool(
+        self._formula_pool = FormulaPool(
             namespace,
             channel_registry,
             resampler_subscription_sender,
         )
 
     @property
-    def power(self) -> FormulaEngine[Power]:
+    def power(self) -> Formula[Power]:
         """Fetch the producer power for the microgrid.
 
         This formula produces values that are in the Passive Sign Convention (PSC).
 
-        It will start the formula engine to calculate producer power if it is
-        not already running.
+        It will start the formula to calculate producer power if it is not
+        already running.
 
-        A receiver from the formula engine can be created using the
-        `new_receiver` method.
+        A receiver from the formula can be created using the `new_receiver`
+        method.
 
         Returns:
-            A FormulaEngine that will calculate and stream producer power.
+            A Formula that will calculate and stream producer power.
         """
-        engine = self._formula_pool.from_power_formula_generator(
+        return self._formula_pool.from_power_formula(
             "producer_power",
-            ProducerPowerFormula,
+            connection_manager.get().component_graph.producer_formula(),
         )
-        assert isinstance(engine, FormulaEngine)
-        return engine
 
     async def stop(self) -> None:
-        """Stop all formula engines."""
+        """Stop all formulas."""
         await self._formula_pool.stop()

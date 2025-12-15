@@ -27,8 +27,7 @@ from frequenz.client.microgrid.component import (
     SolarInverter,
     UnspecifiedInverter,
 )
-
-from frequenz.sdk.microgrid.component_graph import _MicrogridComponentGraph
+from frequenz.microgrid_component_graph import ComponentGraph
 
 _MICROGRID_ID = MicrogridId(1)
 
@@ -232,7 +231,9 @@ class GraphGenerator:
             rated_fuse_current=1_000_000,
         )
 
-    def to_graph(self, components: Any) -> _MicrogridComponentGraph:
+    def to_graph(
+        self, components: Any
+    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
         """Convert a list of components to a graph.
 
         GRID will be added and connected as the first component.
@@ -294,7 +295,7 @@ class GraphGenerator:
             a tuple containing the components and connections of the graph.
         """
         graph = self._to_graph(self.grid(), components)
-        return _MicrogridComponentGraph(set(graph[0]), set(graph[1]))
+        return ComponentGraph(set(graph[0]), set(graph[1]))
 
     def _to_graph(
         self, parent: Component, children: Any
@@ -425,8 +426,6 @@ def test_graph_generator_simple() -> None:
     assert len(graph.components(matching_types=Battery)) == 2
     assert len(graph.components(matching_types=EvCharger)) == 1
 
-    graph.validate()
-
 
 def test_graph_generator_no_grid_meter() -> None:
     """Test a graph without a grid side meter and a list of components at the top."""
@@ -464,5 +463,3 @@ def test_graph_generator_no_grid_meter() -> None:
     assert len(graph.successors(inverters[1].id)) == 1
 
     assert len(graph.components(matching_types=Battery)) == 2
-
-    graph.validate()
