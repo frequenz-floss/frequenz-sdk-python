@@ -218,13 +218,13 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            formula_min = grid.power.min([logical_meter.chp_power]).build(
+            formula_min = grid.power.min(logical_meter.chp_power).build(
                 "grid_power_min"
             )
             stack.push_async_callback(formula_min.stop)
             formula_min_rx = formula_min.new_receiver()
 
-            formula_max = grid.power.max([logical_meter.chp_power]).build(
+            formula_max = grid.power.max(logical_meter.chp_power).build(
                 "grid_power_max"
             )
             stack.push_async_callback(formula_max.stop)
@@ -305,11 +305,11 @@ class TestFormulaComposition:
             grid = microgrid.grid()
             stack.push_async_callback(grid.stop)
 
-            formula_min = grid.power.min([Power.zero()]).build("grid_power_min")
+            formula_min = grid.power.min(Power.zero()).build("grid_power_min")
             stack.push_async_callback(formula_min.stop)
             formula_min_rx = formula_min.new_receiver()
 
-            formula_max = grid.power.max([Power.zero()]).build("grid_power_max")
+            formula_max = grid.power.max(Power.zero()).build("grid_power_max")
             stack.push_async_callback(formula_max.stop)
             formula_max_rx = formula_max.new_receiver()
 

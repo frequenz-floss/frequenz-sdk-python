@@ -17,7 +17,7 @@ from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
 )
 
 from ...actor import BackgroundService
-from .. import ReceiverFetcher, Sample
+from .. import Sample
 from .._base_types import QuantityT
 from . import _ast
 from ._base_ast_node import AstNode
@@ -39,7 +39,7 @@ def metric_fetcher(
     return lambda: fetcher(formula)
 
 
-class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
+class Formula(BackgroundService, Generic[QuantityT]):
     """A formula represented as an AST."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -84,12 +84,11 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
         """Return a string representation of the formula."""
         return f"[{self._name}]({self._root})"
 
-    @override
-    def new_receiver(self, *, limit: int = 50) -> Receiver[Sample[QuantityT]]:
+    def new_receiver(self, *, max_size: int = 50) -> Receiver[Sample[QuantityT]]:
         """Subscribe to the formula evaluator to get evaluated samples."""
         if not self._evaluator.is_running:
             self.start()
-        return self._channel.new_receiver(limit=limit)
+        return self._channel.new_receiver(limit=max_size)
 
     @override
     def start(self) -> None:
@@ -128,24 +127,24 @@ class Formula(BackgroundService, ReceiverFetcher[Sample[QuantityT]]):
 
     def coalesce(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
-        return FormulaBuilder(self, self._create_method).coalesce(other)
+        return FormulaBuilder(self, self._create_method).coalesce(*other)
 
     def min(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
-        return FormulaBuilder(self, self._create_method).min(other)
+        return FormulaBuilder(self, self._create_method).min(*other)
 
     def max(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
-        return FormulaBuilder(self, self._create_method).max(other)
+        return FormulaBuilder(self, self._create_method).max(*other)
 
 
 class FormulaBuilder(Generic[QuantityT]):
@@ -266,7 +265,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def coalesce(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
         right_nodes: list[AstNode[QuantityT]] = []
@@ -299,7 +298,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def min(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
         right_nodes: list[AstNode[QuantityT]] = []
@@ -332,7 +331,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def max(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
         right_nodes: list[AstNode[QuantityT]] = []

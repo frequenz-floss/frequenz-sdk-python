@@ -13,14 +13,13 @@ import logging
 from abc import ABC, abstractmethod
 
 from frequenz.client.common.microgrid import MicrogridId
-from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import (
     Location,
     MicrogridApiClient,
     MicrogridInfo,
 )
-from frequenz.client.microgrid.component import Component, ComponentConnection
-from frequenz.microgrid_component_graph import ComponentGraph
+
+from .component_graph import ComponentGraph
 
 _logger = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ class ConnectionManager(ABC):
     @abstractmethod
     def component_graph(
         self,
-    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
+    ) -> ComponentGraph:
         """Get component graph.
 
         Returns:
@@ -109,9 +108,7 @@ class _InsecureConnectionManager(ConnectionManager):
         self._client = MicrogridApiClient(server_url)
         # To create graph from the API client we need await.
         # So create empty graph here, and update it in `run` method.
-        self._graph: (
-            ComponentGraph[Component, ComponentConnection, ComponentId] | None
-        ) = None
+        self._graph: ComponentGraph | None = None
 
         self._microgrid: MicrogridInfo
         """The microgrid information."""
@@ -140,9 +137,7 @@ class _InsecureConnectionManager(ConnectionManager):
         return self._microgrid.location
 
     @property
-    def component_graph(
-        self,
-    ) -> ComponentGraph[Component, ComponentConnection, ComponentId]:
+    def component_graph(self) -> ComponentGraph:
         """Get component graph.
 
         Returns:
