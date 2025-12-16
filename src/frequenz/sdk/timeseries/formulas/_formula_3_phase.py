@@ -14,7 +14,6 @@ from typing import Generic
 from frequenz.channels import Broadcast, Receiver
 from typing_extensions import override
 
-from ..._internal._channels import ReceiverFetcher
 from ...actor import BackgroundService
 from .._base_types import QuantityT, Sample3Phase
 from ._formula import Formula, FormulaBuilder
@@ -23,7 +22,7 @@ from ._formula_3_phase_evaluator import (
 )
 
 
-class Formula3Phase(BackgroundService, ReceiverFetcher[Sample3Phase[QuantityT]]):
+class Formula3Phase(BackgroundService, Generic[QuantityT]):
     """A composite formula for three-phase metrics."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -58,12 +57,11 @@ class Formula3Phase(BackgroundService, ReceiverFetcher[Sample3Phase[QuantityT]])
             Formula3PhaseEvaluatingActor(phase_1, phase_2, phase_3, self._channel)
         )
 
-    @override
-    def new_receiver(self, *, limit: int = 50) -> Receiver[Sample3Phase[QuantityT]]:
+    def new_receiver(self, *, max_size: int = 50) -> Receiver[Sample3Phase[QuantityT]]:
         """Subscribe to the output of this formula."""
         if not self._evaluator.is_running:
             self.start()
-        return self._channel.new_receiver(limit=limit)
+        return self._channel.new_receiver(limit=max_size)
 
     @override
     def start(self) -> None:
