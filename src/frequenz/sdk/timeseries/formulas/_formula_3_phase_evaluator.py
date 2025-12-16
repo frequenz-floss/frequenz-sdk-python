@@ -97,9 +97,7 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
             ):
                 # This should never happen because the components are Formula
                 # instances
-                raise RuntimeError(
-                    "Expected all phase samples to be of type Sample3Phase"
-                )
+                raise RuntimeError("Expected all phase samples to be of type Sample")
 
             sample_3phase = Sample3Phase(
                 timestamp=phase_1_sample.timestamp,

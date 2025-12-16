@@ -94,12 +94,12 @@ class LogicalMeter:
     ) -> Formula[Quantity]:
         """Start execution of the given formula.
 
-        Formulas can have Component IDs that are preceeded by a pound symbol("#"),
-        constant values and these operators: +, -, *, /, (, ).
+        Formulas can have Component IDs that are preceded by a pound symbol(`#`),
+        constant values and these operators: `+`, `-`, `*`, `/`, `(`, `)`.
 
         These functions are also supported: `COALESCE`, `MAX`, `MIN`.
 
-        For example, the input string: "#20 + #5" is a formula for adding metrics from
+        For example, the input string: `#20 + #5` is a formula for adding metrics from
         two components with ids 20 and 5.
 
         A more detailed description of the formula syntax with examples can be found

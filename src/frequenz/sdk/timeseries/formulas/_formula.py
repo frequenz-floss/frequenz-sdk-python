@@ -32,9 +32,9 @@ def metric_fetcher(
 ) -> Callable[[], Coroutine[None, None, Receiver[Sample[QuantityT]]]]:
     """Fetch a receiver for the formula's output samples."""
 
-    async def fetcher(formula: Formula[QuantityT]) -> Receiver[Sample[QuantityT]]:
-        formula.start()
-        return formula.new_receiver()
+    async def fetcher(f: Formula[QuantityT]) -> Receiver[Sample[QuantityT]]:
+        f.start()
+        return f.new_receiver()
 
     return lambda: fetcher(formula)
 

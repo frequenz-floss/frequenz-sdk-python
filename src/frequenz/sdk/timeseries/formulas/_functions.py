@@ -100,6 +100,7 @@ class Function(abc.ABC, Generic[QuantityT]):
                 raise ValueError(f"Unknown function name: {name}")
 
 
+@dataclass
 class Coalesce(Function[QuantityT]):
     """A function that returns the first non-None argument."""
 
@@ -117,7 +118,7 @@ class Coalesce(Function[QuantityT]):
         ts: datetime | None = None
 
         if self.num_subscribed == 0:
-            await self._subscribe_next()
+            await self._subscribe_next_param()
 
         args = await self._synchronizer.evaluate(
             self.params[: self.num_subscribed], sync_to_first_node=True
@@ -128,13 +129,13 @@ class Coalesce(Function[QuantityT]):
                     if value is not None:
                         # Found a non-None value, unsubscribe from subsequent params
                         if ctr < self.num_subscribed:
-                            await self._unsubscribe_after(ctr)
+                            await self._unsubscribe_all_params_after(ctr)
                         return arg
                     ts = timestamp
                 case Quantity():
                     # Found a non-None value, unsubscribe from subsequent params
                     if ctr < self.num_subscribed:
-                        await self._unsubscribe_after(ctr)
+                        await self._unsubscribe_all_params_after(ctr)
                     if ts is not None:
                         return Sample(timestamp=ts, value=arg)
                     return arg
@@ -143,7 +144,7 @@ class Coalesce(Function[QuantityT]):
         # Don't have a non-None value yet, subscribe to the next parameter for
         # next time and return None for now, unless the next value is a constant.
         next_value: Sample[QuantityT] | QuantityT | None = None
-        await self._subscribe_next()
+        await self._subscribe_next_param()
 
         if isinstance(self.params[self.num_subscribed - 1], Constant):
             next_value = await self.params[self.num_subscribed - 1].evaluate()
@@ -158,9 +159,9 @@ class Coalesce(Function[QuantityT]):
     async def subscribe(self) -> None:
         """Subscribe to the first parameter if not already subscribed."""
         if self.num_subscribed == 0:
-            await self._subscribe_next()
+            await self._subscribe_next_param()
 
-    async def _subscribe_next(self) -> None:
+    async def _subscribe_next_param(self) -> None:
         """Subscribe to the next parameter."""
         if self.num_subscribed < len(self.params):
             _logger.debug(
@@ -171,7 +172,7 @@ class Coalesce(Function[QuantityT]):
             await self.params[self.num_subscribed].subscribe()
             self.num_subscribed += 1
 
-    async def _unsubscribe_after(self, index: int) -> None:
+    async def _unsubscribe_all_params_after(self, index: int) -> None:
         """Unsubscribe from parameters after the given index."""
         for param in self.params[index:]:
             _logger.debug(
@@ -182,6 +183,7 @@ class Coalesce(Function[QuantityT]):
         self.num_subscribed = index
 
 
+@dataclass
 class Max(Function[QuantityT]):
     """A function that returns the maximum of the arguments."""
 
@@ -216,6 +218,7 @@ class Max(Function[QuantityT]):
         return max_value
 
 
+@dataclass
 class Min(Function[QuantityT]):
     """A function that returns the minimum of the arguments."""
 

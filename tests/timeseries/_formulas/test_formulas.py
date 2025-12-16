@@ -367,8 +367,6 @@ class TestFormulaComposition:
 
         def stream_recv(comp_id: int) -> Receiver[Sample[Quantity]]:
             comp_id = int(comp_id)
-            if comp_id not in channels:
-                channels[comp_id] = Broadcast(name=f"chan-#{comp_id}")
             return channels[comp_id].new_receiver()
 
         telem_fetcher = MagicMock(spec=ResampledStreamFetcher)

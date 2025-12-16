@@ -310,9 +310,7 @@ class Mul(AstNode[QuantityT]):
                     value=left.value * right.value.base_value,
                 )
             case Quantity(), Quantity():
-                return left.__class__._new(  # pylint: disable=protected-access
-                    left.base_value * right.base_value
-                )
+                return left * right.base_value
             case (Sample(), Quantity()):
                 return (
                     left
@@ -378,12 +376,12 @@ class Div(AstNode[QuantityT]):
         match left, right:
             case Sample(), Sample():
                 if left.value is None:
-                    return None
+                    return left
                 if right.value is None:
-                    return None
+                    return right
                 if is_close_to_zero(right.value.base_value):
                     _logger.warning("Division by zero encountered in formula.")
-                    return None
+                    return Sample(left.timestamp, None)
                 return Sample(left.timestamp, left.value / right.value.base_value)
             case Quantity(), Quantity():
                 if is_close_to_zero(right.base_value):

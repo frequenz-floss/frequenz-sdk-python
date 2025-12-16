@@ -17,6 +17,8 @@ from ...timeseries._base_types import QuantityT
 
 _logger = logging.getLogger(__name__)
 
+_MAX_SYNC_RETRIES = 10
+
 
 @dataclass(kw_only=True)
 class AstNode(abc.ABC, Generic[QuantityT]):
@@ -103,7 +105,7 @@ class NodeSynchronizer(Generic[QuantityT]):
 
             return await self._synchronize_to_timestamp(values, nodes, target_timestamp)
 
-        return [await node.evaluate() for node in nodes]
+        return await asyncio.gather(*(node.evaluate() for node in nodes))
 
     async def _synchronize_to_timestamp(
         self,
@@ -114,7 +116,7 @@ class NodeSynchronizer(Generic[QuantityT]):
         for i, value in enumerate(values):
             if isinstance(value, Sample):
                 ctr = 0
-                while ctr < 10 and value.timestamp < target_timestamp:
+                while ctr < _MAX_SYNC_RETRIES and value.timestamp < target_timestamp:
                     value = await nodes[i].evaluate()
                     if not isinstance(value, Sample):
                         raise RuntimeError(
@@ -122,9 +124,10 @@ class NodeSynchronizer(Generic[QuantityT]):
                         )
                     values[i] = value
                     ctr += 1
-                if ctr >= 10 and value.timestamp < target_timestamp:
+                if ctr >= _MAX_SYNC_RETRIES and value.timestamp < target_timestamp:
                     raise RuntimeError(
-                        "Could not synchronize AST node evaluations after 10 tries"
+                        "Could not synchronize AST node evaluations after "
+                        + f"{_MAX_SYNC_RETRIES} tries"
                     )
                 if value.timestamp > target_timestamp:
                     self._latest_values[id(nodes[i])] = value
