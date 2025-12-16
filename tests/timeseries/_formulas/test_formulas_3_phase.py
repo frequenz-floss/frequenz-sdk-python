@@ -140,7 +140,7 @@ class TestFormula3Phase:
                 ([(-5.0, 10.0, 15.0), (10.0, 5.0, -20.0)], (10.0, 10.0, 15.0)),
                 ([(None, 2.0, 3.0), (2.0, None, 4.0)], (None, None, 4.0)),
             ],
-            lambda f1, f2: f1.max([f2]),
+            lambda f1, f2: f1.max(f2),
         )
 
         await self.run_test(
@@ -149,7 +149,7 @@ class TestFormula3Phase:
                 ([(-5.0, 10.0, 15.0), (10.0, 5.0, -20.0)], (-5.0, 5.0, -20.0)),
                 ([(None, 2.0, 3.0), (2.0, None, 4.0)], (None, None, 3.0)),
             ],
-            lambda f1, f2: f1.min([f2]),
+            lambda f1, f2: f1.min(f2),
         )
 
         await self.run_test(
@@ -161,6 +161,6 @@ class TestFormula3Phase:
                 ([(None, 2.0, 3.0), (2.0, None, 4.0)], (2.0, 2.0, 3.0)),
             ],
             lambda f1, f2: f1.coalesce(
-                [f2, (Quantity.zero(), Quantity.zero(), Quantity.zero())]
+                f2, (Quantity.zero(), Quantity.zero(), Quantity.zero())
             ),
         )

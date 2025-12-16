@@ -114,38 +114,32 @@ class Formula3Phase(BackgroundService, Generic[QuantityT]):
 
     def coalesce(
         self,
-        other: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *other: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Coalesce the three-phase formula with a default value."""
         return Formula3PhaseBuilder(self, create_method=self._create_method).coalesce(
-            other
+            *other
         )
 
     def min(
         self,
-        other: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *other: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Get the minimum of the three-phase formula with other formulas."""
-        return Formula3PhaseBuilder(self, create_method=self._create_method).min(other)
+        return Formula3PhaseBuilder(self, create_method=self._create_method).min(*other)
 
     def max(
         self,
-        other: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *other: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Get the maximum of the three-phase formula with other formulas."""
-        return Formula3PhaseBuilder(self, create_method=self._create_method).max(other)
+        return Formula3PhaseBuilder(self, create_method=self._create_method).max(*other)
 
 
 class Formula3PhaseBuilder(Generic[QuantityT]):
@@ -284,16 +278,14 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
 
     def coalesce(
         self,
-        others: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *others: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Coalesce the three-phase formula with a default value.
 
         Args:
-            others: The default value to use when the formula evaluates to None.
+            *others: The other formulas or default values to coalesce with.
 
         Returns:
             A new three-phase formula builder representing the coalesced formula.
@@ -341,9 +333,9 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
                 right_nodes_phase_3.append(item.root[2])
         return Formula3PhaseBuilder(
             (
-                self.root[0].coalesce(right_nodes_phase_1),
-                self.root[1].coalesce(right_nodes_phase_2),
-                self.root[2].coalesce(right_nodes_phase_3),
+                self.root[0].coalesce(*right_nodes_phase_1),
+                self.root[1].coalesce(*right_nodes_phase_2),
+                self.root[2].coalesce(*right_nodes_phase_3),
             ),
             create_method=self._create_method,
             sub_formulas=sub_formulas,
@@ -351,16 +343,14 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
 
     def min(
         self,
-        others: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *others: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Get the minimum of the three-phase formula with other formulas.
 
         Args:
-            others: The other formulas to compare with.
+            *others: The other formulas or values to compare with.
 
         Returns:
             A new three-phase formula builder representing the minimum.
@@ -408,9 +398,9 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
                 right_nodes_phase_3.append(item.root[2])
         return Formula3PhaseBuilder(
             (
-                self.root[0].min(right_nodes_phase_1),
-                self.root[1].min(right_nodes_phase_2),
-                self.root[2].min(right_nodes_phase_3),
+                self.root[0].min(*right_nodes_phase_1),
+                self.root[1].min(*right_nodes_phase_2),
+                self.root[2].min(*right_nodes_phase_3),
             ),
             create_method=self._create_method,
             sub_formulas=sub_formulas,
@@ -418,16 +408,14 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
 
     def max(
         self,
-        others: list[
-            Formula3PhaseBuilder[QuantityT]
-            | Formula3Phase[QuantityT]
-            | tuple[QuantityT, QuantityT, QuantityT]
-        ],
+        *others: Formula3PhaseBuilder[QuantityT]
+        | Formula3Phase[QuantityT]
+        | tuple[QuantityT, QuantityT, QuantityT],
     ) -> Formula3PhaseBuilder[QuantityT]:
         """Get the maximum of the three-phase formula with other formulas.
 
         Args:
-            others: The other formulas to compare with.
+            *others: The other formulas or values to compare with.
 
         Returns:
             A new three-phase formula builder representing the maximum.
@@ -475,9 +463,9 @@ class Formula3PhaseBuilder(Generic[QuantityT]):
                 right_nodes_phase_3.append(item.root[2])
         return Formula3PhaseBuilder(
             (
-                self.root[0].max(right_nodes_phase_1),
-                self.root[1].max(right_nodes_phase_2),
-                self.root[2].max(right_nodes_phase_3),
+                self.root[0].max(*right_nodes_phase_1),
+                self.root[1].max(*right_nodes_phase_2),
+                self.root[2].max(*right_nodes_phase_3),
             ),
             create_method=self._create_method,
             sub_formulas=sub_formulas,

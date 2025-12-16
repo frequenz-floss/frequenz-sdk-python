@@ -127,24 +127,24 @@ class Formula(BackgroundService, Generic[QuantityT]):
 
     def coalesce(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
-        return FormulaBuilder(self, self._create_method).coalesce(other)
+        return FormulaBuilder(self, self._create_method).coalesce(*other)
 
     def min(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
-        return FormulaBuilder(self, self._create_method).min(other)
+        return FormulaBuilder(self, self._create_method).min(*other)
 
     def max(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
-        return FormulaBuilder(self, self._create_method).max(other)
+        return FormulaBuilder(self, self._create_method).max(*other)
 
 
 class FormulaBuilder(Generic[QuantityT]):
@@ -265,7 +265,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def coalesce(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a coalesce operation node."""
         right_nodes: list[AstNode[QuantityT]] = []
@@ -298,7 +298,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def min(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a min operation node."""
         right_nodes: list[AstNode[QuantityT]] = []
@@ -331,7 +331,7 @@ class FormulaBuilder(Generic[QuantityT]):
 
     def max(
         self,
-        other: list[FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]],
+        *other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT],
     ) -> FormulaBuilder[QuantityT]:
         """Create a max operation node."""
         right_nodes: list[AstNode[QuantityT]] = []

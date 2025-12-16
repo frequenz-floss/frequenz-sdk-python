@@ -507,7 +507,7 @@ class TestFormulaComposition:
         """Test the max function."""
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2 + c4.max([c5]),
+            lambda c2, c4, c5: c2 + c4.max(c5),
             "[l2]([0](#0) + MAX([1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 25.0),
@@ -515,7 +515,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: (c2 + c4).max([c5]),
+            lambda c2, c4, c5: (c2 + c4).max(c5),
             "[l2](MAX([0](#0) + [1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 22.0),
@@ -523,7 +523,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: (c2 + c4).max([c5]),
+            lambda c2, c4, c5: (c2 + c4).max(c5),
             "[l2](MAX([0](#0) + [1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 22.0),
@@ -531,7 +531,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2 + c4.max([c5]),
+            lambda c2, c4, c5: c2 + c4.max(c5),
             "[l2]([0](#0) + MAX([1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 25.0),
@@ -542,7 +542,7 @@ class TestFormulaComposition:
         """Test the min function."""
         await self.run_test(
             3,
-            lambda c2, c4, c5: (c2 + c4).min([c5]),
+            lambda c2, c4, c5: (c2 + c4).min(c5),
             "[l2](MIN([0](#0) + [1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 15.0),
@@ -550,7 +550,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2 + c4.min([c5]),
+            lambda c2, c4, c5: c2 + c4.min(c5),
             "[l2]([0](#0) + MIN([1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 22.0),
@@ -558,7 +558,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: (c2 + c4).min([c5]),
+            lambda c2, c4, c5: (c2 + c4).min(c5),
             "[l2](MIN([0](#0) + [1](#1), [2](#2)))",
             [
                 ([10.0, 2.0, 15.0], 12.0),
@@ -566,7 +566,7 @@ class TestFormulaComposition:
         )
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2 + c4.min([c5]),
+            lambda c2, c4, c5: c2 + c4.min(c5),
             "[l2]([0](#0) + MIN([1](#1), [2](#2)))",
             [
                 ([10.0, 12.0, 15.0], 22.0),
@@ -577,7 +577,7 @@ class TestFormulaComposition:
         """Test the coalesce function."""
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2.coalesce([c4, c5]),
+            lambda c2, c4, c5: c2.coalesce(c4, c5),
             "[l2](COALESCE([0](#0), [1](#1), [2](#2)))",
             [
                 ([None, 12.0, 15.0], None),
@@ -591,7 +591,7 @@ class TestFormulaComposition:
 
         await self.run_test(
             3,
-            lambda c2, c4, c5: (c2 * 5.0).coalesce([c4 / 2.0, c5]),
+            lambda c2, c4, c5: (c2 * 5.0).coalesce(c4 / 2.0, c5),
             "[l2](COALESCE([0](#0) * 5.0, [1](#1) / 2.0, [2](#2)))",
             [
                 ([None, 12.0, 15.0], None),
@@ -610,7 +610,7 @@ class TestFormulaComposition:
         """Test min and max functions in combination."""
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2.min([c4]).max([c5]),
+            lambda c2, c4, c5: c2.min(c4).max(c5),
             "[l2](MAX(MIN([0](#0), [1](#1)), [2](#2)))",
             [
                 ([4.0, 6.0, 5.0], 5.0),
@@ -619,8 +619,8 @@ class TestFormulaComposition:
 
         await self.run_test(
             3,
-            lambda c2, c4, c5: c2.min([Quantity(0.0)])
-            + (c4 - c5).max([Quantity(0.0)]).coalesce([Quantity(0.0)]),
+            lambda c2, c4, c5: c2.min(Quantity(0.0))
+            + (c4 - c5).max(Quantity(0.0)).coalesce(Quantity(0.0)),
             "[l2](MIN([0](#0), 0.0) + COALESCE(MAX([1](#1) - [2](#2), 0.0), 0.0))",
             [
                 ([4.0, 6.0, 5.0], 1.0),
