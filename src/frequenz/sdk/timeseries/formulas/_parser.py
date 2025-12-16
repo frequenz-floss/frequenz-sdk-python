@@ -5,19 +5,26 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Generic, cast
+import logging
+from collections.abc import Callable, Coroutine
+from typing import Generic
 
+from frequenz.channels import Receiver
 from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.quantities import Quantity
 
+from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._base_types import QuantityT
 
 from . import _ast, _token
+from ._base_ast_node import AstNode
 from ._formula import Formula
-from ._functions import Function
+from ._functions import FunCall, Function
 from ._lexer import Lexer
 from ._peekable import Peekable
 from ._resampled_stream_fetcher import ResampledStreamFetcher
+
+_logger = logging.getLogger(__name__)
 
 
 def parse(
@@ -60,10 +67,9 @@ class _Parser(Generic[QuantityT]):
         self._name: str = name
         self._lexer: Peekable[_token.Token] = Peekable(Lexer(formula))
         self._telemetry_fetcher: ResampledStreamFetcher = telemetry_fetcher
-        self._components: list[_ast.TelemetryStream[QuantityT]] = []
         self._create_method: Callable[[float], QuantityT] = create_method
 
-    def _parse_term(self) -> _ast.Node | None:
+    def _parse_term(self) -> AstNode[QuantityT] | None:
         factor = self._parse_factor()
         if factor is None:
             return None
@@ -87,7 +93,7 @@ class _Parser(Generic[QuantityT]):
 
         return factor
 
-    def _parse_factor(self) -> _ast.Node | None:
+    def _parse_factor(self) -> AstNode[QuantityT] | None:
         unary = self._parse_unary()
 
         if unary is None:
@@ -109,26 +115,26 @@ class _Parser(Generic[QuantityT]):
 
         return unary
 
-    def _parse_unary(self) -> _ast.Node | None:
+    def _parse_unary(self) -> AstNode[QuantityT] | None:
         token: _token.Token | None = self._lexer.peek()
         if token is not None and isinstance(token, _token.Minus):
             token = next(self._lexer)
-            primary: _ast.Node | None = self._parse_primary()
+            primary: AstNode[QuantityT] | None = self._parse_primary()
             if primary is None:
                 raise ValueError(
                     f"Expected primary expression after unary '-' at position {token.span}"
                 )
 
-            zero_const = _ast.Constant(span=token.span, value=0.0)
+            zero_const = _ast.Constant(span=token.span, value=self._create_method(0.0))
             return _ast.Sub(span=token.span, left=zero_const, right=primary)
 
         return self._parse_primary()
 
-    def _parse_bracketed(self) -> _ast.Node | None:
+    def _parse_bracketed(self) -> AstNode[QuantityT] | None:
         oparen = next(self._lexer)  # consume '('
         assert isinstance(oparen, _token.OpenParen)
 
-        expr: _ast.Node | None = self._parse_term()
+        expr: AstNode[QuantityT] | None = self._parse_term()
         if expr is None:
             raise ValueError(f"Expected expression after '(' at position {oparen.span}")
 
@@ -140,9 +146,9 @@ class _Parser(Generic[QuantityT]):
 
         return expr
 
-    def _parse_function_call(self) -> _ast.Node | None:
+    def _parse_function_call(self) -> AstNode[QuantityT] | None:
         fn_name: _token.Token = next(self._lexer)
-        args: list[_ast.Node] = []
+        params: list[AstNode[QuantityT]] = []
 
         token: _token.Token | None = self._lexer.peek()
         if token is None or not isinstance(token, _token.OpenParen):
@@ -152,12 +158,12 @@ class _Parser(Generic[QuantityT]):
 
         _ = next(self._lexer)  # consume '('
         while True:
-            arg = self._parse_term()
-            if arg is None:
+            param = self._parse_term()
+            if param is None:
                 raise ValueError(
                     f"Expected argument in function call at position {fn_name.span}"
                 )
-            args.append(arg)
+            params.append(param)
 
             token = self._lexer.peek()
             if token is not None and isinstance(token, _token.Comma):
@@ -170,30 +176,38 @@ class _Parser(Generic[QuantityT]):
                 f"Expected ',' or ')' in function call at position {fn_name.span}"
             )
 
-        return _ast.FunCall(
+        return FunCall(
             span=fn_name.span,
-            function=Function.from_string(fn_name.value),
-            args=args,
+            function=Function.from_string(fn_name.value, params),
         )
 
-    def _parse_primary(self) -> _ast.Node | None:
+    def _parse_primary(self) -> AstNode[QuantityT] | None:
         token: _token.Token | None = self._lexer.peek()
         if token is None:
             return None
+
+        def make_component_stream_fetcher(
+            f: ResampledStreamFetcher, cid: ComponentId
+        ) -> Callable[[], Coroutine[None, None, Receiver[Sample[Quantity]]]]:
+            return lambda: f.fetch_stream(cid)
 
         if isinstance(token, _token.Component):
             _ = next(self._lexer)  # consume token
             comp = _ast.TelemetryStream(
                 span=token.span,
                 source=f"#{token.id}",
-                stream=self._telemetry_fetcher.fetch_stream(ComponentId(int(token.id))),
+                metric_fetcher=make_component_stream_fetcher(
+                    self._telemetry_fetcher, ComponentId(int(token.id))
+                ),
+                create_method=self._create_method,
             )
-            self._components.append(cast(_ast.TelemetryStream[QuantityT], comp))
             return comp
 
         if isinstance(token, _token.Number):
             _ = next(self._lexer)
-            return _ast.Constant(span=token.span, value=float(token.value))
+            return _ast.Constant(
+                span=token.span, value=self._create_method(float(token.value))
+            )
 
         if isinstance(token, _token.OpenParen):
             return self._parse_bracketed()
@@ -211,6 +225,5 @@ class _Parser(Generic[QuantityT]):
             name=self._name,
             root=expr,
             create_method=self._create_method,
-            streams=self._components,
             metric_fetcher=self._telemetry_fetcher,
         )

@@ -8,8 +8,10 @@ import asyncio
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
+import async_solipsism
+import pytest
 from frequenz.channels import Broadcast, Receiver
 from frequenz.quantities import Quantity
 
@@ -22,6 +24,12 @@ from frequenz.sdk.timeseries.formulas._parser import parse
 from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
     ResampledStreamFetcher,
 )
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
 
 
 class TestFormula3Phase:
@@ -50,7 +58,7 @@ class TestFormula3Phase:
             return channels[comp_id].new_receiver()
 
         telem_fetcher = MagicMock(spec=ResampledStreamFetcher)
-        telem_fetcher.fetch_stream = MagicMock(side_effect=stream_recv)
+        telem_fetcher.fetch_stream = AsyncMock(side_effect=stream_recv)
         l1_formulas = [
             parse(
                 name=str(ctr),
@@ -74,7 +82,10 @@ class TestFormula3Phase:
         )
         builder = make_builder(p3_formula_1, p3_formula_2)
         formula = builder.build("l2")
+
         receiver = formula.new_receiver()
+
+        await asyncio.sleep(0.1)
 
         now = datetime.now()
         for inputs, expected_output in io_pairs:
@@ -144,7 +155,9 @@ class TestFormula3Phase:
         await self.run_test(
             [
                 ([(4.0, 9.0, 16.0), (2.0, 13.0, 4.0)], (4.0, 9.0, 16.0)),
+                ([(-5.0, 10.0, None), (10.0, 5.0, None)], (-5.0, 10.0, None)),
                 ([(-5.0, 10.0, None), (10.0, 5.0, None)], (-5.0, 10.0, 0.0)),
+                ([(None, 2.0, 3.0), (2.0, None, 4.0)], (None, 2.0, 3.0)),
                 ([(None, 2.0, 3.0), (2.0, None, 4.0)], (2.0, 2.0, 3.0)),
             ],
             lambda f1, f2: f1.coalesce(

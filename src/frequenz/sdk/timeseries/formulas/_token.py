@@ -24,6 +24,7 @@ class Component(Token):
     """An electrical component token."""
 
     id: str
+    """The unique ID of the component."""
 
 
 @dataclass

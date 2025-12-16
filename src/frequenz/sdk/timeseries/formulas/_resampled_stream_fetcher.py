@@ -42,9 +42,7 @@ class ResampledStreamFetcher:
         )
         self._metric: Metric | TransitionalMetric = metric
 
-        self._pending_requests: list[ComponentMetricRequest] = []
-
-    def fetch_stream(
+    async def fetch_stream(
         self,
         component_id: ComponentId,
     ) -> Receiver[Sample[Quantity]]:
@@ -62,13 +60,12 @@ class ResampledStreamFetcher:
             self._metric,
             None,
         )
-        self._pending_requests.append(request)
-        return self._channel_registry.get_or_create(
-            Sample[Quantity], request.get_channel_name()
-        ).new_receiver()
 
-    async def subscribe(self) -> None:
-        """Subscribe to all resampled component metric streams."""
-        for request in self._pending_requests:
-            await self._resampler_subscription_sender.send(request)
-        self._pending_requests.clear()
+        chan = self._channel_registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        )
+        chan.resend_latest = True
+
+        await self._resampler_subscription_sender.send(request)
+
+        return chan.new_receiver()
