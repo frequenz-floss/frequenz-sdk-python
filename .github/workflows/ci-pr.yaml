@@ -48,7 +48,7 @@ jobs:
           mike set-default $MIKE_VERSION
 
       - name: Upload site
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docs-site
           path: site/
