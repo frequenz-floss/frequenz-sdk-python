@@ -72,13 +72,22 @@ class PVPoolReferenceStore:
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
         self.power_distribution_results_fetcher = power_distribution_results_fetcher
 
+        graph = connection_manager.get().component_graph
+        all_solar_inverters = frozenset(
+            {inv.id for inv in graph.components(matching_types=SolarInverter)}
+        )
+
         if component_ids is not None:
             self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
+            if not self.component_ids.issubset(all_solar_inverters):
+                unknown_ids = self.component_ids - all_solar_inverters
+                raise ValueError(
+                    "Unable to create a PVPool. These component IDs are either "
+                    + "not PV inverters or are unknown: "
+                    + f"{unknown_ids}"
+                )
         else:
-            graph = connection_manager.get().component_graph
-            self.component_ids = frozenset(
-                {inv.id for inv in graph.components(matching_types=SolarInverter)}
-            )
+            self.component_ids = all_solar_inverters
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 

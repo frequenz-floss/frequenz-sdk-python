@@ -4,6 +4,7 @@
 """Basic tests for the DataPipeline."""
 
 import asyncio
+import re
 from datetime import timedelta
 
 import async_solipsism
@@ -16,6 +17,7 @@ from frequenz.client.microgrid.component import (
     ComponentConnection,
     GridConnectionPoint,
     LiIonBattery,
+    SolarInverter,
 )
 from pytest_mock import MockerFixture
 
@@ -68,18 +70,22 @@ async def test_actors_started(
     )
     bat_inverter_4 = BatteryInverter(id=ComponentId(4), microgrid_id=_MICROGRID_ID)
     battery_15 = LiIonBattery(id=ComponentId(15), microgrid_id=_MICROGRID_ID)
+    pv_inverter_7 = SolarInverter(id=ComponentId(7), microgrid_id=_MICROGRID_ID)
     mock_client = MockMicrogridClient(
-        components={grid_1, bat_inverter_4, battery_15},
+        components={grid_1, bat_inverter_4, battery_15, pv_inverter_7},
         connections={
             ComponentConnection(source=grid_1.id, destination=bat_inverter_4.id),
             ComponentConnection(source=bat_inverter_4.id, destination=battery_15.id),
+            ComponentConnection(source=grid_1.id, destination=pv_inverter_7.id),
         },
     )
     mock_client.initialize(mocker)
 
     datapipeline.new_battery_pool(priority=5)
+    datapipeline.new_pv_pool(priority=3)
 
     datapipeline.new_battery_pool(priority=1, component_ids={ComponentId(15)})
+    datapipeline.new_pv_pool(priority=2, component_ids={ComponentId(7)})
 
     with pytest.raises(
         ValueError,
@@ -89,6 +95,15 @@ async def test_actors_started(
         ),
     ):
         datapipeline.new_battery_pool(priority=2, component_ids={ComponentId(4)})
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Unable to create a PVPool. These component IDs are either not PV "
+            + "inverters or are unknown: frozenset({ComponentId(1)})"
+        ),
+    ):
+        datapipeline.new_pv_pool(priority=4, component_ids={ComponentId(1)})
 
     assert datapipeline._battery_power_wrapper._power_distributing_actor is not None
     await asyncio.sleep(1)
