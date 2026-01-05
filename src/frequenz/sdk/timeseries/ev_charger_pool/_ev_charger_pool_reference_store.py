@@ -71,13 +71,21 @@ class EVChargerPoolReferenceStore:
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
         self.power_distribution_results_fetcher = power_distribution_results_fetcher
 
+        graph = connection_manager.get().component_graph
+        all_ev_chargers = frozenset(
+            {evc.id for evc in graph.components(matching_types=EvCharger)}
+        )
+
         if component_ids is not None:
             self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
+            if not self.component_ids.issubset(all_ev_chargers):
+                unknown_ids = self.component_ids - all_ev_chargers
+                raise ValueError(
+                    "Unable to create an EVChargerPool. These component IDs are either "
+                    + f"not EV chargers or are unknown: {unknown_ids}"
+                )
         else:
-            graph = connection_manager.get().component_graph
-            self.component_ids = frozenset(
-                {evc.id for evc in graph.components(matching_types=EvCharger)}
-            )
+            self.component_ids = all_ev_chargers
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 
