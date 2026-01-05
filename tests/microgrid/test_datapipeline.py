@@ -79,6 +79,17 @@ async def test_actors_started(
 
     datapipeline.new_battery_pool(priority=5)
 
+    datapipeline.new_battery_pool(priority=1, component_ids={ComponentId(15)})
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Unable to create a BatteryPool. These component IDs are either not "
+            + "batteries or are unknown: frozenset({ComponentId(4)})"
+        ),
+    ):
+        datapipeline.new_battery_pool(priority=2, component_ids={ComponentId(4)})
+
     assert datapipeline._battery_power_wrapper._power_distributing_actor is not None
     await asyncio.sleep(1)
     assert datapipeline._battery_power_wrapper._power_distributing_actor.is_running
