@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Fixed an off-by-one calculation in `OrderedRingBuffer.count_covered` by switching to integer timedelta division, ensuring accurate sample counting for all window sizes and sampling periods.
