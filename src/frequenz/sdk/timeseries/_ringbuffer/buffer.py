@@ -705,10 +705,7 @@ class OrderedRingBuffer(Generic[FloatArray]):
             The count of samples between the oldest and newest (inclusive) valid samples
                 or 0 if there are is no time range covered.
         """
-        return int(
-            self._covered_time_range(since, until).total_seconds()
-            // self._sampling_period.total_seconds()
-        )
+        return self._covered_time_range(since, until) // self._sampling_period
 
     def count_valid(
         self, *, since: datetime | None = None, until: datetime | None = None
