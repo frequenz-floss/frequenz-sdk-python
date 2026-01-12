@@ -560,6 +560,33 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
             assert 4.9 < value < 5.1
 
 
+async def test_moving_window_length(fake_time: time_machine.Coordinates) -> None:
+    """Test moving window length without resampling."""
+    channel = Broadcast[Sample[Quantity]](name="net_power")
+    sender = channel.new_sender()
+
+    window_size = timedelta(seconds=1)
+    input_sampling = timedelta(seconds=0.1)
+
+    async with MovingWindow(
+        size=window_size,
+        resampled_data_recv=channel.new_receiver(),
+        input_sampling_period=input_sampling,
+    ) as window:
+        assert window.capacity == window_size / input_sampling, "Wrong window capacity"
+        assert window.count_valid() == 0, "Window should be empty at the beginning"
+        stream_values = [4.0, 8.0, 2.0, 6.0, 5.0] * 100
+        for value in stream_values:
+            timestamp = datetime.now(tz=timezone.utc)
+            sample = Sample(timestamp, Quantity(float(value)))
+            await sender.send(sample)
+            await asyncio.sleep(0.1)
+            fake_time.shift(0.1)
+            assert window.count_valid() <= window.count_covered()
+
+        assert window.count_valid() == window_size / input_sampling
+
+
 async def test_timestamps() -> None:
     """Test indexing a window by timestamp."""
     window, sender = init_moving_window(timedelta(seconds=5))
