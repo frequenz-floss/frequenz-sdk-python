@@ -1,5 +1,17 @@
 # Frequenz Python SDK Release Notes
 
-## Bug fixes
+## Summary
 
-- `FormulaEngine` and `FormulaEngine3Phase` are now type aliases to `Formula` and `Formula3Phase`, fixing a typing issue introduced in `v1.0.0-rc2202`.
+<!-- Here goes a general summary of what this release is about -->
+
+## Upgrading
+
+<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+
+## New Features
+
+<!-- Here goes the main new features and examples or instructions on how to use them -->
+
+## Bug Fixes
+
+<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
