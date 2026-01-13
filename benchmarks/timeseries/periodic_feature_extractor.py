@@ -71,8 +71,7 @@ def _calculate_avg_window(
     reshaped = feature_extractor._reshape_np_array(  # pylint: disable=protected-access
         window, window_size
     )
-    # ignoring the type because np.average returns Any
-    return np.average(reshaped[:, :window_size], axis=0)  # type: ignore[no-any-return]
+    return np.average(reshaped[:, :window_size], axis=0)
 
 
 def _calculate_avg_window_py(

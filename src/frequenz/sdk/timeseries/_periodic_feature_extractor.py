@@ -409,6 +409,4 @@ class PeriodicFeatureExtractor:
             The averaged timeseries window.
         """
         (reshaped, window_size) = self._get_reshaped_np_array(start, end)
-        return np.average(  # type: ignore[no-any-return]
-            reshaped[:, :window_size], axis=0, weights=weights
-        )
+        return np.average(reshaped[:, :window_size], axis=0, weights=weights)
