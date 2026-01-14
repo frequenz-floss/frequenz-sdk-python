@@ -63,6 +63,10 @@ class EVChargerPoolReferenceStore:
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
+
+        Raises:
+            ValueError: If any of the specified component_ids are not EV chargers
+                or are unknown to the component graph.
         """
         self.channel_registry = channel_registry
         self.resampler_subscription_sender = resampler_subscription_sender
