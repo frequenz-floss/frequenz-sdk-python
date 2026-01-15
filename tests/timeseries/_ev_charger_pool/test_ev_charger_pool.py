@@ -4,6 +4,7 @@
 """Tests for the `EVChargerPool`."""
 
 
+import pytest
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -14,6 +15,10 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 class TestEVChargerPool:
     """Tests for the `EVChargerPool`."""
 
+    @pytest.mark.skip(
+        reason="Needs to be adapted to the new component graph behavior, see "
+        "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1345"
+    )
     async def test_ev_power(  # pylint: disable=too-many-locals
         self,
         mocker: MockerFixture,

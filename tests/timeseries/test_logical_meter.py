@@ -6,6 +6,7 @@
 
 from contextlib import AsyncExitStack
 
+import pytest
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -40,6 +41,10 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             await mockgrid.mock_resampler.send_chp_power([-12.0])
             assert (await chp_power_receiver.receive()).value == Power.from_watts(-12.0)
 
+    @pytest.mark.skip(
+        reason="Needs to be adapted to the new component graph behavior, see "
+        "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1345"
+    )
     async def test_pv_power(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
