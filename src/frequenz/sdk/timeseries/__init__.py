@@ -51,6 +51,7 @@ from ._resampling._config import (
     ResamplingFunction2,
 )
 from ._resampling._exceptions import ResamplingError, SourceStoppedError
+from ._resampling._resampler import Resampler, ResamplerStack
 from ._resampling._wall_clock_timer import (
     ClocksInfo,
     TickInfo,
@@ -68,8 +69,10 @@ __all__ = [
     "MovingWindow",
     "PeriodicFeatureExtractor",
     "ReceiverFetcher",
+    "Resampler",
     "ResamplerConfig",
     "ResamplerConfig2",
+    "ResamplerStack",
     "ResamplingError",
     "ResamplingFunction",
     "ResamplingFunction2",
