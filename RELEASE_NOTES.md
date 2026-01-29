@@ -15,3 +15,4 @@
 ## Bug Fixes
 
 - Fixed an off-by-one calculation in `OrderedRingBuffer.count_covered` by switching to integer timedelta division, ensuring accurate sample counting for all window sizes and sampling periods.
+- Component IDs are validated during creation of battery, pv and ev charger pools, so that errors are caught early and we don't end up getting cryptic failures from somewhere else.

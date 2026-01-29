@@ -81,12 +81,24 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
             batteries_id: Subset of the batteries that should be included in the
                 battery pool. If None or empty, then all batteries from the microgrid
                 will be used.
+
+        Raises:
+            ValueError: If any of the specified batteries is not present in the
+                microgrid.
         """
         self._batteries: frozenset[ComponentId]
+        all_batteries = self._get_all_batteries()
         if batteries_id:
             self._batteries = frozenset(batteries_id)
+            if not self._batteries.issubset(all_batteries):
+                unknown_ids = self._batteries - all_batteries
+                raise ValueError(
+                    "Unable to create a BatteryPool. These component IDs are either "
+                    + "not batteries or are unknown: "
+                    + f"{unknown_ids}"
+                )
         else:
-            self._batteries = self._get_all_batteries()
+            self._batteries = all_batteries
 
         self._working_batteries: set[ComponentId] = set()
 

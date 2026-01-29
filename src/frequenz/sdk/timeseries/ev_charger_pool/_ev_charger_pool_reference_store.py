@@ -63,6 +63,10 @@ class EVChargerPoolReferenceStore:
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all EV Chargers in the microgrid will be fetched
                 from the component graph.
+
+        Raises:
+            ValueError: If any of the specified component_ids are not EV chargers
+                or are unknown to the component graph.
         """
         self.channel_registry = channel_registry
         self.resampler_subscription_sender = resampler_subscription_sender
@@ -71,13 +75,21 @@ class EVChargerPoolReferenceStore:
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
         self.power_distribution_results_fetcher = power_distribution_results_fetcher
 
+        graph = connection_manager.get().component_graph
+        all_ev_chargers = frozenset(
+            {evc.id for evc in graph.components(matching_types=EvCharger)}
+        )
+
         if component_ids is not None:
             self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
+            if not self.component_ids.issubset(all_ev_chargers):
+                unknown_ids = self.component_ids - all_ev_chargers
+                raise ValueError(
+                    "Unable to create an EVChargerPool. These component IDs are either "
+                    + f"not EV chargers or are unknown: {unknown_ids}"
+                )
         else:
-            graph = connection_manager.get().component_graph
-            self.component_ids = frozenset(
-                {evc.id for evc in graph.components(matching_types=EvCharger)}
-            )
+            self.component_ids = all_ev_chargers
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 

@@ -64,6 +64,10 @@ class PVPoolReferenceStore:
             component_ids: An optional list of component_ids belonging to this pool.  If
                 not specified, IDs of all PV inverters in the microgrid will be fetched
                 from the component graph.
+
+        Raises:
+            ValueError: If any of the provided component_ids are not PV inverters or
+                are unknown to the component graph.
         """
         self.channel_registry = channel_registry
         self.resampler_subscription_sender = resampler_subscription_sender
@@ -72,13 +76,22 @@ class PVPoolReferenceStore:
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
         self.power_distribution_results_fetcher = power_distribution_results_fetcher
 
+        graph = connection_manager.get().component_graph
+        all_solar_inverters = frozenset(
+            {inv.id for inv in graph.components(matching_types=SolarInverter)}
+        )
+
         if component_ids is not None:
             self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
+            if not self.component_ids.issubset(all_solar_inverters):
+                unknown_ids = self.component_ids - all_solar_inverters
+                raise ValueError(
+                    "Unable to create a PVPool. These component IDs are either "
+                    + "not PV inverters or are unknown: "
+                    + f"{unknown_ids}"
+                )
         else:
-            graph = connection_manager.get().component_graph
-            self.component_ids = frozenset(
-                {inv.id for inv in graph.components(matching_types=SolarInverter)}
-            )
+            self.component_ids = all_solar_inverters
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 
