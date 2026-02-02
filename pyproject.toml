@@ -69,7 +69,7 @@ dev-mkdocs = [
 dev-mypy = [
   "mypy == 1.19.1",
   "types-Markdown == 3.10.0.20251106",
-  "types-protobuf == 6.32.1.20251105",
+  "types-protobuf == 6.32.1.20251210",
   "types-setuptools == 80.10.0.20260124",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
