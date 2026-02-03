@@ -137,6 +137,20 @@ class ResamplerConfig:
     value.
     """
 
+    closed: WindowSide = WindowSide.RIGHT
+    """Indicates which side of the resampling window is closed.
+
+    If `WindowSide.RIGHT` (default), the resampling window is closed on the
+    right side and open on the left, meaning it includes samples with timestamps
+    within the range (start, end], where `start` and `end` are the boundaries of
+    the window.
+
+    If `WindowSide.LEFT`, the resampling window is closed on the left side and
+    open on the right, meaning it includes samples with timestamps within the
+    range [start, end), where `start` and `end` are the boundaries of the
+    window.
+    """
+
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
     """The initial length of the resampling buffer.
 
