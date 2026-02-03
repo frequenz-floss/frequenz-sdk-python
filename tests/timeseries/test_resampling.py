@@ -26,6 +26,7 @@ from frequenz.sdk.timeseries import (
     Sink,
     Source,
     SourceProperties,
+    WindowSide,
 )
 from frequenz.sdk.timeseries._resampling._exceptions import (
     ResamplingError,
@@ -1502,6 +1503,127 @@ async def test_resampling_all_zeros(
         sampling_period=timedelta(seconds=0.8),
     )
     assert _get_buffer_len(resampler, source_receiver) == 3
+
+
+@pytest.mark.parametrize("closed", [WindowSide.RIGHT, WindowSide.LEFT])
+async def test_resampler_closed_option(
+    closed: WindowSide,
+    fake_time: time_machine.Coordinates,
+    source_chan: Broadcast[Sample[Quantity]],
+) -> None:
+    """Test the `closed` option in ResamplerConfig."""
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+    expected_resampled_value = 42.0
+
+    resampling_fun_mock = MagicMock(
+        spec=ResamplingFunction, return_value=expected_resampled_value
+    )
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=1.0,
+        resampling_function=resampling_fun_mock,
+        closed=closed,
+    )
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+    source_props = resampler.get_source_properties(source_receiver)
+
+    # Test timeline
+    #
+    # t(s)   0          1          2   2.5    3          4
+    #        |----------|----------R----|-----|----------R-----> (no more samples)
+    # value  5.0       10.0      15.0  1.0   4.0        5.0
+    #
+    # R = resampling is done
+
+    # Send a few samples and run a resample tick, advancing the fake time by one period
+    sample1 = Sample(timestamp, value=Quantity(5.0))
+    sample2 = Sample(timestamp + timedelta(seconds=1), value=Quantity(10.0))
+    sample3 = Sample(timestamp + timedelta(seconds=2), value=Quantity(15.0))
+    await source_sender.send(sample1)
+    await source_sender.send(sample2)
+    await source_sender.send(sample3)
+
+    await _advance_time(fake_time, resampling_period_s)
+    await resampler.resample(one_shot=True)
+
+    assert datetime.now(timezone.utc).timestamp() == 2
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s),
+            Quantity(expected_resampled_value),
+        )
+    )
+    # Assert the behavior based on the `closed` option
+    if closed == WindowSide.RIGHT:
+        resampling_fun_mock.assert_called_once_with(
+            a_sequence(as_float_tuple(sample2), as_float_tuple(sample3)),
+            config,
+            source_props,
+        )
+    elif closed == WindowSide.LEFT:
+        resampling_fun_mock.assert_called_once_with(
+            a_sequence(as_float_tuple(sample1), as_float_tuple(sample2)),
+            config,
+            source_props,
+        )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=3, sampling_period=None
+    )
+    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    sink_mock.reset_mock()
+    resampling_fun_mock.reset_mock()
+
+    # Additional samples at 2.5, 3, and 4 seconds
+    sample4 = Sample(timestamp + timedelta(seconds=2.5), value=Quantity(1.0))
+    sample5 = Sample(timestamp + timedelta(seconds=3), value=Quantity(4.0))
+    sample6 = Sample(timestamp + timedelta(seconds=4), value=Quantity(5.0))
+    await source_sender.send(sample4)
+    await source_sender.send(sample5)
+    await source_sender.send(sample6)
+
+    # Advance time to 4 seconds and resample again
+    await _advance_time(fake_time, resampling_period_s * 2)
+    await resampler.resample(one_shot=True)
+
+    sink_mock.assert_called_once_with(
+        Sample(
+            timestamp + timedelta(seconds=resampling_period_s * 2),
+            Quantity(expected_resampled_value),
+        )
+    )
+    if closed == WindowSide.RIGHT:
+        resampling_fun_mock.assert_called_once_with(
+            a_sequence(
+                as_float_tuple(sample4),
+                as_float_tuple(sample5),
+                as_float_tuple(sample6),
+            ),
+            config,
+            source_props,
+        )
+    elif closed == WindowSide.LEFT:
+        resampling_fun_mock.assert_called_once_with(
+            a_sequence(
+                as_float_tuple(sample3),
+                as_float_tuple(sample4),
+                as_float_tuple(sample5),
+            ),
+            config,
+            source_props,
+        )
+    assert source_props == SourceProperties(
+        sampling_start=timestamp, received_samples=6, sampling_period=None
+    )
+    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
 
 
 def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
