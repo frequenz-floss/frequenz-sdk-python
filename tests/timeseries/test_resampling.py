@@ -1626,6 +1626,56 @@ async def test_resampler_closed_option(
     assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
 
 
+@pytest.mark.parametrize("label", [WindowSide.LEFT, WindowSide.RIGHT])
+async def test_resampler_label_option(
+    label: WindowSide,
+    fake_time: time_machine.Coordinates,
+    source_chan: Broadcast[Sample[Quantity]],
+) -> None:
+    """Test the `label` option in ResamplerConfig."""
+    timestamp = datetime.now(timezone.utc)
+
+    resampling_period_s = 2
+    expected_resampled_value = 42.0
+
+    resampling_fun_mock = MagicMock(
+        spec=ResamplingFunction, return_value=expected_resampled_value
+    )
+    config = ResamplerConfig(
+        resampling_period=timedelta(seconds=resampling_period_s),
+        max_data_age_in_periods=1.0,
+        resampling_function=resampling_fun_mock,
+        label=label,
+    )
+    resampler = Resampler(config)
+
+    source_receiver = source_chan.new_receiver()
+    source_sender = source_chan.new_sender()
+
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+
+    resampler.add_timeseries("test", source_receiver, sink_mock)
+
+    # Send samples and resample
+    sample1 = Sample(timestamp, value=Quantity(5.0))
+    sample2 = Sample(timestamp + timedelta(seconds=1), value=Quantity(10.0))
+    await source_sender.send(sample1)
+    await source_sender.send(sample2)
+
+    await _advance_time(fake_time, resampling_period_s)
+    await resampler.resample(one_shot=True)
+
+    # Assert the timestamp of the resampled sample
+    expected_timestamp = (
+        timestamp
+        if label == WindowSide.LEFT
+        else timestamp + timedelta(seconds=resampling_period_s)
+    )
+    sink_mock.assert_called_once_with(
+        Sample(expected_timestamp, Quantity(expected_resampled_value))
+    )
+
+
 def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
     # pylint: disable-next=protected-access
     blen = resampler._resamplers[source_receiver]._helper._buffer.maxlen
