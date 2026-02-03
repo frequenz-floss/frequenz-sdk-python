@@ -151,6 +151,15 @@ class ResamplerConfig:
     window.
     """
 
+    label: WindowSide = WindowSide.RIGHT
+    """Indicates the timestamp label of the resampled data.
+
+    If `WindowSide.RIGHT` (default), the timestamp of the resampled data
+    corresponds to the right boundary of the resampling window. If
+    `WindowSide.LEFT`, the timestamp corresponds to the left boundary of the
+    resampling window.
+    """
+
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
     """The initial length of the resampling buffer.
 

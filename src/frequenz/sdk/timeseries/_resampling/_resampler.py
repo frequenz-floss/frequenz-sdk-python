@@ -469,6 +469,15 @@ class _ResamplingHelper:
             if relevant_samples
             else None
         )
+
+        match conf.label:
+            case WindowSide.LEFT:
+                timestamp -= conf.resampling_period
+            case WindowSide.RIGHT:
+                pass
+            case unexpected:
+                assert_never(unexpected)
+
         return Sample(timestamp, None if value is None else Quantity(value))
 
     def _log_no_relevant_samples(
