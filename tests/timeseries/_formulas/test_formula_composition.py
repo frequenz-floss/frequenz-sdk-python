@@ -206,10 +206,6 @@ class TestFormulaComposition:
 
         assert count == 10
 
-    @pytest.mark.skip(
-        reason="Needs to be adapted to the new component graph behavior, see "
-        "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1345"
-    )
     async def test_formula_composition_min_max(self, mocker: MockerFixture) -> None:
         """Test the composition of formulas with the min and max."""
         mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker, num_namespaces=2)
@@ -237,13 +233,13 @@ class TestFormulaComposition:
             assert (
                 str(formula_min)
                 == "[grid_power_min]("
-                + "MIN([grid_power](COALESCE(#4, #7)), [chp_power](COALESCE(#5, #7, 0.0)))"
+                + "MIN([grid_power](#4), [chp_power](COALESCE(#7, #5, 0.0)))"
                 + ")"
             )
             assert (
                 str(formula_max)
                 == "[grid_power_max]("
-                + "MAX([grid_power](COALESCE(#4, #7)), [chp_power](COALESCE(#5, #7, 0.0)))"
+                + "MAX([grid_power](#4), [chp_power](COALESCE(#7, #5, 0.0)))"
                 + ")"
             )
 

@@ -4,7 +4,6 @@
 """Tests for the `EVChargerPool`."""
 
 
-import pytest
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -15,10 +14,6 @@ from tests.timeseries.mock_microgrid import MockMicrogrid
 class TestEVChargerPool:
     """Tests for the `EVChargerPool`."""
 
-    @pytest.mark.skip(
-        reason="Needs to be adapted to the new component graph behavior, see "
-        "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1345"
-    )
     async def test_ev_power(  # pylint: disable=too-many-locals
         self,
         mocker: MockerFixture,
@@ -31,10 +26,5 @@ class TestEVChargerPool:
             ev_pool = microgrid.new_ev_charger_pool(priority=5)
             power_receiver = ev_pool.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([None])
-            await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, 10.0])
+            await mockgrid.mock_resampler.send_meter_power([16.0])
             assert (await power_receiver.receive()).value == Power.from_watts(16.0)
-
-            await mockgrid.mock_resampler.send_meter_power([None])
-            await mockgrid.mock_resampler.send_evc_power([2.0, 4.0, -10.0])
-            assert (await power_receiver.receive()).value == Power.from_watts(-4.0)

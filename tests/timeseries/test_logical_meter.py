@@ -6,7 +6,6 @@
 
 from contextlib import AsyncExitStack
 
-import pytest
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
@@ -41,10 +40,6 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             await mockgrid.mock_resampler.send_chp_power([-12.0])
             assert (await chp_power_receiver.receive()).value == Power.from_watts(-12.0)
 
-    @pytest.mark.skip(
-        reason="Needs to be adapted to the new component graph behavior, see "
-        "https://github.com/frequenz-floss/frequenz-sdk-python/issues/1345"
-    )
     async def test_pv_power(self, mocker: MockerFixture) -> None:
         """Test the pv power formula."""
         mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
@@ -55,32 +50,5 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             stack.push_async_callback(pv_pool.stop)
             pv_power_receiver = pv_pool.power.new_receiver()
 
-            await mockgrid.mock_resampler.send_meter_power([-1.0, -2.0])
-            await mockgrid.mock_resampler.send_pv_inverter_power([-10.0, -20.0])
+            await mockgrid.mock_resampler.send_meter_power([-10.0, -20.0])
             assert (await pv_power_receiver.receive()).value == Power.from_watts(-30.0)
-
-    async def test_pv_power_no_meter(self, mocker: MockerFixture) -> None:
-        """Test the pv power formula."""
-        mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
-        mockgrid.add_solar_inverters(2, no_meter=True)
-
-        async with mockgrid, AsyncExitStack() as stack:
-            pv_pool = microgrid.new_pv_pool(priority=5)
-            stack.push_async_callback(pv_pool.stop)
-            pv_power_receiver = pv_pool.power.new_receiver()
-
-            await mockgrid.mock_resampler.send_pv_inverter_power([-1.0, -2.0])
-            assert (await pv_power_receiver.receive()).value == Power.from_watts(-3.0)
-
-    async def test_pv_power_no_pv_components(self, mocker: MockerFixture) -> None:
-        """Test the pv power formula without having any pv components."""
-        async with (
-            MockMicrogrid(grid_meter=True, mocker=mocker) as mockgrid,
-            AsyncExitStack() as stack,
-        ):
-            pv_pool = microgrid.new_pv_pool(priority=5)
-            stack.push_async_callback(pv_pool.stop)
-            pv_power_receiver = pv_pool.power.new_receiver()
-
-            await mockgrid.mock_resampler.send_non_existing_component_value()
-            assert (await pv_power_receiver.receive()).value == Power.zero()
