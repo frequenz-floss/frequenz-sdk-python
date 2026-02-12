@@ -10,6 +10,7 @@ import statistics
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Protocol
 
 from frequenz.core.datetime import UNIX_EPOCH
@@ -42,6 +43,16 @@ DEFAULT_BUFFER_LEN_WARN = 128
 
 If a buffer length would get bigger than this, a warning will be logged.
 """
+
+
+class WindowSide(Enum):
+    """Represents a side of a resampling window."""
+
+    LEFT = "left"
+    """The left side of the resampling window."""
+
+    RIGHT = "right"
+    """The right side of the resampling window."""
 
 
 class ResamplingFunction(Protocol):

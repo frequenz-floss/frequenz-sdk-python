@@ -49,6 +49,7 @@ from ._resampling._config import (
     ResamplerConfig2,
     ResamplingFunction,
     ResamplingFunction2,
+    WindowSide,
 )
 from ._resampling._exceptions import ResamplingError, SourceStoppedError
 from ._resampling._wall_clock_timer import (
@@ -82,4 +83,5 @@ __all__ = [
     "TickInfo",
     "WallClockTimer",
     "WallClockTimerConfig",
+    "WindowSide",
 ]
