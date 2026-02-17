@@ -482,13 +482,6 @@ class MicrogridApiSource:
                 sending_tasks = await clean_tasks(sending_tasks)
 
             await asyncio.gather(*sending_tasks)
-            await asyncio.gather(
-                *[
-                    self._registry.close_and_remove(r.get_channel_name())
-                    for requests in self._req_streaming_metrics[comp_id].values()
-                    for r in requests
-                ]
-            )
         except Exception:
             _logger.exception(
                 "Unexpected error while handling data stream for component %d (%s), "
