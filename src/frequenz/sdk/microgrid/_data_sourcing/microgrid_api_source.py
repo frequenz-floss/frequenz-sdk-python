@@ -20,6 +20,7 @@ from ...microgrid import connection_manager
 from ...timeseries import Sample
 from .._old_component_data import (
     BatteryData,
+    ChpData,
     EVChargerData,
     InverterData,
     MeterData,
@@ -108,6 +109,36 @@ _EV_CHARGER_DATA_METHODS: dict[
     Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
     Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
     Metric.AC_ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
+    Metric.AC_CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
+    Metric.AC_CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
+    Metric.AC_CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
+    Metric.AC_VOLTAGE_PHASE_1_N: lambda msg: msg.voltage_per_phase[0],
+    Metric.AC_VOLTAGE_PHASE_2_N: lambda msg: msg.voltage_per_phase[1],
+    Metric.AC_VOLTAGE_PHASE_3_N: lambda msg: msg.voltage_per_phase[2],
+    Metric.AC_FREQUENCY: lambda msg: msg.frequency,
+    Metric.AC_REACTIVE_POWER: lambda msg: msg.reactive_power,
+    Metric.AC_REACTIVE_POWER_PHASE_1: lambda msg: msg.reactive_power_per_phase[0],
+    Metric.AC_REACTIVE_POWER_PHASE_2: lambda msg: msg.reactive_power_per_phase[1],
+    Metric.AC_REACTIVE_POWER_PHASE_3: lambda msg: msg.reactive_power_per_phase[2],
+}
+
+_CHP_DATA_METHODS: dict[Metric | TransitionalMetric, Callable[[ChpData], float]] = {
+    Metric.AC_ACTIVE_POWER: lambda msg: msg.active_power,
+    Metric.AC_ACTIVE_POWER_PHASE_1: lambda msg: msg.active_power_per_phase[0],
+    Metric.AC_ACTIVE_POWER_PHASE_2: lambda msg: msg.active_power_per_phase[1],
+    Metric.AC_ACTIVE_POWER_PHASE_3: lambda msg: msg.active_power_per_phase[2],
+    TransitionalMetric.ACTIVE_POWER_INCLUSION_LOWER_BOUND: lambda msg: (
+        msg.active_power_inclusion_lower_bound
+    ),
+    TransitionalMetric.ACTIVE_POWER_EXCLUSION_LOWER_BOUND: lambda msg: (
+        msg.active_power_exclusion_lower_bound
+    ),
+    TransitionalMetric.ACTIVE_POWER_EXCLUSION_UPPER_BOUND: lambda msg: (
+        msg.active_power_exclusion_upper_bound
+    ),
+    TransitionalMetric.ACTIVE_POWER_INCLUSION_UPPER_BOUND: lambda msg: (
+        msg.active_power_inclusion_upper_bound
+    ),
     Metric.AC_CURRENT_PHASE_1: lambda msg: msg.current_per_phase[0],
     Metric.AC_CURRENT_PHASE_2: lambda msg: msg.current_per_phase[1],
     Metric.AC_CURRENT_PHASE_3: lambda msg: msg.current_per_phase[2],
@@ -250,6 +281,31 @@ class MicrogridApiSource:
                 connection_manager.get().api_client, comp_id
             )
 
+    async def _check_chp_request(
+        self,
+        comp_id: ComponentId,
+        requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
+    ) -> None:
+        """Check if the requests are valid CHP metrics.
+
+        Raises:
+            ValueError: if the requested metric is not available for CHP.
+
+        Args:
+            comp_id: The id of the requested component.
+            requests: A list of metric requests received from external actors
+                for the given CHP.
+        """
+        for metric in requests:
+            if metric not in _CHP_DATA_METHODS:
+                err = f"Unknown metric {metric} for CHP id {comp_id}"
+                _logger.error(err)
+                raise ValueError(err)
+        if comp_id not in self.comp_data_receivers:
+            self.comp_data_receivers[comp_id] = ChpData.subscribe(
+                connection_manager.get().api_client, comp_id
+            )
+
     async def _check_meter_request(
         self,
         comp_id: ComponentId,
@@ -304,6 +360,8 @@ class MicrogridApiSource:
             await self._check_inverter_request(comp_id, requests)
         elif category == ComponentCategory.METER:
             await self._check_meter_request(comp_id, requests)
+        elif category == ComponentCategory.CHP:
+            await self._check_chp_request(comp_id, requests)
         else:
             err = f"Unknown component category {category}"
             _logger.error(err)
@@ -333,6 +391,8 @@ class MicrogridApiSource:
             return _METER_DATA_METHODS[metric]
         if category == ComponentCategory.EV_CHARGER:
             return _EV_CHARGER_DATA_METHODS[metric]
+        if category == ComponentCategory.CHP:
+            return _CHP_DATA_METHODS[metric]
         err = f"Unknown component category {category}"
         _logger.error(err)
         raise ValueError(err)
