@@ -1,9 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
-
-<!-- Here goes a general summary of what this release is about -->
-
 ## Upgrading
 
 - The minimum required version of `frequenz-microgrid-component-graph` is now `0.3.4`.  This reverts the formula generation to what it was like before the migration to the external component graph library.  So
