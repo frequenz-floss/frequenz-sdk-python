@@ -75,52 +75,49 @@ class Lexer(Iterator[_token.Token]):
             comp_id = self._read_integer()
             if not comp_id:
                 raise ValueError(f"Expected integer after '#' at position {pos}")
-            end_pos = pos + len(comp_id)
+            end_pos = pos + len(comp_id) + 1  # account for '#'
             return _token.Component(
-                span=(
-                    pos + 1,
-                    end_pos + 1,  # account for '#'
-                ),
+                span=(pos, end_pos),
                 id=comp_id,
                 value=self._formula[pos:end_pos],
             )
 
         if char == "+":
             _, char = next(self._iter)  # consume operator
-            return _token.Plus(span=(pos + 1, pos + 1), value=char)
+            return _token.Plus(span=(pos, pos + 1), value=char)
 
         if char == "-":
             _, char = next(self._iter)
-            return _token.Minus(span=(pos + 1, pos + 1), value=char)
+            return _token.Minus(span=(pos, pos + 1), value=char)
 
         if char == "*":
             _, char = next(self._iter)
-            return _token.Mul(span=(pos + 1, pos + 1), value=char)
+            return _token.Mul(span=(pos, pos + 1), value=char)
 
         if char == "/":
             _, char = next(self._iter)
-            return _token.Div(span=(pos + 1, pos + 1), value=char)
+            return _token.Div(span=(pos, pos + 1), value=char)
 
         if char == "(":
             _, char = next(self._iter)
-            return _token.OpenParen(span=(pos + 1, pos + 1), value=char)
+            return _token.OpenParen(span=(pos, pos + 1), value=char)
 
         if char == ")":
             _, char = next(self._iter)
-            return _token.CloseParen(span=(pos + 1, pos + 1), value=char)
+            return _token.CloseParen(span=(pos, pos + 1), value=char)
 
         if char == ",":
             _, char = next(self._iter)
-            return _token.Comma(span=(pos + 1, pos + 1), value=char)
+            return _token.Comma(span=(pos, pos + 1), value=char)
 
         if char.isdigit():
             num = self._read_number()
             end_pos = pos + len(num)
-            return _token.Number(span=(pos + 1, end_pos), value=num)
+            return _token.Number(span=(pos, end_pos), value=num)
 
         if char.isalpha():
             symbol = self._read_symbol()
             end_pos = pos + len(symbol)
-            return _token.Symbol(span=(pos + 1, end_pos), value=symbol)
+            return _token.Symbol(span=(pos, end_pos), value=symbol)
 
         raise ValueError(f"Unexpected character '{char}' at position {pos}")
