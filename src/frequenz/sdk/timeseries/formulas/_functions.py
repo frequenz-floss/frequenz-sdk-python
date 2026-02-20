@@ -85,19 +85,14 @@ class Function(abc.ABC, Generic[QuantityT]):
         )
 
     @classmethod
-    def from_string(
-        cls, name: str, params: list[AstNode[QuantityT]]
-    ) -> Function[QuantityT]:
-        """Create a function instance from its name."""
-        match name.upper():
-            case "COALESCE":
-                return Coalesce(params)
-            case "MAX":
-                return Max(params)
-            case "MIN":
-                return Min(params)
-            case _:
-                raise ValueError(f"Unknown function name: {name}")
+    def function_class_by_name(cls, name: str) -> type[Function[QuantityT]] | None:
+        """Return the function class corresponding to the given name."""
+        known_functions: dict[str, type[Function[QuantityT]]] = {
+            "COALESCE": Coalesce,
+            "MAX": Max,
+            "MIN": Min,
+        }
+        return known_functions.get(name.upper())
 
 
 @dataclass

@@ -11,6 +11,7 @@ from collections.abc import Iterator
 from typing_extensions import override
 
 from . import _token
+from ._exceptions import FormulaSyntaxError
 from ._peekable import Peekable
 
 
@@ -74,7 +75,11 @@ class Lexer(Iterator[_token.Token]):
             _ = next(self._iter)  # consume '#'
             comp_id = self._read_integer()
             if not comp_id:
-                raise ValueError(f"Expected integer after '#' at position {pos}")
+                raise FormulaSyntaxError(
+                    formula=self._formula,
+                    span=(pos + 1, pos + 2),
+                    message="Expected integer after '#'",
+                )
             end_pos = pos + len(comp_id) + 1  # account for '#'
             return _token.Component(
                 span=(pos, end_pos),
@@ -120,4 +125,8 @@ class Lexer(Iterator[_token.Token]):
             end_pos = pos + len(symbol)
             return _token.Symbol(span=(pos, end_pos), value=symbol)
 
-        raise ValueError(f"Unexpected character '{char}' at position {pos}")
+        raise FormulaSyntaxError(
+            formula=self._formula,
+            span=(pos, pos + 1),
+            message="Unexpected character",
+        )
