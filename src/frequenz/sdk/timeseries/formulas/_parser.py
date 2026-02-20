@@ -94,9 +94,9 @@ class _Parser(Generic[QuantityT]):
                 )
 
             if isinstance(token, _token.Plus):
-                factor = _ast.Add(span=token.span, left=factor, right=next_factor)
+                factor = _ast.Add(left=factor, right=next_factor)
             elif isinstance(token, _token.Minus):
-                factor = _ast.Sub(span=token.span, left=factor, right=next_factor)
+                factor = _ast.Sub(left=factor, right=next_factor)
 
             token = self._lexer.peek()
 
@@ -125,9 +125,9 @@ class _Parser(Generic[QuantityT]):
                 )
 
             if isinstance(token, _token.Mul):
-                unary = _ast.Mul(span=token.span, left=unary, right=next_unary)
+                unary = _ast.Mul(left=unary, right=next_unary)
             elif isinstance(token, _token.Div):
-                unary = _ast.Div(span=token.span, left=unary, right=next_unary)
+                unary = _ast.Div(left=unary, right=next_unary)
 
             token = self._lexer.peek()
 
@@ -150,8 +150,8 @@ class _Parser(Generic[QuantityT]):
                     message="Expected expression",
                 )
 
-            zero_const = _ast.Constant(span=token.span, value=self._create_method(0.0))
-            return _ast.Sub(span=token.span, left=zero_const, right=primary)
+            zero_const = _ast.Constant(value=self._create_method(0.0))
+            return _ast.Sub(left=zero_const, right=primary)
 
         return self._parse_primary()
 
@@ -234,10 +234,7 @@ class _Parser(Generic[QuantityT]):
                 message="Expected ',' or ')'",
             )
 
-        return FunCall(
-            span=fn_name.span,
-            function=function_class(params),
-        )
+        return FunCall(function=function_class(params))
 
     def _parse_primary(self) -> AstNode[QuantityT] | None:
         """Parse a primary.
@@ -260,7 +257,6 @@ class _Parser(Generic[QuantityT]):
         if isinstance(token, _token.Component):
             _ = next(self._lexer)  # consume token
             comp = _ast.TelemetryStream(
-                span=token.span,
                 source=f"#{token.id}",
                 metric_fetcher=make_component_stream_fetcher(
                     self._telemetry_fetcher, ComponentId(int(token.id))
@@ -271,9 +267,7 @@ class _Parser(Generic[QuantityT]):
 
         if isinstance(token, _token.Number):
             _ = next(self._lexer)
-            return _ast.Constant(
-                span=token.span, value=self._create_method(float(token.value))
-            )
+            return _ast.Constant(value=self._create_method(float(token.value)))
 
         if isinstance(token, _token.OpenParen):
             return self._parse_bracketed()

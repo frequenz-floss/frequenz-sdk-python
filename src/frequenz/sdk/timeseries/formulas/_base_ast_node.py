@@ -24,9 +24,6 @@ _MAX_SYNC_RETRIES = 10
 class AstNode(abc.ABC, Generic[QuantityT]):
     """An abstract syntax tree node representing a formula expression."""
 
-    span: tuple[int, int] | None = None
-    """The span (start, end) of the expression in the input string."""
-
     @abc.abstractmethod
     async def evaluate(self) -> Sample[QuantityT] | QuantityT | None:
         """Evaluate the expression and return its numerical value."""
