@@ -226,13 +226,10 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         Returns:
             Distribution of the batteries.
         """
-        match self._get_components_data(request.component_ids):
-            case str() as err:
-                return Error(request=request, msg=err)
-            case list() as pairs_data:
-                pass
-            case unexpected:
-                typing.assert_never(unexpected)
+        try:
+            pairs_data = self._get_components_data(request.component_ids)
+        except RuntimeError as err:
+            return Error(request=request, msg=str(err))
 
         if not pairs_data:
             error_msg = (
@@ -524,15 +521,17 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     def _get_components_data(
         self, batteries: collections.abc.Set[ComponentId]
-    ) -> list[InvBatPair] | str:
+    ) -> list[InvBatPair]:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
             batteries: Batteries that needs data.
 
         Returns:
-            Pairs of battery and adjacent inverter data or an error message if there was
-                an error while getting the data.
+            Pairs of battery and adjacent inverter data.
+
+        Raises:
+            RuntimeError: If there was an error while getting the data.
         """
         inverter_ids: collections.abc.Set[ComponentId]
         pairs_data: list[InvBatPair] = []
@@ -543,7 +542,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         for battery_id in working_batteries:
             if battery_id not in self._battery_caches:
-                return (
+                raise RuntimeError(
                     f"No battery {battery_id}, "
                     f"available batteries: {self._str_ids(self._battery_caches.keys())}"
                 )
@@ -559,7 +558,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         if batteries_from_inverters != batteries:
             extra_batteries = batteries_from_inverters - batteries
             inverter_ids = _get_all_from_map(self._bat_invs_map, extra_batteries)
-            return (
+            raise RuntimeError(
                 f"Inverter(s) ({self._str_ids(inverter_ids)}) are connected to "
                 f"battery(ies) ({self._str_ids(extra_batteries)}) that were not requested"
             )
