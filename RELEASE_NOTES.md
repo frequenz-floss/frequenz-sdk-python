@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Improved formula validation: Consistent error messages for invalid formulas and conventional span semantics.
