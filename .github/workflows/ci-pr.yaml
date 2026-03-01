@@ -35,7 +35,7 @@ jobs:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.1
+        uses: frequenz-floss/gh-action-setup-python-with-deps@v1.0.2
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]

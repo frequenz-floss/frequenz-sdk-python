@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Auto-merge Dependabot PR
-        uses: frequenz-floss/dependabot-auto-approve@3cad5f42e79296505473325ac6636be897c8b8a1  # v1.3.2
+        uses: frequenz-floss/dependabot-auto-approve@e943399cc9d76fbb6d7faae446cd57301d110165  # v1.5.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           dependency-type: 'all'
