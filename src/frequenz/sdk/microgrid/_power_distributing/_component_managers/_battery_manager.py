@@ -244,9 +244,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             return error
 
         try:
-            distribution = self._get_power_distribution(
-                request, components_data.inv_bat_pairs
-            )
+            distribution = self._get_power_distribution(request, components_data)
         except ValueError as err:
             _logger.exception("Couldn't distribute power")
             error_msg = f"Couldn't distribute power, error: {str(err)}"
@@ -591,17 +589,22 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         return ", ".join(str(cid) for cid in sorted(ids))
 
     def _get_power_distribution(
-        self, request: Request, inv_bat_pairs: list[InvBatPair]
+        self,
+        request: Request,
+        components: BatteryComponentsData,
     ) -> DistributionResult:
         """Get power distribution result for the batteries in the request.
 
         Args:
             request: the power request to process.
-            inv_bat_pairs: the battery and adjacent inverter data pairs.
+            components: the battery component data including pairs of battery
+                and adjacent inverter data, and unreachable power.
 
         Returns:
             the power distribution result.
         """
+        inv_bat_pairs = components.inv_bat_pairs
+
         available_bat_ids = _get_all_from_map(
             self._bat_bats_map, {pair.battery.component_id for pair in inv_bat_pairs}
         )
@@ -614,8 +617,12 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         ]:
             unavailable_inv_ids = unavailable_inv_ids | inverter_ids
 
+        power_to_distribute = request.power
+        if components.unreachable_power is not None:
+            power_to_distribute = power_to_distribute - components.unreachable_power
+
         result = self._distribution_algorithm.distribute_power(
-            request.power, inv_bat_pairs
+            power_to_distribute, inv_bat_pairs
         )
 
         return result
