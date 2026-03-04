@@ -125,7 +125,7 @@ jobs:
         run: env
 
       - name: Download package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dist-packages
           path: dist
@@ -281,7 +281,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Download distribution files
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dist-packages
           path: dist
@@ -327,7 +327,7 @@ jobs:
       id-token: write
     steps:
       - name: Download distribution files
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dist-packages
           path: dist
