@@ -23,6 +23,7 @@ from .._component_pool_status_tracker import ComponentPoolStatusTracker
 from .._component_status import BatteryStatusTracker, ComponentPoolStatus
 from .._distribution_algorithm import (
     AggregatedBatteryData,
+    BatteryComponentsData,
     BatteryDistributionAlgorithm,
     DistributionResult,
     InvBatPair,
@@ -227,23 +228,25 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Distribution of the batteries.
         """
         try:
-            pairs_data = self._get_components_data(request.component_ids)
+            components_data = self._get_components_data(request.component_ids)
         except RuntimeError as err:
             return Error(request=request, msg=str(err))
 
-        if not pairs_data:
+        if not components_data.inv_bat_pairs:
             error_msg = (
                 "No data for at least one of the given batteries: "
                 + self._str_ids(request.component_ids)
             )
             return Error(request=request, msg=str(error_msg))
 
-        error = self._check_request(request, pairs_data)
+        error = self._check_request(request, components_data.inv_bat_pairs)
         if error:
             return error
 
         try:
-            distribution = self._get_power_distribution(request, pairs_data)
+            distribution = self._get_power_distribution(
+                request, components_data.inv_bat_pairs
+            )
         except ValueError as err:
             _logger.exception("Couldn't distribute power")
             error_msg = f"Couldn't distribute power, error: {str(err)}"
@@ -521,14 +524,15 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
     def _get_components_data(
         self, batteries: collections.abc.Set[ComponentId]
-    ) -> list[InvBatPair]:
+    ) -> BatteryComponentsData:
         """Get data for the given batteries and adjacent inverters.
 
         Args:
             batteries: Batteries that needs data.
 
         Returns:
-            Pairs of battery and adjacent inverter data.
+            Battery component data including pairs of battery and adjacent inverter
+            data, and unreachable power.
 
         Raises:
             RuntimeError: If there was an error while getting the data.
@@ -581,7 +585,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
             assert len(data.inverter) > 0
             pairs_data.append(data)
-        return pairs_data
+        return BatteryComponentsData(pairs_data, None)
 
     def _str_ids(self, ids: collections.abc.Set[ComponentId]) -> str:
         return ", ".join(str(cid) for cid in sorted(ids))

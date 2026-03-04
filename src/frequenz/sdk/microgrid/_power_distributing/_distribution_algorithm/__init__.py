@@ -5,6 +5,7 @@
 
 from ._battery_distribution_algorithm import (
     AggregatedBatteryData,
+    BatteryComponentsData,
     BatteryDistributionAlgorithm,
     DistributionResult,
     InvBatPair,
@@ -15,4 +16,5 @@ __all__ = [
     "DistributionResult",
     "InvBatPair",
     "AggregatedBatteryData",
+    "BatteryComponentsData",
 ]
