@@ -10,6 +10,7 @@ import statistics
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Protocol
 
 from frequenz.core.datetime import UNIX_EPOCH
@@ -42,6 +43,16 @@ DEFAULT_BUFFER_LEN_WARN = 128
 
 If a buffer length would get bigger than this, a warning will be logged.
 """
+
+
+class WindowSide(Enum):
+    """Represents a side of a resampling window."""
+
+    LEFT = "left"
+    """The left side of the resampling window."""
+
+    RIGHT = "right"
+    """The right side of the resampling window."""
 
 
 class ResamplingFunction(Protocol):
@@ -124,6 +135,29 @@ class ResamplerConfig:
     This function will be applied to the sequence of relevant samples at
     a given time. The result of the function is what is sent as the resampled
     value.
+    """
+
+    closed: WindowSide = WindowSide.RIGHT
+    """Indicates which side of the resampling window is closed.
+
+    If `WindowSide.RIGHT` (default), the resampling window is closed on the
+    right side and open on the left, meaning it includes samples with timestamps
+    within the range (start, end], where `start` and `end` are the boundaries of
+    the window.
+
+    If `WindowSide.LEFT`, the resampling window is closed on the left side and
+    open on the right, meaning it includes samples with timestamps within the
+    range [start, end), where `start` and `end` are the boundaries of the
+    window.
+    """
+
+    label: WindowSide = WindowSide.RIGHT
+    """Indicates the timestamp label of the resampled data.
+
+    If `WindowSide.RIGHT` (default), the timestamp of the resampled data
+    corresponds to the right boundary of the resampling window. If
+    `WindowSide.LEFT`, the timestamp corresponds to the left boundary of the
+    resampling window.
     """
 
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
