@@ -558,13 +558,14 @@ class _StreamingHelper:
     # We need the noqa because pydoclint can't figure out that `recv_exception` is an
     # `Exception` instance.
     async def resample(self, timestamp: datetime) -> None:  # noqa: DOC503
-        """Calculate a new sample for the passed `timestamp` and send it.
+        """Calculate a new sample using buffered samples up to the given `timestamp` and send it.
 
         The helper is used to calculate the new sample and the sender is used
         to send it.
 
         Args:
-            timestamp: The timestamp to be used to calculate the new sample.
+            timestamp: The timestamp up to which all buffered samples are
+                considered for calculating the new sample.
 
         Raises:
             SourceStoppedError: If the source stopped sending samples.
