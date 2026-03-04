@@ -3779,7 +3779,7 @@ timestamp will be at 1970-01-01 00:00:40 UTC:</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -3987,6 +3987,7 @@ using a source.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk.timeseries._base_types._T">_T</span>]</code></p>
 
 
+
         <p>Lower and upper bound values.</p>
 <p>Depending on the genertic type <code>_T</code>, the lower and upper bounds can be <code>None</code>, in
 which case it means that there is no lower or upper bound, respectively.</p>
@@ -3999,7 +4000,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-163">163</a></span>
 <span class="normal"><a href="#__codelineno-0-164">164</a></span>
@@ -4075,7 +4076,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -4206,7 +4207,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-179">179</a></span>
 <span class="normal"><a href="#__codelineno-0-180">180</a></span>
@@ -4277,6 +4278,7 @@ which case it means that there is no lower or upper bound, respectively.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Information about the wall clock and monotonic clock and their drift.</p>
 <p>The <code>monotonic_requested_sleep</code> and <code>monotonic_elapsed</code> values must be strictly
 positive, while the <code>wall_clock_elapsed</code> can be negative if the wall clock jumped
@@ -4289,7 +4291,7 @@ back in time.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-179">179</a></span>
 <span class="normal"><a href="#__codelineno-0-180">180</a></span>
@@ -4533,7 +4535,7 @@ back in time.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -4797,7 +4799,7 @@ that both clocks are obtained as slightly different times.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-216">216</a></span>
 <span class="normal"><a href="#__codelineno-0-217">217</a></span>
@@ -4960,7 +4962,7 @@ or jumps between both.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-283">283</a></span>
 <span class="normal"><a href="#__codelineno-0-284">284</a></span>
@@ -5023,6 +5025,7 @@ or jumps between both.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Fuse data class.</p>
 
 
@@ -5032,7 +5035,7 @@ or jumps between both.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_fuse.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-12">12</a></span>
 <span class="normal"><a href="#__codelineno-0-13">13</a></span>
@@ -5050,7 +5053,7 @@ or jumps between both.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -5107,6 +5110,7 @@ or jumps between both.</p>
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="frequenz.sdk.actor.BackgroundService (frequenz.sdk.actor._background_service.BackgroundService)" href="../actor/#frequenz.sdk.actor.BackgroundService">BackgroundService</a></code></p>
+
 
 
         <p>A data window that moves with the latest datapoints of a data stream.</p>
@@ -5209,7 +5213,7 @@ asyncio.run(run())
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-29"> 29</a></span>
 <span class="normal"><a href="#__codelineno-0-30"> 30</a></span>
@@ -6157,7 +6161,7 @@ asyncio.run(run())
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -6559,7 +6563,7 @@ unless the class explicitly documents it is safe to do so.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-200">200</a></span>
 <span class="normal"><a href="#__codelineno-0-201">201</a></span>
@@ -6671,7 +6675,7 @@ unless the class explicitly documents it is safe to do so.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-211">211</a></span>
 <span class="normal"><a href="#__codelineno-0-212">212</a></span>
@@ -6751,7 +6755,7 @@ unless the class explicitly documents it is safe to do so.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-261">261</a></span>
 <span class="normal"><a href="#__codelineno-0-262">262</a></span>
@@ -6915,7 +6919,7 @@ or by a slice of timestamps or integers.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-457">457</a></span>
 <span class="normal"><a href="#__codelineno-0-458">458</a></span>
@@ -7179,7 +7183,7 @@ used. This is used mostly for debugging purposes.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-133">133</a></span>
 <span class="normal"><a href="#__codelineno-0-134">134</a></span>
@@ -7352,7 +7356,7 @@ used. This is used mostly for debugging purposes.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-271">271</a></span>
 <span class="normal"><a href="#__codelineno-0-272">272</a></span>
@@ -7413,7 +7417,7 @@ used. This is used mostly for debugging purposes.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-279">279</a></span>
 <span class="normal"><a href="#__codelineno-0-280">280</a></span>
@@ -7529,7 +7533,7 @@ and returns a single value.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-250">250</a></span>
 <span class="normal"><a href="#__codelineno-0-251">251</a></span>
@@ -7664,7 +7668,7 @@ and returns a single value.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-164">164</a></span>
 <span class="normal"><a href="#__codelineno-0-165">165</a></span>
@@ -7788,7 +7792,7 @@ or 0 if there are is no time range covered.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-424">424</a></span>
 <span class="normal"><a href="#__codelineno-0-425">425</a></span>
@@ -7933,7 +7937,7 @@ newest timestamp of the buffer is used.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-405">405</a></span>
 <span class="normal"><a href="#__codelineno-0-406">406</a></span>
@@ -7993,7 +7997,7 @@ newest timestamp of the buffer is used.</p>
 <p>This method starts the MovingWindow tasks.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-197">197</a></span>
 <span class="normal"><a href="#__codelineno-0-198">198</a></span>
@@ -8095,7 +8099,7 @@ exception.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-175">175</a></span>
 <span class="normal"><a href="#__codelineno-0-176">176</a></span>
@@ -8197,7 +8201,7 @@ the exception group).</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/actor/_background_service.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-228">228</a></span>
 <span class="normal"><a href="#__codelineno-0-229">229</a></span>
@@ -8345,7 +8349,7 @@ of the MovingWindow.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-325">325</a></span>
 <span class="normal"><a href="#__codelineno-0-326">326</a></span>
@@ -8565,7 +8569,7 @@ Defaults to NaN to avoid returning outdated data unexpectedly.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_moving_window.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-291">291</a></span>
 <span class="normal"><a href="#__codelineno-0-292">292</a></span>
@@ -8660,6 +8664,7 @@ Defaults to NaN to avoid returning outdated data unexpectedly.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>A feature extractor for historical timeseries data.</p>
 <p>This class is creating a profile from periodically occurring windows in a
 buffer of historical data.</p>
@@ -8721,7 +8726,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-51"> 51</a></span>
 <span class="normal"><a href="#__codelineno-0-52"> 52</a></span>
@@ -9451,7 +9456,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -9548,7 +9553,7 @@ calculation, e.g. an average, over all values of $S_i$ at position $i$.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-107">107</a></span>
 <span class="normal"><a href="#__codelineno-0-108">108</a></span>
@@ -9746,7 +9751,7 @@ windows fully inside the MovingWindow having the period
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_periodic_feature_extractor.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-393">393</a></span>
 <span class="normal"><a href="#__codelineno-0-394">394</a></span>
@@ -9817,6 +9822,7 @@ windows fully inside the MovingWindow having the period
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk._internal._channels.T_co">T_co</span>]</code>, <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
+
         <p>An interface that just exposes a <code>new_receiver</code> method.</p>
 
 
@@ -9826,7 +9832,7 @@ windows fully inside the MovingWindow having the period
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/_internal/_channels.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-21">21</a></span>
 <span class="normal"><a href="#__codelineno-0-22">22</a></span>
@@ -9858,7 +9864,7 @@ windows fully inside the MovingWindow having the period
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -9945,7 +9951,7 @@ windows fully inside the MovingWindow having the period
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/_internal/_channels.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-24">24</a></span>
 <span class="normal"><a href="#__codelineno-0-25">25</a></span>
@@ -9998,6 +10004,7 @@ windows fully inside the MovingWindow having the period
     <div class="doc doc-contents ">
 
 
+
         <p>Resampler configuration.</p>
 
 
@@ -10007,7 +10014,7 @@ windows fully inside the MovingWindow having the period
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
 <span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
@@ -10271,7 +10278,7 @@ windows fully inside the MovingWindow having the period
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -10552,7 +10559,7 @@ logs, so buffers don't grow too big inadvertently.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-170">170</a></span>
 <span class="normal"><a href="#__codelineno-0-171">171</a></span>
@@ -10680,6 +10687,7 @@ logs, so buffers don't grow too big inadvertently.</p>
    (frequenz.sdk.timeseries._resampling._config.ResamplerConfig)" href="#frequenz.sdk.timeseries.ResamplerConfig">ResamplerConfig</a></code></p>
 
 
+
         <p>Resampler configuration.</p>
 
 
@@ -10689,7 +10697,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-254">254</a></span>
 <span class="normal"><a href="#__codelineno-0-255">255</a></span>
@@ -10955,7 +10963,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -11275,7 +11283,7 @@ logs, so buffers don't grow too big inadvertently.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-340">340</a></span>
 <span class="normal"><a href="#__codelineno-0-341">341</a></span>
@@ -11394,6 +11402,7 @@ logs, so buffers don't grow too big inadvertently.</p>
               Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError">RuntimeError</a></code></p>
 
 
+
         <p>An Error occurred while resampling.</p>
 <p>This error is a container for errors raised by the underlying sources and
 or sinks.</p>
@@ -11405,7 +11414,7 @@ or sinks.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-33">33</a></span>
 <span class="normal"><a href="#__codelineno-0-34">34</a></span>
@@ -11495,7 +11504,7 @@ or sinks.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -11599,7 +11608,7 @@ the actual source of the exception.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-40">40</a></span>
 <span class="normal"><a href="#__codelineno-0-41">41</a></span>
@@ -11700,7 +11709,7 @@ the actual source of the exception.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-68">68</a></span>
 <span class="normal"><a href="#__codelineno-0-69">69</a></span>
@@ -11745,6 +11754,7 @@ the actual source of the exception.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
+
         <p>Combine multiple samples into a new one.</p>
 <p>A resampling function produces a new sample based on a list of pre-existing
 samples. It can do "upsampling" when the data rate of the <code>input_samples</code>
@@ -11763,7 +11773,7 @@ timestamp in the input data).</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-47">47</a></span>
 <span class="normal"><a href="#__codelineno-0-48">48</a></span>
@@ -11841,7 +11851,7 @@ timestamp in the input data).</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -11979,7 +11989,7 @@ function.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-62">62</a></span>
 <span class="normal"><a href="#__codelineno-0-63">63</a></span>
@@ -12052,6 +12062,7 @@ function.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Protocol" href="https://docs.python.org/3/library/typing.html#typing.Protocol">Protocol</a></code></p>
 
 
+
         <p>Combine multiple samples into a new one.</p>
 <p>A resampling function produces a new sample based on a list of pre-existing
 samples. It can do "upsampling" when the data rate of the <code>input_samples</code>
@@ -12070,7 +12081,7 @@ timestamp in the input data).</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-216">216</a></span>
 <span class="normal"><a href="#__codelineno-0-217">217</a></span>
@@ -12148,7 +12159,7 @@ timestamp in the input data).</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -12296,7 +12307,7 @@ function.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-231">231</a></span>
 <span class="normal"><a href="#__codelineno-0-232">232</a></span>
@@ -12373,6 +12384,7 @@ function.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code></p>
 
 
+
         <p>A measurement taken at a particular point in time.</p>
 <p>The <code>value</code> could be <code>None</code> if a component is malfunctioning or data is
 lacking for another reason, but a sample still needs to be sent to have a
@@ -12385,7 +12397,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19">19</a></span>
 <span class="normal"><a href="#__codelineno-0-20">20</a></span>
@@ -12435,7 +12447,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -12511,7 +12523,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
         <p>Return a string representation of the sample.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-38">38</a></span>
 <span class="normal"><a href="#__codelineno-0-39">39</a></span>
@@ -12540,7 +12552,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
         <p>Return a string representation of the sample.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-34">34</a></span>
 <span class="normal"><a href="#__codelineno-0-35">35</a></span>
@@ -12581,6 +12593,7 @@ coherent view on a group of component metrics for a particular timestamp.</p>
               Bases: <code><a class="autorefs autorefs-external" title="typing.Generic" href="https://docs.python.org/3/library/typing.html#typing.Generic">Generic</a>[<span title="frequenz.sdk.timeseries._base_types.QuantityT">QuantityT</span>]</code></p>
 
 
+
         <p>A 3-phase measurement made at a particular point in time.</p>
 <p>Each of the <code>value</code> fields could be <code>None</code> if a component is malfunctioning
 or data is lacking for another reason, but a sample still needs to be sent
@@ -12594,7 +12607,7 @@ timestamp.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-43"> 43</a></span>
 <span class="normal"><a href="#__codelineno-0-44"> 44</a></span>
@@ -12800,7 +12813,7 @@ timestamp.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -12947,7 +12960,7 @@ timestamp.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-64">64</a></span>
 <span class="normal"><a href="#__codelineno-0-65">65</a></span>
@@ -13065,7 +13078,7 @@ phases.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-120">120</a></span>
 <span class="normal"><a href="#__codelineno-0-121">121</a></span>
@@ -13194,7 +13207,7 @@ phases.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-80">80</a></span>
 <span class="normal"><a href="#__codelineno-0-81">81</a></span>
@@ -13309,7 +13322,7 @@ phases.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_base_types.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-103">103</a></span>
 <span class="normal"><a href="#__codelineno-0-104">104</a></span>
@@ -13374,6 +13387,7 @@ phases.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Properties of a resampling source.</p>
 
 
@@ -13383,7 +13397,7 @@ phases.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_base_types.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-38">38</a></span>
 <span class="normal"><a href="#__codelineno-0-39">39</a></span>
@@ -13431,7 +13445,7 @@ phases.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -13545,6 +13559,7 @@ phases.</p>
               Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError">RuntimeError</a></code></p>
 
 
+
         <p>A timeseries stopped producing samples.</p>
 
 
@@ -13554,7 +13569,7 @@ phases.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-11">11</a></span>
 <span class="normal"><a href="#__codelineno-0-12">12</a></span>
@@ -13600,7 +13615,7 @@ phases.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -13689,7 +13704,7 @@ phases.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-14">14</a></span>
 <span class="normal"><a href="#__codelineno-0-15">15</a></span>
@@ -13754,7 +13769,7 @@ phases.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_exceptions.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-24">24</a></span>
 <span class="normal"><a href="#__codelineno-0-25">25</a></span>
@@ -13801,6 +13816,7 @@ phases.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Information about a <code>WallClockTimer</code> tick.</p>
 
 
@@ -13810,7 +13826,7 @@ phases.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-300">300</a></span>
 <span class="normal"><a href="#__codelineno-0-301">301</a></span>
@@ -13860,7 +13876,7 @@ phases.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -13986,6 +14002,7 @@ this will be empty.</p>
    (frequenz.sdk.timeseries._resampling._wall_clock_timer.TickInfo)" href="#frequenz.sdk.timeseries.TickInfo">TickInfo</a>]</code></p>
 
 
+
         <p>A timer synchronized with the wall clock.</p>
 <p>This timer uses the wall clock to trigger ticks and handles discrepancies between
 the wall clock and monotonic time. Since sleeping is performed using monotonic time,
@@ -14050,7 +14067,7 @@ information about the clocks and their drift.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-324">324</a></span>
 <span class="normal"><a href="#__codelineno-0-325">325</a></span>
@@ -15108,7 +15125,7 @@ information about the clocks and their drift.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -15268,7 +15285,7 @@ smaller, bigger, or even <strong>negative</strong> if the wall clock jumped back
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-242">242</a></span>
 <span class="normal"><a href="#__codelineno-0-243">243</a></span>
@@ -15369,7 +15386,7 @@ smaller, bigger, or even <strong>negative</strong> if the wall clock jumped back
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-190">190</a></span>
 <span class="normal"><a href="#__codelineno-0-191">191</a></span>
@@ -15532,7 +15549,7 @@ will be created using <code>from_interval()</code>.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-360">360</a></span>
 <span class="normal"><a href="#__codelineno-0-361">361</a></span>
@@ -15705,7 +15722,7 @@ will be created using <code>from_interval()</code>.</p>
         <p>Return a string representation of this timer.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-839">839</a></span>
 <span class="normal"><a href="#__codelineno-0-840">840</a></span>
@@ -15750,7 +15767,7 @@ will be created using <code>from_interval()</code>.</p>
         <p>Return a string representation of this timer.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-835">835</a></span>
 <span class="normal"><a href="#__codelineno-0-836">836</a></span>
@@ -15784,7 +15801,7 @@ iterator interface will raise a
 <p>You can restart the timer with <code>reset()</code>.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-476">476</a></span>
 <span class="normal"><a href="#__codelineno-0-477">477</a></span>
@@ -15901,7 +15918,7 @@ returns the information about the tick that just happened.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-690">690</a></span>
 <span class="normal"><a href="#__codelineno-0-691">691</a></span>
@@ -16063,7 +16080,7 @@ determine if they should be received.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-343">343</a></span>
 <span class="normal"><a href="#__codelineno-0-344">344</a></span>
@@ -16206,7 +16223,7 @@ original receiver and use that instead.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-278">278</a></span>
 <span class="normal"><a href="#__codelineno-0-279">279</a></span>
@@ -16298,7 +16315,7 @@ until it is consumed.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-516">516</a></span>
 <span class="normal"><a href="#__codelineno-0-517">517</a></span>
@@ -16731,7 +16748,7 @@ until it is consumed.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-252">252</a></span>
 <span class="normal"><a href="#__codelineno-0-253">253</a></span>
@@ -16805,7 +16822,7 @@ until it is consumed.</p>
 <p>If the timer was closed, or not started yet, it will be started.</p>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-464">464</a></span>
 <span class="normal"><a href="#__codelineno-0-465">465</a></span>
@@ -16910,7 +16927,7 @@ selected in <code>select()</code> iteration.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>frequenz/channels/_receiver.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-372">372</a></span>
 <span class="normal"><a href="#__codelineno-0-373">373</a></span>
@@ -16989,6 +17006,7 @@ selected in <code>select()</code> iteration.</p>
     <div class="doc doc-contents ">
 
 
+
         <p>Configuration for a <a class="autorefs autorefs-internal" title="frequenz.sdk.timeseries.WallClockTimer" href="#frequenz.sdk.timeseries.WallClockTimer">wall clock timer</a>.</p>
 
 
@@ -16998,7 +17016,7 @@ selected in <code>select()</code> iteration.</p>
 
 
 
-              <details class="quote">
+              <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-25"> 25</a></span>
 <span class="normal"><a href="#__codelineno-0-26"> 26</a></span>
@@ -17308,7 +17326,7 @@ selected in <code>select()</code> iteration.</p>
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -17491,7 +17509,7 @@ time jumps.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
 <span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
@@ -17773,7 +17791,7 @@ for details.</p>
     </table>
 
 
-            <details class="quote">
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_wall_clock_timer.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-128">128</a></span>
 <span class="normal"><a href="#__codelineno-0-129">129</a></span>
