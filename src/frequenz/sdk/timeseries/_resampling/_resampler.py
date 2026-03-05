@@ -12,7 +12,7 @@ import math
 from bisect import bisect, bisect_left
 from collections import deque
 from datetime import datetime, timedelta, timezone
-from typing import assert_never
+from typing import Awaitable, Callable, assert_never
 
 from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
 from frequenz.quantities import Quantity
@@ -537,6 +537,9 @@ class _StreamingHelper:
         self._helper: _ResamplingHelper = helper
         self._source: Source = source
         self._sink: Sink = sink
+        self._sample_callback: Callable[[Sample[Quantity]], Awaitable[None]] | None = (
+            None
+        )
         self._receiving_task: asyncio.Task[None] = asyncio.create_task(
             self._receive_samples()
         )
@@ -554,6 +557,22 @@ class _StreamingHelper:
         """Cancel the receiving task."""
         await cancel_and_await(self._receiving_task)
 
+    def register_sample_callback(
+        self,
+        callback: Callable[[Sample[Quantity]], Awaitable[None]] | None,
+    ) -> None:
+        """Register a callback to be invoked when a sample arrives.
+
+        The callback is called asynchronously each time a sample is received
+        from the source. This allows consumers (like EventResampler) to be
+        notified of incoming samples without polling internal buffers.
+
+        Args:
+            callback: An async function to call when a sample arrives.
+                If `None`, no callback will be called on new samples.
+        """
+        self._sample_callback = callback
+
     async def _receive_samples(self) -> None:
         """Pass received samples to the helper.
 
@@ -563,6 +582,9 @@ class _StreamingHelper:
         async for sample in self._source:
             if sample.value is not None and not sample.value.isnan():
                 self._helper.add_sample((sample.timestamp, sample.value.base_value))
+
+                if self._sample_callback:
+                    await self._sample_callback(sample)
 
     # We need the noqa because pydoclint can't figure out that `recv_exception` is an
     # `Exception` instance.
