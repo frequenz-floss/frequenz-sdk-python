@@ -15,7 +15,7 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery
 
 from ..._internal._asyncio import cancel_and_await
-from ..._internal._channels import ChannelRegistry, ReceiverFetcher
+from ..._internal._channels import ReceiverFetcher
 from ...microgrid import connection_manager
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import Result
@@ -41,7 +41,6 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         batteries_status_receiver: Receiver[ComponentPoolStatus],
         power_manager_requests_sender: Sender[Proposal],
@@ -53,8 +52,6 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         """Create the class instance.
 
         Args:
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
             batteries_status_receiver: Receiver to receive status of the batteries.
@@ -125,13 +122,11 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
         self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
         self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry: ChannelRegistry = channel_registry
         self._power_dist_results_fetcher: ReceiverFetcher[Result] = (
             power_distribution_results_fetcher
         )
         self._formula_pool: FormulaPool = FormulaPool(
             self._namespace,
-            self._channel_registry,
             resampler_subscription_sender,
         )
 

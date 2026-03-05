@@ -18,7 +18,6 @@ from frequenz.client.microgrid.component import Component, EvCharger, Inverter, 
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity, Voltage
 
-from .._internal._channels import ChannelRegistry
 from .._internal._graph_traversal import find_first_descendant_component
 from ..timeseries._base_types import Sample, Sample3Phase
 
@@ -55,7 +54,6 @@ class VoltageStreamer:
     def __init__(
         self,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
-        channel_registry: ChannelRegistry,
         source_component: Component | None = None,
     ):
         """Initialize the phase-to-neutral voltage streaming.
@@ -63,8 +61,6 @@ class VoltageStreamer:
         Args:
             resampler_subscription_sender: The sender for sending metric
                 requests to the resampling actor.
-            channel_registry: The channel registry for the phase-to-neutral
-                voltage streaming.
             source_component: The source component to receive the
                 phase-to-neutral voltage. If None, it fetches the source
                 component from the connection manager.
@@ -72,9 +68,6 @@ class VoltageStreamer:
         """
         self._resampler_subscription_sender = resampler_subscription_sender
         """The sender for sending metric requests to the resampling actor."""
-
-        self._channel_registry = channel_registry
-        """The channel registry for the phase-to-neutral voltage streaming."""
 
         from ..microgrid import (  # pylint: disable=import-outside-toplevel
             connection_manager,

@@ -16,7 +16,6 @@ from frequenz.channels import Sender
 from frequenz.client.microgrid.component import GridConnectionPoint
 from frequenz.quantities import Current, Power, ReactivePower
 
-from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
 from ._fuse import Fuse
@@ -155,14 +154,11 @@ _GRID: Grid | None = None
 
 
 def initialize(
-    channel_registry: ChannelRegistry,
     resampler_subscription_sender: Sender[ComponentMetricRequest],
 ) -> None:
     """Initialize the grid connection.
 
     Args:
-        channel_registry: The channel registry instance shared with the
-            resampling actor.
         resampler_subscription_sender: The sender for sending metric requests
             to the resampling actor.
 
@@ -204,7 +200,6 @@ def initialize(
     namespace = f"grid-{uuid.uuid4()}"
     formula_pool = FormulaPool(
         namespace,
-        channel_registry,
         resampler_subscription_sender,
     )
 

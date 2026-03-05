@@ -11,7 +11,7 @@ from datetime import timedelta
 from frequenz.channels import Broadcast
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 
-from .._internal._channels import ChannelRegistry, ReceiverFetcher
+from .._internal._channels import ReceiverFetcher
 
 # pylint seems to think this is a cyclic import, but it is not.
 #
@@ -35,7 +35,6 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        channel_registry: ChannelRegistry,
         *,
         api_power_request_timeout: timedelta,
         power_manager_algorithm: PowerManagerAlgorithm,
@@ -45,7 +44,6 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
         """Initialize the power control.
 
         Args:
-            channel_registry: A channel registry for use in the actors.
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
             power_manager_algorithm: The power management algorithm to use.
@@ -55,7 +53,6 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
         self._default_power = default_power
         self._power_manager_algorithm = power_manager_algorithm
         self._component_class = component_class
-        self._channel_registry = channel_registry
         self._api_power_request_timeout = api_power_request_timeout
 
         self.status_channel: Broadcast[ComponentPoolStatus] = Broadcast(
@@ -109,7 +106,6 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
             power_distributing_results_receiver=(
                 self._power_distribution_results_channel.new_receiver()
             ),
-            channel_registry=self._channel_registry,
         )
         self._power_managing_actor.start()
 

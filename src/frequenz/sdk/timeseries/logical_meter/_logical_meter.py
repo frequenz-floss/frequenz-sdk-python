@@ -12,7 +12,6 @@ from frequenz.quantities import Power, Quantity
 
 from frequenz.sdk.microgrid import connection_manager
 
-from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ..formulas._formula import Formula
 from ..formulas._formula_pool import FormulaPool
@@ -57,7 +56,6 @@ class LogicalMeter:
 
     def __init__(
         self,
-        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
         """Create a `LogicalMeter` instance.
@@ -68,12 +66,9 @@ class LogicalMeter:
             for creating `LogicalMeter` instances.
 
         Args:
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
         """
-        self._channel_registry: ChannelRegistry = channel_registry
         self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
             resampler_subscription_sender
         )
@@ -83,7 +78,6 @@ class LogicalMeter:
         self._namespace: str = f"logical-meter-{uuid.uuid4()}"
         self._formula_pool: FormulaPool = FormulaPool(
             self._namespace,
-            self._channel_registry,
             self._resampler_subscription_sender,
         )
 

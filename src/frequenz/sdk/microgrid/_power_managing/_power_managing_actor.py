@@ -18,7 +18,6 @@ from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverte
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
-from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
 from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
@@ -46,7 +45,6 @@ class PowerManagingActor(Actor):
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[_power_distributing.Request],
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
-        channel_registry: ChannelRegistry,
         algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
         component_class: type[Battery | EvCharger | SolarInverter],
@@ -60,7 +58,6 @@ class PowerManagingActor(Actor):
                 requests.
             power_distributing_results_receiver: The receiver for power distribution
                 results.
-            channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
             default_power: The default power to use for the components.
             component_class: The class of component this instance is going to support.
@@ -70,7 +67,6 @@ class PowerManagingActor(Actor):
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
-        self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
         self._channel_lookup: dict[str, Broadcast[_Report]] = {}
 

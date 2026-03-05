@@ -31,7 +31,6 @@ async def get_resampled_stream(
     # pylint: disable=protected-access
     builder = ResampledStreamFetcher(
         namespace=namespace,
-        channel_registry=_data_pipeline._get()._channel_registry,
         resampler_subscription_sender=_data_pipeline._get()._resampling_request_sender(),
         metric=metric,
     )

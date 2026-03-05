@@ -14,7 +14,6 @@ from frequenz.client.microgrid.component import Component, EvCharger, Inverter, 
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Frequency, Quantity
 
-from .._internal._channels import ChannelRegistry
 from .._internal._graph_traversal import find_first_descendant_component
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
@@ -29,14 +28,12 @@ class GridFrequency:
     def __init__(
         self,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
-        channel_registry: ChannelRegistry,
         source: Component | None = None,
     ):
         """Initialize the grid frequency formula generator.
 
         Args:
             data_sourcing_request_sender: The sender to use for requests.
-            channel_registry: The channel registry to use for the grid frequency.
             source: The source component to use to receive the grid frequency.
         """
         if not source:
@@ -49,7 +46,6 @@ class GridFrequency:
         self._request_sender: Sender[ComponentMetricRequest] = (
             data_sourcing_request_sender
         )
-        self._channel_registry: ChannelRegistry = channel_registry
         self._source_component: Component = source
 
         # Microgrid API source will send the stream through a oneshot channel

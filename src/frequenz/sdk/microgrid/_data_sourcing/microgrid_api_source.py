@@ -15,7 +15,6 @@ from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import run_forever
-from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
 from .._old_component_data import (
@@ -159,16 +158,8 @@ class MicrogridApiSource:
     Used by the DataSourcingActor.
     """
 
-    def __init__(
-        self,
-        registry: ChannelRegistry,
-    ) -> None:
-        """Create a `MicrogridApiSource` instance.
-
-        Args:
-            registry: A channel registry.  To be replaced by a singleton
-                instance.
-        """
+    def __init__(self) -> None:
+        """Create a `MicrogridApiSource` instance."""
         self._comp_categories_cache: dict[ComponentId, ComponentCategory | int] = {}
 
         self.comp_data_receivers: dict[ComponentId, Receiver[Any]] = {}
@@ -177,7 +168,6 @@ class MicrogridApiSource:
         self.comp_data_tasks: dict[ComponentId, asyncio.Task[None]] = {}
         """The dictionary of component IDs to asyncio tasks."""
 
-        self._registry = registry
         self._req_streaming_metrics: dict[
             ComponentId, dict[Metric | TransitionalMetric, list[ComponentMetricRequest]]
         ] = {}

@@ -8,7 +8,6 @@ import uuid
 from frequenz.channels import Sender
 from frequenz.quantities import Power
 
-from .._internal._channels import ChannelRegistry
 from ..microgrid import connection_manager
 from ..microgrid._data_sourcing import ComponentMetricRequest
 from .formulas._formula import Formula
@@ -57,19 +56,16 @@ class Consumer:
 
     def __init__(
         self,
-        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
         """Initialize the consumer formula generator.
 
         Args:
-            channel_registry: The channel registry to use for the consumer.
             resampler_subscription_sender: The sender to use for resampler subscriptions.
         """
         namespace = f"consumer-{uuid.uuid4()}"
         self._formula_pool = FormulaPool(
             namespace,
-            channel_registry,
             resampler_subscription_sender,
         )
 

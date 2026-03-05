@@ -11,7 +11,6 @@ from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
 from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
-from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import Sample
 from ..timeseries._resampling._config import ResamplerConfig
@@ -28,7 +27,6 @@ class ComponentMetricsResamplingActor(Actor):
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        channel_registry: ChannelRegistry,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
         config: ResamplerConfig,
@@ -37,8 +35,6 @@ class ComponentMetricsResamplingActor(Actor):
         """Initialize an instance.
 
         Args:
-            channel_registry: The channel registry used to get senders and
-                receivers for data sourcing subscriptions.
             data_sourcing_request_sender: The sender used to send requests to
                 the [`DataSourcingActor`][frequenz.sdk.actor.DataSourcingActor]
                 to subscribe to component metrics.
@@ -49,7 +45,6 @@ class ComponentMetricsResamplingActor(Actor):
                 is used mostly for debugging purposes.
         """
         super().__init__(name=name)
-        self._channel_registry: ChannelRegistry = channel_registry
         self._data_sourcing_request_sender: Sender[ComponentMetricRequest] = (
             data_sourcing_request_sender
         )

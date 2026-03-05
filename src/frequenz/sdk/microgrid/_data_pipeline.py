@@ -20,7 +20,6 @@ from frequenz.channels import Broadcast, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 
-from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import ResamplerConfig
 from ..timeseries._voltage_streamer import VoltageStreamer
@@ -96,29 +95,22 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         """
         self._resampler_config: ResamplerConfig = resampler_config
 
-        self._channel_registry: ChannelRegistry = ChannelRegistry(
-            name="Data Pipeline Registry"
-        )
-
         self._data_sourcing_actor: _ActorInfo | None = None
         self._resampling_actor: _ActorInfo | None = None
 
         self._battery_power_wrapper = PowerWrapper(
-            self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=battery_power_manager_algorithm,
             default_power=DefaultPower.ZERO,
             component_class=Battery,
         )
         self._ev_power_wrapper = PowerWrapper(
-            self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MAX,
             component_class=EvCharger,
         )
         self._pv_power_wrapper = PowerWrapper(
-            self._channel_registry,
             api_power_request_timeout=api_power_request_timeout,
             power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
             default_power=DefaultPower.MIN,
@@ -158,7 +150,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if self._frequency_instance is None:
             self._frequency_instance = GridFrequency(
                 self._data_sourcing_request_sender(),
-                self._channel_registry,
             )
 
         return self._frequency_instance
@@ -166,10 +157,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
     def voltage_per_phase(self) -> VoltageStreamer:
         """Return the per-phase voltage measuring point."""
         if not self._voltage_instance:
-            self._voltage_instance = VoltageStreamer(
-                self._resampling_request_sender(),
-                self._channel_registry,
-            )
+            self._voltage_instance = VoltageStreamer(self._resampling_request_sender())
 
         return self._voltage_instance
 
@@ -179,7 +167,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._logical_meter is None:
             self._logical_meter = LogicalMeter(
-                channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._logical_meter
@@ -190,7 +177,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._consumer is None:
             self._consumer = Consumer(
-                channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._consumer
@@ -201,7 +187,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._producer is None:
             self._producer = Producer(
-                channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._producer
@@ -213,7 +198,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if self._grid is None:
             initialize_grid(
-                channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
             self._grid = get_grid()
@@ -273,7 +257,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if ref_store_key not in self._ev_charger_pool_reference_stores:
             self._ev_charger_pool_reference_stores[ref_store_key] = (
                 EVChargerPoolReferenceStore(
-                    channel_registry=self._channel_registry,
                     resampler_subscription_sender=self._resampling_request_sender(),
                     status_receiver=self._ev_power_wrapper.status_channel.new_receiver(
                         limit=1
@@ -346,7 +329,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         if ref_store_key not in self._pv_pool_reference_stores:
             self._pv_pool_reference_stores[ref_store_key] = PVPoolReferenceStore(
-                channel_registry=self._channel_registry,
                 resampler_subscription_sender=self._resampling_request_sender(),
                 status_receiver=(
                     self._pv_power_wrapper.status_channel.new_receiver(limit=1)
@@ -422,7 +404,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if ref_store_key not in self._battery_pool_reference_stores:
             self._battery_pool_reference_stores[ref_store_key] = (
                 BatteryPoolReferenceStore(
-                    channel_registry=self._channel_registry,
                     resampler_subscription_sender=self._resampling_request_sender(),
                     batteries_status_receiver=(
                         self._battery_power_wrapper.status_channel.new_receiver(limit=1)
@@ -461,7 +442,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             )
             actor = DataSourcingActor(
                 request_receiver=channel.new_receiver(limit=_REQUEST_RECV_BUFFER_SIZE),
-                registry=self._channel_registry,
             )
             self._data_sourcing_actor = _ActorInfo(actor, channel)
             self._data_sourcing_actor.actor.start()
@@ -482,7 +462,6 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 name="Data Pipeline: Component Metric Resampling Actor Request Channel"
             )
             actor = ComponentMetricsResamplingActor(
-                channel_registry=self._channel_registry,
                 data_sourcing_request_sender=self._data_sourcing_request_sender(),
                 resampling_request_receiver=channel.new_receiver(
                     limit=_REQUEST_RECV_BUFFER_SIZE,
