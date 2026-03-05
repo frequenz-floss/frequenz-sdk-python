@@ -160,14 +160,6 @@ class Resampler:
         Args:
             one_shot: Wether the resampling should run only for one resampling
                 period.
-
-        Raises:
-            ResamplingError: If some timeseries source or sink encounters any
-                errors while receiving or sending samples. In this case the
-                timer still runs and the timeseries will keep receiving data.
-                The user should remove (and re-add if desired) the faulty
-                timeseries from the resampler before calling this method
-                again).
         """
         # We use a tolerance of 10% of the resampling period
         tolerance = timedelta(
@@ -200,27 +192,44 @@ class Resampler:
                 case unexpected:
                     assert_never(unexpected)
 
-            # We need to make a copy here because we need to match the results to the
-            # current resamplers, and since we await here, new resamplers could be added
-            # or removed from the dict while we awaiting the resampling, which would
-            # cause the results to be out of sync.
-            resampler_sources = list(self._resamplers)
-            results = await asyncio.gather(
-                *[r.resample(next_tick_time) for r in self._resamplers.values()],
-                return_exceptions=True,
-            )
+            await self._emit_window(next_tick_time)
 
-            exceptions = {
-                source: result
-                for source, result in zip(resampler_sources, results)
-                # CancelledError inherits from BaseException, but we don't want
-                # to catch *all* BaseExceptions here.
-                if isinstance(result, (Exception, asyncio.CancelledError))
-            }
-            if exceptions:
-                raise ResamplingError(exceptions)
             if one_shot:
                 break
+
+    async def _emit_window(self, window_end: datetime) -> None:
+        """Emit resampled samples for all timeseries at the given window boundary.
+
+        Args:
+            window_end: The timestamp marking the end of the resampling window.
+
+        Raises:
+            ResamplingError: If some timeseries source or sink encounters any
+                errors while receiving or sending samples. In this case the
+                timer still runs and the timeseries will keep receiving data.
+                The user should remove (and re-add if desired) the faulty
+                timeseries from the resampler before calling this method
+                again).
+        """
+        # We need to make a copy here because we need to match the results to the
+        # current resamplers, and since we await here, new resamplers could be added
+        # or removed from the dict while we awaiting the resampling, which would
+        # cause the results to be out of sync.
+        resampler_sources = list(self._resamplers)
+        results = await asyncio.gather(
+            *[r.resample(window_end) for r in self._resamplers.values()],
+            return_exceptions=True,
+        )
+
+        exceptions = {
+            source: result
+            for source, result in zip(resampler_sources, results)
+            # CancelledError inherits from BaseException, but we don't want
+            # to catch *all* BaseExceptions here.
+            if isinstance(result, (Exception, asyncio.CancelledError))
+        }
+        if exceptions:
+            raise ResamplingError(exceptions)
 
     def _calculate_window_end(self) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
