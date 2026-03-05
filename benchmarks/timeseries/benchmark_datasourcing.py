@@ -16,15 +16,16 @@ import tracemalloc
 from time import perf_counter
 from typing import Any
 
-from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
+from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError, make_oneshot
 from frequenz.client.microgrid.metrics import Metric
+from frequenz.quantities import Quantity
 
 from frequenz.sdk import microgrid
-from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.microgrid._data_sourcing import (
     ComponentMetricRequest,
     DataSourcingActor,
 )
+from frequenz.sdk.timeseries import Sample
 
 try:
     from tests.timeseries.mock_microgrid import MockMicrogrid
@@ -80,7 +81,6 @@ async def benchmark_data_sourcing(  # pylint: disable=too-many-locals
         name="DataSourcingActor Request Channel"
     )
 
-    channel_registry = ChannelRegistry(name="Microgrid Channel Registry")
     request_receiver = request_channel.new_receiver(
         name="datasourcing-benchmark",
         limit=(num_ev_chargers * len(COMPONENT_METRIC_IDS)),
@@ -105,18 +105,21 @@ async def benchmark_data_sourcing(  # pylint: disable=too-many-locals
 
     for evc_id in mock_grid.evc_ids:
         for component_metric_id in COMPONENT_METRIC_IDS:
-            request = ComponentMetricRequest(
-                "current_phase_requests", evc_id, component_metric_id, None
+            telem_stream_sender, telem_stream_receiver = make_oneshot(
+                Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
             )
-
-            recv_channel = channel_registry.get_or_create(
-                ComponentMetricRequest, request.get_channel_name()
-            ).new_receiver()
-
+            request = ComponentMetricRequest(
+                namespace="current_phase_requests",
+                component_id=evc_id,
+                metric=component_metric_id,
+                start_time=None,
+                telem_stream_sender=telem_stream_sender,
+            )
             await request_sender.send(request)
-            consume_tasks.append(asyncio.create_task(consume(recv_channel)))
+            stream_receiver = await telem_stream_receiver.receive()
+            consume_tasks.append(asyncio.create_task(consume(stream_receiver)))
 
-    async with DataSourcingActor(request_receiver, channel_registry):
+    async with DataSourcingActor(request_receiver):
         await asyncio.gather(*consume_tasks)
 
         time_taken = perf_counter() - start_time
