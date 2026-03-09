@@ -12,12 +12,15 @@ import asyncio
 import uuid
 from collections import abc
 
+from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
+from frequenz.channels.experimental import Pipe
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 
 from ... import timeseries
 from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
 from ...microgrid import _power_distributing, _power_managing, connection_manager
+from ...microgrid._power_managing import ReportRequest, _Report
 from ...timeseries import Sample
 from .._base_types import SystemBounds
 from ..formulas._formula import Formula
@@ -74,6 +77,7 @@ class BatteryPool:
         unique_id = str(uuid.uuid4())
         self._source_id = unique_id if name is None else f"{name}-{unique_id}"
         self._priority = priority
+        self._report_stream_receiver: Receiver[Receiver[_Report]] | None = None
 
     async def propose_power(
         self,
@@ -329,22 +333,48 @@ class BatteryPool:
         Returns:
             A receiver that will stream power status reports for the pool's priority.
         """
-        sub = _power_managing.ReportRequest(
+        report_stream_sender, self._report_stream_receiver = make_oneshot(
+            Receiver[_Report]  # type: ignore[type-abstract]
+        )
+        request = _power_managing.ReportRequest(
             source_id=self._source_id,
             priority=self._priority,
             component_ids=self._pool_ref_store._batteries,
+            report_stream_sender=report_stream_sender,
         )
-        self._pool_ref_store._power_bounds_subs[sub.get_channel_name()] = (
+
+        forwarding_channel = Broadcast[_Report](
+            name=request.get_channel_name() + ":Forwarded",
+            resend_latest=True,
+        )
+
+        self._pool_ref_store._power_bounds_subs[request.get_channel_name()] = (
             asyncio.create_task(
-                self._pool_ref_store._power_manager_bounds_subscription_sender.send(sub)
+                self._send_request(forwarding_channel.new_sender(), request)
             )
         )
-        channel = self._pool_ref_store._channel_registry.get_or_create(
-            _power_managing._Report, sub.get_channel_name()
-        )
-        channel.resend_latest = True
 
-        return channel
+        return forwarding_channel
+
+    async def _send_request(
+        self,
+        forwarding_sender: Sender[_Report],
+        request: ReportRequest,
+    ) -> None:
+        """Send the report request and receive the report channel.
+
+        Connect it via pipe to the channel that was returned in power_status.
+        """
+        await self._pool_ref_store._power_manager_bounds_subscription_sender.send(
+            request
+        )
+
+        assert self._report_stream_receiver is not None
+        report_receiver: Receiver[_Report] = (
+            await self._report_stream_receiver.receive()
+        )
+        pipe = Pipe(report_receiver, forwarding_sender)
+        await pipe.start()
 
     @property
     def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:
