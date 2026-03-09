@@ -8,7 +8,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric
@@ -181,6 +181,9 @@ class MicrogridApiSource:
         self._req_streaming_metrics: dict[
             ComponentId, dict[Metric | TransitionalMetric, list[ComponentMetricRequest]]
         ] = {}
+
+        self._channel_lookup: dict[str, Broadcast[Sample[Quantity]]] = {}
+        """ Channel cache for reuse (map channel name to channel)."""
 
     async def _get_component_category(
         self, comp_id: ComponentId
@@ -397,7 +400,7 @@ class MicrogridApiSource:
         _logger.error(err)
         raise ValueError(err)
 
-    def _get_metric_senders(
+    async def _get_metric_senders(
         self,
         category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
@@ -413,18 +416,23 @@ class MicrogridApiSource:
             A dictionary of output metric names to channel senders from the channel
                 registry.
         """
-        return [
-            (
-                self._get_data_extraction_method(category, metric),
-                [
-                    self._registry.get_or_create(
-                        Sample[Quantity], request.get_channel_name()
-                    ).new_sender()
-                    for request in req_list
-                ],
-            )
-            for (metric, req_list) in requests.items()
-        ]
+        all_senders = []
+        for metric, req_list in requests.items():
+            extraction_method = self._get_data_extraction_method(category, metric)
+            senders = []
+            for request in req_list:
+                channel_name = request.get_channel_name()
+                # Create missing channels and inform the requesting side via oneshot
+                if channel_name not in self._channel_lookup:
+                    telem_stream: Broadcast[Sample[Quantity]] = Broadcast(
+                        name=channel_name
+                    )
+                    self._channel_lookup[channel_name] = telem_stream
+                    await request.telem_stream_sender.send(telem_stream.new_receiver())
+                senders.append(self._channel_lookup[channel_name].new_sender())
+            all_senders.append((extraction_method, senders))
+
+        return all_senders
 
     async def _handle_data_stream(
         self,
@@ -446,7 +454,7 @@ class MicrogridApiSource:
                 await self._check_requested_component_and_metrics(
                     comp_id, category, self._req_streaming_metrics[comp_id]
                 )
-                stream_senders = self._get_metric_senders(
+                stream_senders = await self._get_metric_senders(
                     category, self._req_streaming_metrics[comp_id]
                 )
             api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]

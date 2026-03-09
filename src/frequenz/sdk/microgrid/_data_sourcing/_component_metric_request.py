@@ -6,12 +6,16 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.microgrid._old_component_data import TransitionalMetric
 
 __all__ = ["ComponentMetricRequest", "Metric"]
+
+from frequenz.sdk.timeseries import Sample
 
 
 @dataclass
@@ -50,6 +54,9 @@ class ComponentMetricRequest:
 
     If None, only live data is streamed.
     """
+
+    telem_stream_sender: Sender[Receiver[Sample[Quantity]]]
+    """Sender of a oneshot channel used to send the data stream back to the requester."""
 
     def get_channel_name(self) -> str:
         """Construct the channel name based on the request parameters.
