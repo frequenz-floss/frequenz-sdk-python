@@ -5,10 +5,9 @@
 
 
 import asyncio
-import dataclasses
 import logging
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
 from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
@@ -58,7 +57,7 @@ class ComponentMetricsResamplingActor(Actor):
             resampling_request_receiver
         )
         self._resampler: Resampler = Resampler(config)
-        self._active_req_channels: set[str] = set()
+        self._upstream_channels: dict[str, Broadcast[Sample[Quantity]]] = {}
 
     async def _subscribe(self, request: ComponentMetricRequest) -> None:
         """Request data for a component metric.
@@ -68,28 +67,38 @@ class ComponentMetricsResamplingActor(Actor):
         """
         request_channel_name = request.get_channel_name()
 
-        # If we are already handling this request, there is nothing to do.
-        if request_channel_name in self._active_req_channels:
+        # If we are already handling this request, answer the request by sending a
+        # new receiver from the existing channel.
+        if upstream_channel := self._upstream_channels.get(request_channel_name):
+            await request.telem_stream_sender.send(upstream_channel.new_receiver())
             return
 
-        self._active_req_channels.add(request_channel_name)
-
-        data_source_request = dataclasses.replace(
-            request, namespace=request.namespace + ":Source"
+        # Derive a new ComponentMetricRequest from the given one to
+        # receive the telemetry stream from the data sourcing actor.
+        telem_stream_sender, telem_stream_receiver = make_oneshot(
+            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
         )
-        data_source_channel_name = data_source_request.get_channel_name()
-        await self._data_sourcing_request_sender.send(data_source_request)
-        receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], data_source_channel_name
-        ).new_receiver()
+        own_request = ComponentMetricRequest(
+            namespace=request.namespace + ":Source",
+            component_id=request.component_id,
+            metric=request.metric,
+            start_time=request.start_time,
+            telem_stream_sender=telem_stream_sender,
+        )
+        await self._data_sourcing_request_sender.send(own_request)
+        telem_stream = await telem_stream_receiver.receive()
 
-        # This is a temporary hack until the Sender implementation uses
-        # exceptions to report errors.
-        sender = self._channel_registry.get_or_create(
-            Sample[Quantity], request_channel_name
-        ).new_sender()
+        # Create a new channel based on the original ComponentMetricRequest
+        # to act as our data sink.
+        upstream_channel = Broadcast(name=request_channel_name, resend_latest=True)
+        await request.telem_stream_sender.send(upstream_channel.new_receiver())
+        self._upstream_channels[request_channel_name] = upstream_channel
 
-        self._resampler.add_timeseries(request_channel_name, receiver, sender.send)
+        self._resampler.add_timeseries(
+            name=request_channel_name,
+            source=telem_stream,
+            sink=upstream_channel.new_sender().send,
+        )
 
     async def _process_resampling_requests(self) -> None:
         """Process resampling data requests."""

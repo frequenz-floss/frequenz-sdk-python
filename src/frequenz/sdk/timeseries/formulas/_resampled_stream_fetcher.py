@@ -3,7 +3,7 @@
 
 """Fetches telemetry streams for components."""
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Receiver, Sender, make_oneshot
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
 
@@ -54,18 +54,17 @@ class ResampledStreamFetcher:
         Returns:
             A receiver to stream resampled data for the given component id.
         """
+        telem_stream_sender, telem_stream_receiver = make_oneshot(
+            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
+        )
+
         request = ComponentMetricRequest(
             self._namespace,
             component_id,
             self._metric,
             None,
+            telem_stream_sender,
         )
-
-        chan = self._channel_registry.get_or_create(
-            Sample[Quantity], request.get_channel_name()
-        )
-        chan.resend_latest = True
 
         await self._resampler_subscription_sender.send(request)
-
-        return chan.new_receiver()
+        return await telem_stream_receiver.receive()

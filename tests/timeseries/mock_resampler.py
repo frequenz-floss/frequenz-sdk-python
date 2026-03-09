@@ -41,12 +41,17 @@ class MockResampler:
     ) -> None:
         """Create a `MockDataPipeline` instance."""
         self._data_pipeline = _DataPipeline(resampler_config)
-
-        self._channel_registry = self._data_pipeline._channel_registry
+        self._channel_lookup: dict[str, Broadcast[Sample[Quantity]]] = {}
         self._resampler_request_channel = Broadcast[ComponentMetricRequest](
-            name="resampler-request"
+            name="resampler-request",
+            resend_latest=True,
         )
         self._input_channels_receivers: dict[str, list[Receiver[Sample[Quantity]]]] = {}
+
+        def get_or_create_channel(name: str) -> Broadcast[Sample[Quantity]]:
+            if name not in self._channel_lookup:
+                self._channel_lookup[name] = Broadcast[Sample[Quantity]](name=name)
+            return self._channel_lookup[name]
 
         def metric_senders(
             comp_ids: list[ComponentId],
@@ -55,15 +60,9 @@ class MockResampler:
             senders: list[Sender[Sample[Quantity]]] = []
             for comp_id in comp_ids:
                 name = f"{comp_id}:{metric_id}"
-                senders.append(
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], name
-                    ).new_sender()
-                )
+                senders.append(get_or_create_channel(name).new_sender())
                 self._input_channels_receivers[name] = [
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], name
-                    ).new_receiver()
+                    get_or_create_channel(name).new_receiver()
                     for _ in range(namespaces)
                 ]
             return senders
@@ -115,33 +114,21 @@ class MockResampler:
 
                 senders.append(
                     [
-                        self._channel_registry.get_or_create(
-                            Sample[Quantity], p1_name
-                        ).new_sender(),
-                        self._channel_registry.get_or_create(
-                            Sample[Quantity], p2_name
-                        ).new_sender(),
-                        self._channel_registry.get_or_create(
-                            Sample[Quantity], p3_name
-                        ).new_sender(),
+                        get_or_create_channel(p1_name).new_sender(),
+                        get_or_create_channel(p2_name).new_sender(),
+                        get_or_create_channel(p3_name).new_sender(),
                     ]
                 )
                 self._input_channels_receivers[p1_name] = [
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], p1_name
-                    ).new_receiver()
+                    get_or_create_channel(p1_name).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._input_channels_receivers[p2_name] = [
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], p2_name
-                    ).new_receiver()
+                    get_or_create_channel(p2_name).new_receiver()
                     for _ in range(namespaces)
                 ]
                 self._input_channels_receivers[p3_name] = [
-                    self._channel_registry.get_or_create(
-                        Sample[Quantity], p3_name
-                    ).new_receiver()
+                    get_or_create_channel(p3_name).new_receiver()
                     for _ in range(namespaces)
                 ]
             return senders
@@ -237,16 +224,26 @@ class MockResampler:
     async def _handle_resampling_requests(self) -> None:
         async for request in self._resampler_request_channel.new_receiver():
             name = request.get_channel_name()
+
             if name in self._forward_tasks:
+                # Forward task exists, but we must create a new receiver
+                # from the existing channel and return it to the request sender.
+                assert name in self._channel_lookup
+                output_channel = self._channel_lookup[name]
+                await request.telem_stream_sender.send(output_channel.new_receiver())
                 continue
+
             input_chan_recv_name = f"{request.component_id}:{request.metric}"
             input_chan_recv = self._input_channels_receivers[input_chan_recv_name].pop()
             assert input_chan_recv is not None
-            output_chan_sender: Sender[Sample[Quantity]] = (
-                self._channel_registry.get_or_create(
-                    Sample[Quantity], name
-                ).new_sender()
-            )
+
+            if name not in self._channel_lookup:
+                self._channel_lookup[name] = Broadcast(name=name, resend_latest=True)
+
+            output_channel = self._channel_lookup[name]
+            output_chan_sender = output_channel.new_sender()
+            await request.telem_stream_sender.send(output_channel.new_receiver())
+
             task = asyncio.create_task(
                 self._channel_forward_messages(
                     input_chan_recv,
