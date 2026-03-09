@@ -69,6 +69,8 @@ class GridFrequency:
 
         # Sadly needed for testing
         self._task: None | asyncio.Task[None] = None
+        # Keep a reference to prevent garbage collector from destroying pipe
+        self._pipe: Pipe[Sample[Quantity]] | None = None
 
     @property
     def source(self) -> Component:
@@ -110,4 +112,5 @@ class GridFrequency:
         telem_receiver: Receiver[Sample[Quantity]] = (
             await self._telem_stream_receiver.receive()
         )
-        await Pipe(telem_receiver, forwarding_sender).start()
+        self._pipe = Pipe(telem_receiver, forwarding_sender)
+        await self._pipe.start()

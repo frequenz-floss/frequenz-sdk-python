@@ -60,6 +60,8 @@ class PVPool:
         self._source_id = str(unique_id) if name is None else f"{name}-{unique_id}"
         self._priority = priority
         self._report_stream_receiver: Receiver[Receiver[_Report]] | None = None
+        # Keep a reference to prevent garbage collector from destroying pipe
+        self._pipe: Pipe[_Report] | None = None
 
     async def propose_power(
         self,
@@ -185,8 +187,8 @@ class PVPool:
         report_receiver: Receiver[_Report] = (
             await self._report_stream_receiver.receive()
         )
-        pipe = Pipe(report_receiver, forwarding_sender)
-        await pipe.start()
+        self._pipe = Pipe(report_receiver, forwarding_sender)
+        await self._pipe.start()
 
     @property
     def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:
