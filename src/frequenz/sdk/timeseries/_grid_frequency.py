@@ -8,8 +8,8 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from frequenz.channels import Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
+from frequenz.channels.experimental import Pipe
 from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Frequency, Quantity
@@ -21,20 +21,6 @@ from ..microgrid._data_sourcing import ComponentMetricRequest
 from ..timeseries._base_types import Sample
 
 _logger = logging.getLogger(__name__)
-
-
-def create_request(component_id: ComponentId) -> ComponentMetricRequest:
-    """Create a request for grid frequency.
-
-    Args:
-        component_id: The component id to use for the request.
-
-    Returns:
-        A component metric request for grid frequency.
-    """
-    return ComponentMetricRequest(
-        "grid-frequency", component_id, Metric.AC_FREQUENCY, None
-    )
 
 
 class GridFrequency:
@@ -65,10 +51,27 @@ class GridFrequency:
         )
         self._channel_registry: ChannelRegistry = channel_registry
         self._source_component: Component = source
-        self._component_metric_request: ComponentMetricRequest = create_request(
-            self._source_component.id
+
+        # Microgrid API source will send the stream through a oneshot channel
+        telem_stream_sender, self._telem_stream_receiver = make_oneshot(
+            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
         )
 
+        self._component_metric_request = ComponentMetricRequest(
+            "grid-frequency",
+            self._source_component.id,
+            Metric.AC_FREQUENCY,
+            None,
+            telem_stream_sender,
+        )
+
+        # This channel merely forwards the telemetry stream. It is needed
+        # because we must return a receiver synchronously in new_receiver.
+        # The "real" channel for telemetry must be created in and owned by
+        # MicrogridApiSource, otherwise streams would not be reused.
+        self._forwarding_channel: Broadcast[Sample[Quantity]] | None = None
+
+        # Sadly needed for testing
         self._task: None | asyncio.Task[None] = None
 
     @property
@@ -86,18 +89,13 @@ class GridFrequency:
         Returns:
             A receiver that will receive grid frequency samples.
         """
-        receiver = self._channel_registry.get_or_create(
-            Sample[Quantity], self._component_metric_request.get_channel_name()
-        ).new_receiver()
-
-        if not self._task:
-            self._task = asyncio.create_task(self._send_request())
-        else:
-            _logger.info(
-                "Grid frequency request already sent: %s", self._source_component
+        if self._forwarding_channel is None:
+            self._forwarding_channel = Broadcast(name="Forward frequency samples")
+            self._task = asyncio.create_task(
+                self._send_request(self._forwarding_channel.new_sender())
             )
 
-        return receiver.map(
+        return self._forwarding_channel.new_receiver().map(
             lambda sample: (
                 Sample[Frequency](sample.timestamp, None)
                 if sample.value is None or sample.value.isnan()
@@ -107,7 +105,13 @@ class GridFrequency:
             )
         )
 
-    async def _send_request(self) -> None:
+    async def _send_request(self, forwarding_sender: Sender[Sample[Quantity]]) -> None:
         """Send the request for grid frequency."""
         await self._request_sender.send(self._component_metric_request)
         _logger.debug("Sent request for grid frequency: %s", self._source_component)
+
+        # Receive the telemetry stream and forward it via pipe
+        telem_receiver: Receiver[Sample[Quantity]] = (
+            await self._telem_stream_receiver.receive()
+        )
+        await Pipe(telem_receiver, forwarding_sender).start()
