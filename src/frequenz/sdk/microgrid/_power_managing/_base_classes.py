@@ -10,6 +10,7 @@ import dataclasses
 import enum
 import typing
 
+from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
@@ -31,7 +32,10 @@ class ReportRequest:
     """The component IDs to report on."""
 
     priority: int
-    """The priority of the actor ."""
+    """The priority of the actor."""
+
+    report_stream_sender: Sender[Receiver[_Report]]
+    """Oneshot sender to transmit the report receiver."""
 
     def get_channel_name(self) -> str:
         """Get the channel name for the report request.

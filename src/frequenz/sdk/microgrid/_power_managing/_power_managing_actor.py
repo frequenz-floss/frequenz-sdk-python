@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
-from frequenz.channels import Receiver, Sender, select, selected_from
+from frequenz.channels import Broadcast, Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
@@ -72,6 +72,7 @@ class PowerManagingActor(Actor):
         self._power_distributing_results_receiver = power_distributing_results_receiver
         self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
+        self._channel_lookup: dict[str, Broadcast[_Report]] = {}
 
         self._system_bounds: dict[frozenset[ComponentId], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
@@ -233,18 +234,27 @@ class PowerManagingActor(Actor):
                 component_ids = sub.component_ids
                 priority = sub.priority
 
+                async def get_or_create_channel(
+                    subscription: ReportRequest,
+                ) -> Broadcast[_Report]:
+                    channel_name = subscription.get_channel_name()
+                    if channel_name not in self._channel_lookup:
+                        report_channel = Broadcast[_Report](name=channel_name)
+                        report_channel.resend_latest = True
+                        self._channel_lookup[channel_name] = report_channel
+                        await subscription.report_stream_sender.send(
+                            report_channel.new_receiver()
+                        )
+                    return self._channel_lookup[channel_name]
+
                 if component_ids not in self._subscriptions:
+                    channel = await get_or_create_channel(sub)
                     self._subscriptions[component_ids] = {
-                        priority: self._channel_registry.get_or_create(
-                            _Report, sub.get_channel_name()
-                        ).new_sender()
+                        priority: channel.new_sender()
                     }
                 elif priority not in self._subscriptions[component_ids]:
-                    self._subscriptions[component_ids][priority] = (
-                        self._channel_registry.get_or_create(
-                            _Report, sub.get_channel_name()
-                        ).new_sender()
-                    )
+                    channel = await get_or_create_channel(sub)
+                    self._subscriptions[component_ids][priority] = channel.new_sender()
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_system_bounds_tracker(sub.component_ids)
