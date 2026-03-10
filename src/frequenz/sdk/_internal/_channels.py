@@ -4,11 +4,10 @@
 """General purpose classes for use with channels."""
 
 import abc
-import dataclasses
 import logging
 import typing
 
-from frequenz.channels import Broadcast, Receiver
+from frequenz.channels import Receiver
 
 _logger = logging.getLogger(__name__)
 
@@ -60,19 +59,3 @@ class MappingReceiverFetcher(typing.Generic[T_co, U_co]):
             A receiver instance.
         """
         return self._mapping_function(self._fetcher.new_receiver(limit=limit))
-
-
-@dataclasses.dataclass(frozen=True)
-class _Entry:
-    """An entry in a channel registry."""
-
-    message_type: type
-    """The type of the message that is sent through the channel in this entry."""
-
-    # We use object instead of Any to minimize the chances of hindering type checking.
-    # If for some reason the channel is not casted to the proper underlaying type, when
-    # using object at least accessing any member that's not part of the object base
-    # class will yield a type error, while if we used Any, it would not and the issue
-    # would be much harder to find.
-    channel: Broadcast[object]
-    """The channel in this entry."""

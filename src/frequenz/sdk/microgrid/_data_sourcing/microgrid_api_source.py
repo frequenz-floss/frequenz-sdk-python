@@ -173,8 +173,8 @@ class MicrogridApiSource:
             ComponentId, dict[Metric | TransitionalMetric, list[ComponentMetricRequest]]
         ] = {}
 
-        self._channel_lookup: dict[str, Broadcast[Sample[Quantity]]] = {}
-        """ Channel cache for reuse (map channel name to channel)."""
+        self._channels: dict[str, Broadcast[Sample[Quantity]]] = {}
+        """Metric data channels by channel name, to enable reuse."""
 
     async def _get_component_category(
         self, comp_id: ComponentId
@@ -414,13 +414,13 @@ class MicrogridApiSource:
             for request in req_list:
                 channel_name = request.get_channel_name()
                 # Create missing channels and inform the requesting side via oneshot
-                if channel_name not in self._channel_lookup:
+                if channel_name not in self._channels:
                     telem_stream: Broadcast[Sample[Quantity]] = Broadcast(
                         name=channel_name
                     )
-                    self._channel_lookup[channel_name] = telem_stream
+                    self._channels[channel_name] = telem_stream
                     await request.telem_stream_sender.send(telem_stream.new_receiver())
-                senders.append(self._channel_lookup[channel_name].new_sender())
+                senders.append(self._channels[channel_name].new_sender())
             all_senders.append((extraction_method, senders))
 
         return all_senders
