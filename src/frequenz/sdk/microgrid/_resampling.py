@@ -7,7 +7,7 @@
 import asyncio
 import logging
 
-from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
+from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
 from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await
@@ -70,9 +70,9 @@ class ComponentMetricsResamplingActor(Actor):
 
         # Derive a new ComponentMetricRequest from the given one to
         # receive the telemetry stream from the data sourcing actor.
-        telem_stream_sender, telem_stream_receiver = make_oneshot(
-            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
-        )
+        telem_stream_sender, telem_stream_receiver = OneshotChannel[
+            Receiver[Sample[Quantity]]
+        ]()
         own_request = ComponentMetricRequest(
             namespace=request.namespace + ":Source",
             component_id=request.component_id,

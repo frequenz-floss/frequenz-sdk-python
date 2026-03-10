@@ -8,7 +8,8 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from frequenz.channels import Broadcast, Receiver, Sender
+from frequenz.channels import Broadcast, Receiver
+from frequenz.channels._broadcast import BroadcastSender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric
@@ -394,7 +395,7 @@ class MicrogridApiSource:
         self,
         category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
-    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
+    ) -> list[tuple[Callable[[Any], float], list[BroadcastSender[Sample[Quantity]]]]]:
         """Get channel senders from the channel registry for each requested metric.
 
         Args:

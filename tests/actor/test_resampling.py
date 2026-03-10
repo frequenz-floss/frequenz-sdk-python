@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 import async_solipsism
 import pytest
 import time_machine
-from frequenz.channels import Broadcast, Receiver, Sender, make_oneshot
+from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
@@ -105,9 +105,9 @@ async def test_single_request(
             max_data_age_in_periods=2,
         ),
     ) as resampling_actor:
-        telem_stream_sender, telem_stream_receiver = make_oneshot(
-            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
-        )
+        telem_stream_sender, telem_stream_receiver = OneshotChannel[
+            Receiver[Sample[Quantity]]
+        ]()
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
             component_id=ComponentId(9),
@@ -156,9 +156,9 @@ async def test_duplicate_request(
             max_data_age_in_periods=2,
         ),
     ) as resampling_actor:
-        telem_stream_sender, telem_stream_receiver = make_oneshot(
-            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
-        )
+        telem_stream_sender, telem_stream_receiver = OneshotChannel[
+            Receiver[Sample[Quantity]]
+        ]()
         subs_req = ComponentMetricRequest(
             namespace="Resampling",
             component_id=ComponentId(9),
@@ -210,9 +210,9 @@ async def test_resubscribe(fake_time: time_machine.Coordinates) -> None:
     ) as resampling_actor:
 
         async def send_metric_request() -> Receiver[Receiver[Sample[Quantity]]]:
-            telem_stream_sender, telem_stream_receiver = make_oneshot(
-                Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
-            )
+            telem_stream_sender, telem_stream_receiver = OneshotChannel[
+                Receiver[Sample[Quantity]]
+            ]()
             subs_req = ComponentMetricRequest(
                 namespace="Resampling",
                 component_id=ComponentId(9),

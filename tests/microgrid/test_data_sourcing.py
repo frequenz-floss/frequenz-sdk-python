@@ -11,7 +11,7 @@ from unittest import mock
 
 import pytest
 import pytest_mock
-from frequenz.channels import Broadcast, Receiver, make_oneshot
+from frequenz.channels import Broadcast, OneshotChannel, Receiver
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
@@ -105,10 +105,9 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
     req_sender = req_chan.new_sender()
 
     async with DataSourcingActor(req_chan.new_receiver()):
-        telem_stream_sender, telem_stream_receiver = make_oneshot(
-            Receiver[Sample[Quantity]]  # type: ignore[type-abstract]
-        )
-
+        telem_stream_sender, telem_stream_receiver = OneshotChannel[
+            Receiver[Sample[Quantity]]
+        ]()
         component_metric_request = ComponentMetricRequest(
             "test-namespace",
             component_id,
