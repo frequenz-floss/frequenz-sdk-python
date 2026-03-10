@@ -17,6 +17,7 @@ from time import perf_counter
 from typing import Any
 
 from frequenz.channels import Broadcast, OneshotChannel, Receiver, ReceiverStoppedError
+from frequenz.channels._broadcast import BroadcastReceiver
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
@@ -106,7 +107,7 @@ async def benchmark_data_sourcing(  # pylint: disable=too-many-locals
     for evc_id in mock_grid.evc_ids:
         for component_metric_id in COMPONENT_METRIC_IDS:
             telem_stream_sender, telem_stream_receiver = OneshotChannel[
-                Receiver[Sample[Quantity]]
+                BroadcastReceiver[Sample[Quantity]]
             ]()
             request = ComponentMetricRequest(
                 namespace="current_phase_requests",

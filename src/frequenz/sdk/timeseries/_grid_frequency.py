@@ -9,6 +9,7 @@ import asyncio
 import logging
 
 from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
+from frequenz.channels._broadcast import BroadcastReceiver
 from frequenz.channels.experimental import Pipe
 from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
@@ -50,7 +51,7 @@ class GridFrequency:
 
         # Microgrid API source will send the stream through a oneshot channel
         telem_stream_sender, self._telem_stream_receiver = OneshotChannel[
-            Receiver[Sample[Quantity]]
+            BroadcastReceiver[Sample[Quantity]]
         ]()
 
         self._component_metric_request = ComponentMetricRequest(
@@ -116,7 +117,7 @@ class GridFrequency:
     async def subscribe(self) -> Receiver[Sample[Frequency]]:
         """Create a receiver for grid frequency."""
         telem_stream_sender, telem_stream_receiver = OneshotChannel[
-            Receiver[Sample[Quantity]]
+            BroadcastReceiver[Sample[Quantity]]
         ]()
         component_metric_request = ComponentMetricRequest(
             "grid-frequency",

@@ -13,6 +13,7 @@ import uuid
 from collections import abc
 
 from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
+from frequenz.channels._broadcast import BroadcastReceiver
 from frequenz.channels.experimental import Pipe
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Energy, Percentage, Power, Temperature
@@ -336,7 +337,7 @@ class BatteryPool:
             A receiver that will stream power status reports for the pool's priority.
         """
         report_stream_sender, self._report_stream_receiver = OneshotChannel[
-            Receiver[_Report]
+            BroadcastReceiver[_Report]
         ]()
         request = _power_managing.ReportRequest(
             source_id=self._source_id,

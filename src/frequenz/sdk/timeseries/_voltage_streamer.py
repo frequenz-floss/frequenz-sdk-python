@@ -14,6 +14,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
+from frequenz.channels._broadcast import BroadcastReceiver
 from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity, Voltage
@@ -145,7 +146,7 @@ class VoltageStreamer:
         phases_rx: list[Receiver[Sample[Quantity]]] = []
         for metric in metrics:
             telem_stream_sender, telem_stream_receiver = OneshotChannel[
-                Receiver[Sample[Quantity]]
+                BroadcastReceiver[Sample[Quantity]]
             ]()
             req = ComponentMetricRequest(
                 namespace=self._namespace,
