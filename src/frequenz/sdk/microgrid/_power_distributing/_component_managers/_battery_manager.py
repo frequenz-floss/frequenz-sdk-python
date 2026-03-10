@@ -14,9 +14,11 @@ from frequenz.channels import LatestValueCache, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid import ApiClientError, OperationOutOfRange
 from frequenz.client.microgrid.component import Battery, Inverter
+from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Power
 from typing_extensions import override
 
+from ....timeseries import Sample
 from ... import connection_manager
 from ..._old_component_data import BatteryData, InverterData
 from .._component_pool_status_tracker import ComponentPoolStatusTracker
@@ -161,6 +163,20 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         self._battery_caches: dict[ComponentId, LatestValueCache[BatteryData]] = {}
         self._inverter_caches: dict[ComponentId, LatestValueCache[InverterData]] = {}
 
+        self._unreachable_battery_powers: dict[
+            frozenset[ComponentId],
+            tuple[collections.abc.Set[ComponentId], LatestValueCache[Sample[Power]]],
+        ] = {}
+        """Map from battery sets to data from inaccessible battery subset.
+
+        When batteries are inaccessible, for example, due to network issues and can't be
+        controlled, they might still be producing or consuming power.  This power needs
+        to be considered when distributing power to the other batteries.
+
+        So for each battery set, we track of the inaccessible subset of this battery set
+        and the result of the power formulas for the inaccessible subset here.
+        """
+
         self._component_pool_status_tracker = ComponentPoolStatusTracker(
             component_ids=set(self._battery_ids),
             component_status_sender=component_pool_status_sender,
@@ -228,7 +244,7 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             Distribution of the batteries.
         """
         try:
-            components_data = self._get_components_data(request.component_ids)
+            components_data = await self._get_components_data(request.component_ids)
         except RuntimeError as err:
             return Error(request=request, msg=str(err))
 
@@ -520,7 +536,78 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         return InvBatPair(AggregatedBatteryData(battery_data), inverter_data)
 
-    def _get_components_data(
+    async def _subscribe_to_unreachable_battery_power(
+        self,
+        requested_battery_ids: collections.abc.Set[ComponentId],
+        working_battery_ids: collections.abc.Set[ComponentId],
+    ) -> None:
+        requested_battery_ids = frozenset(requested_battery_ids)
+        unreachable_battery_ids = requested_battery_ids - working_battery_ids
+
+        if not unreachable_battery_ids:
+            if unreachable_power := self._unreachable_battery_powers.pop(
+                requested_battery_ids, None
+            ):
+                _logger.debug(
+                    "All batteries are reachable, stopping unreachable battery power "
+                    + "subscription for batteries %s",
+                    self._str_ids(requested_battery_ids),
+                )
+                await unreachable_power[1].stop()
+            return
+
+        if unreachable_power := self._unreachable_battery_powers.get(
+            requested_battery_ids
+        ):
+            if unreachable_power[0] == unreachable_battery_ids:
+                return
+            _logger.debug(
+                "Unreachable battery set for batteries %s changed from %s to %s, "
+                + "restarting subscription",
+                self._str_ids(requested_battery_ids),
+                self._str_ids(unreachable_power[0]),
+                self._str_ids(unreachable_battery_ids),
+            )
+            await unreachable_power[1].stop()
+
+        formula = connection_manager.get().component_graph.battery_formula(
+            unreachable_battery_ids
+        )
+        _logger.debug(
+            "Subscribing to unreachable battery power for batteries %s with formula: %s",
+            self._str_ids(unreachable_battery_ids),
+            formula,
+        )
+
+        # This is to avoid a circular import.  Pylint doesn't detect that this
+        # is not a circular import, so we need to disable the warning also.
+        #
+        # pylint: disable-next=import-outside-toplevel,cyclic-import
+        from ... import (
+            logical_meter,
+        )
+
+        formula_cache = LatestValueCache(
+            logical_meter()
+            .start_formula(formula, Metric.AC_ACTIVE_POWER)
+            .new_receiver()
+            .map(
+                lambda sample: Sample[Power](
+                    sample.timestamp,
+                    (
+                        Power.from_watts(sample.value.base_value)
+                        if sample.value is not None
+                        else None
+                    ),
+                )
+            )
+        )
+        self._unreachable_battery_powers[requested_battery_ids] = (
+            unreachable_battery_ids,
+            formula_cache,
+        )
+
+    async def _get_components_data(
         self, batteries: collections.abc.Set[ComponentId]
     ) -> BatteryComponentsData:
         """Get data for the given batteries and adjacent inverters.
@@ -540,6 +627,11 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
         working_batteries = self._component_pool_status_tracker.get_working_components(
             batteries
+        )
+
+        await self._subscribe_to_unreachable_battery_power(
+            batteries,
+            working_batteries,
         )
 
         for battery_id in working_batteries:
@@ -583,7 +675,18 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
 
             assert len(data.inverter) > 0
             pairs_data.append(data)
-        return BatteryComponentsData(pairs_data, None)
+
+        unreachable_power: Power | None = None
+        if unreachable_power_cache := self._unreachable_battery_powers.get(
+            frozenset(batteries)
+        ):
+            if unreachable_power_cache[1].has_value():
+                unreachable_power = unreachable_power_cache[1].get().value
+
+        return BatteryComponentsData(
+            inv_bat_pairs=pairs_data,
+            unreachable_power=unreachable_power,
+        )
 
     def _str_ids(self, ids: collections.abc.Set[ComponentId]) -> str:
         return ", ".join(str(cid) for cid in sorted(ids))
@@ -620,6 +723,13 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         power_to_distribute = request.power
         if components.unreachable_power is not None:
             power_to_distribute = power_to_distribute - components.unreachable_power
+            _logger.debug(
+                "Excluding %s measured on unreachable batteries: %s, from power to "
+                + "distribute on working batteries: %s",
+                components.unreachable_power,
+                unavailable_bat_ids,
+                available_bat_ids,
+            )
 
         result = self._distribution_algorithm.distribute_power(
             power_to_distribute, inv_bat_pairs
