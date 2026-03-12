@@ -8,6 +8,7 @@ import logging
 from collections import OrderedDict
 from collections.abc import Callable
 from datetime import datetime, timedelta
+from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism
@@ -784,8 +785,9 @@ class TestFormulaComposition:
                 ([None, None, 15.0], None),
                 ([None, None, 15.0], 15.0),
                 ([10.0, None, 15.0], 50.0),
-                ([None, None, 15.0], None),
-                ([None, None, 15.0], None),
+                # Subscription to c5 was kept because we only unsubscribe after 3 samples
+                ([None, None, 15.0], 15.0),
+                ([None, None, 15.0], 15.0),
                 ([None, None, 15.0], 15.0),
                 ([None, None, None], None),
             ],
@@ -905,5 +907,131 @@ class TestFormulaComposition:
                 ([10.0, None, 15.0, 2.0], None),
                 ([15.0, 17.0, 20.0, 5.0], 14.5),
                 ([15.0, 17.0, None, 5.0], None),
+            ],
+        )
+
+
+class TestCoalesceFunction:
+    """Test coalesce function subscribe/unsubscribe behavior."""
+
+    class CoalesceSample(NamedTuple):
+        """Helper class to represent expected behavior of coalesce function."""
+
+        values: list[float | None]
+        expected_subscriptions: list[bool]
+
+    async def run_test(  # pylint: disable=too-many-locals
+        self,
+        formula_str: str,
+        samples: list[CoalesceSample],
+    ) -> None:
+        """Run a test with the specs provided."""
+        # Component IDs are 0, 1, 2 for convenience.
+        channels: list[Broadcast[Sample[Quantity]]] = [
+            Broadcast(name=str(num)) for num in range(3)
+        ]
+        senders = [channel.new_sender() for channel in channels]
+        receivers: list[Receiver[Sample[Quantity]] | None] = [None, None, None]
+
+        def new_receiver(component_id: ComponentId) -> Receiver[Sample[Quantity]]:
+            """Create a new receiver, overwriting any existing one.
+
+            When Coalesce unsubscribes, it closes its receiver.
+            """
+            comp_id = int(component_id)
+            receiver = channels[comp_id].new_receiver()
+            receivers[comp_id] = receiver
+            return receiver
+
+        telem_fetcher = MagicMock(spec=ResampledStreamFetcher)
+        telem_fetcher.fetch_stream = AsyncMock(side_effect=new_receiver)
+        formula = parse(
+            name="f2",
+            formula=formula_str,
+            create_method=Quantity,
+            telemetry_fetcher=telem_fetcher,
+        )
+
+        result_chan = formula.new_receiver()
+        await asyncio.sleep(0.1)
+        now = datetime.now()
+
+        async def send_sample(values: list[float | None]) -> None:
+            nonlocal now
+            now += timedelta(seconds=1)
+            _ = await asyncio.gather(
+                *[
+                    senders[comp_id].send(
+                        Sample(now, None if not value else Quantity(value))
+                    )
+                    for comp_id, value in enumerate(values)
+                ]
+            )
+            _ = await result_chan.receive()
+
+        for sample in samples:
+            await send_sample(sample.values)
+            active_subscriptions = [
+                receiver is not None and not getattr(receiver, "_closed", True)
+                for receiver in receivers
+            ]
+            assert active_subscriptions == sample.expected_subscriptions
+
+        await formula.stop()
+
+    async def test_coalesce_subscribe(self) -> None:
+        """Test coalesce subscribes when None values are encountered."""
+        await self.run_test(
+            "COALESCE(#0, #1, #2, 0.0)",
+            [
+                self.CoalesceSample(
+                    values=[10.0, None, None],
+                    expected_subscriptions=[True, False, False],
+                ),
+                # No need to subscribe unless stream #1 gives None
+                self.CoalesceSample(
+                    values=[10.0, 12.0, 15.0],
+                    expected_subscriptions=[True, False, False],
+                ),
+                # If None is encountered, one subscription is added per sample
+                self.CoalesceSample(
+                    values=[None, None, 15.0],
+                    expected_subscriptions=[True, True, False],
+                ),
+                self.CoalesceSample(
+                    values=[None, None, 15.0],
+                    expected_subscriptions=[True, True, True],
+                ),
+            ],
+        )
+
+    async def test_coalesce_unsubscribe(self) -> None:
+        """Test coalesce only unsubscribes after 3 samples."""
+        await self.run_test(
+            "COALESCE(#0, #1, #2, 0.0)",
+            [
+                # First subscription is added before the first sample.
+                # Every sample can add one subscription.
+                self.CoalesceSample(
+                    values=[None, None, 15.0],
+                    expected_subscriptions=[True, True, False],
+                ),
+                self.CoalesceSample(
+                    values=[None, None, 15.0],
+                    expected_subscriptions=[True, True, True],
+                ),
+                # After 3 samples, the last subscription is dropped.
+                self.CoalesceSample(
+                    values=[None, 12.0, 15.0],
+                    expected_subscriptions=[True, True, True],
+                ),
+                self.CoalesceSample(
+                    values=[10.0, None, 15.0],
+                    expected_subscriptions=[True, True, True],
+                ),
+                self.CoalesceSample(
+                    values=[None, 12.0, 15.0],
+                    expected_subscriptions=[True, True, False],
+                ),
             ],
         )
