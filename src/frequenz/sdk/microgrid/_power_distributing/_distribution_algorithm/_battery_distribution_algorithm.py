@@ -154,6 +154,21 @@ class InvBatPair(NamedTuple):
 
 
 @dataclass
+class BatteryComponentsData:
+    """Container for battery component data and unreachable power."""
+
+    inv_bat_pairs: list[InvBatPair]
+    """The battery and inverter data pairs."""
+
+    unreachable_power: Power | None
+    """Power from batteries with unreachable inverters.
+
+    This power needs to be excluded from the distributed power, because the
+    inverters producing it are unreachable and cannot be controlled.
+    """
+
+
+@dataclass
 class AvailabilityRatio:
     """Availability ratio for a battery-inverter pair."""
 
