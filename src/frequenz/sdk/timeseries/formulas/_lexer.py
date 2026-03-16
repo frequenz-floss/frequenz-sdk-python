@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
+from more_itertools import peekable
 from typing_extensions import override
 
 from . import _token
 from ._exceptions import FormulaSyntaxError
-from ._peekable import Peekable
 
 
 class Lexer(Iterator[_token.Token]):
@@ -25,33 +25,40 @@ class Lexer(Iterator[_token.Token]):
             formula: The formula string to lex.
         """
         self._formula: str = formula
-        self._iter: Peekable[tuple[int, str]] = Peekable(enumerate(iter(formula)))
+        self._iter: peekable[tuple[int, str]] = peekable(enumerate(iter(formula)))
+
+    def _peek_char(self) -> tuple[int, str] | None:
+        """Return the next position and character, or None if _iter is at its end."""
+        try:
+            return self._iter.peek()
+        except StopIteration:
+            return None
 
     def _read_integer(self) -> str:
         num_str = ""
-        peek = self._iter.peek()
+        peek = self._peek_char()
         while peek is not None and peek[1].isdigit():
             _, char = next(self._iter)
             num_str += char
-            peek = self._iter.peek()
+            peek = self._peek_char()
         return num_str
 
     def _read_number(self) -> str:
         num_str = ""
-        peek = self._iter.peek()
+        peek = self._peek_char()
         while peek is not None and (peek[1].isdigit() or peek[1] == "."):
             _, char = next(self._iter)
             num_str += char
-            peek = self._iter.peek()
+            peek = self._peek_char()
         return num_str
 
     def _read_symbol(self) -> str:
         word_str = ""
-        peek = self._iter.peek()
+        peek = self._peek_char()
         while peek is not None and peek[1].isalnum():
             _, char = next(self._iter)
             word_str += char
-            peek = self._iter.peek()
+            peek = self._peek_char()
         return word_str
 
     @override
@@ -62,10 +69,10 @@ class Lexer(Iterator[_token.Token]):
     @override
     def __next__(self) -> _token.Token:  # pylint: disable=too-many-branches
         """Return the next token from the formula string."""
-        peek = self._iter.peek()
+        peek = self._peek_char()
         while peek is not None and peek[1].isspace():
             _ = next(self._iter)
-            peek = self._iter.peek()
+            peek = self._peek_char()
 
         if peek is None:
             raise StopIteration
