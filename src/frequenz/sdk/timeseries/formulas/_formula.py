@@ -98,12 +98,20 @@ class Formula(BackgroundService, Generic[QuantityT]):
         self._evaluator.start()
 
     @override
-    async def stop(self, msg: str | None = None) -> None:
-        """Stop the formula evaluator."""
-        await BackgroundService.stop(self, msg)
+    def cancel(self, msg: str | None = None) -> None:
+        """Cancel the formula evaluator."""
+        super().cancel(msg)
         for sub_formula in self._sub_formulas:
-            await sub_formula.stop(msg)
-        await self._evaluator.stop(msg)
+            sub_formula.cancel(msg)
+        self._evaluator.cancel(msg)
+
+    @override
+    async def wait(self) -> None:
+        """Wait for the formula evaluator to finish."""
+        await super().wait()
+        for sub_formula in self._sub_formulas:
+            await sub_formula.wait()
+        await self._evaluator.wait()
 
     def __add__(
         self, other: FormulaBuilder[QuantityT] | QuantityT | Formula[QuantityT]
