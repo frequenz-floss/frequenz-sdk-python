@@ -12,6 +12,7 @@ from typing import Generic
 from frequenz.channels import Receiver
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
+from more_itertools import peekable
 
 from frequenz.sdk.timeseries import Sample
 from frequenz.sdk.timeseries._base_types import QuantityT
@@ -22,7 +23,6 @@ from ._exceptions import FormulaSyntaxError
 from ._formula import Formula
 from ._functions import FunCall, Function
 from ._lexer import Lexer
-from ._peekable import Peekable
 from ._resampled_stream_fetcher import ResampledStreamFetcher
 
 _logger = logging.getLogger(__name__)
@@ -67,9 +67,16 @@ class _Parser(Generic[QuantityT]):
         """Initialize the parser."""
         self._name: str = name
         self._formula: str = formula
-        self._lexer: Peekable[_token.Token] = Peekable(Lexer(formula))
+        self._lexer: peekable[_token.Token] = peekable(Lexer(formula))
         self._telemetry_fetcher: ResampledStreamFetcher = telemetry_fetcher
         self._create_method: Callable[[float], QuantityT] = create_method
+
+    def _peek_next_token(self) -> _token.Token | None:
+        """Get the next token from the lexer, or None if there is None."""
+        try:
+            return self._lexer.peek()
+        except StopIteration:
+            return None
 
     def _parse_term(self) -> AstNode[QuantityT] | None:
         """Parse a term.
@@ -81,7 +88,7 @@ class _Parser(Generic[QuantityT]):
         if factor is None:
             return None
 
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         while token is not None and isinstance(token, (_token.Plus, _token.Minus)):
             token = next(self._lexer)
             next_factor = self._parse_factor()
@@ -98,7 +105,7 @@ class _Parser(Generic[QuantityT]):
             elif isinstance(token, _token.Minus):
                 factor = _ast.Sub(left=factor, right=next_factor)
 
-            token = self._lexer.peek()
+            token = self._peek_next_token()
 
         return factor
 
@@ -113,7 +120,7 @@ class _Parser(Generic[QuantityT]):
         if unary is None:
             return None
 
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         while token is not None and isinstance(token, (_token.Mul, _token.Div)):
             token = next(self._lexer)
             next_unary = self._parse_unary()
@@ -129,7 +136,7 @@ class _Parser(Generic[QuantityT]):
             elif isinstance(token, _token.Div):
                 unary = _ast.Div(left=unary, right=next_unary)
 
-            token = self._lexer.peek()
+            token = self._peek_next_token()
 
         return unary
 
@@ -139,7 +146,7 @@ class _Parser(Generic[QuantityT]):
         A unary is any expression that does not contain any binary
         operators outside of parentheses.
         """
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         if token is not None and isinstance(token, _token.Minus):
             token = next(self._lexer)
             primary: AstNode[QuantityT] | None = self._parse_primary()
@@ -167,7 +174,7 @@ class _Parser(Generic[QuantityT]):
                 message="Expected expression",
             )
 
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         if token is None or not isinstance(token, _token.CloseParen):
             raise FormulaSyntaxError(
                 formula=self._formula,
@@ -194,7 +201,7 @@ class _Parser(Generic[QuantityT]):
 
         params: list[AstNode[QuantityT]] = []
 
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         if token is None or not isinstance(token, _token.OpenParen):
             raise FormulaSyntaxError(
                 formula=self._formula,
@@ -213,7 +220,7 @@ class _Parser(Generic[QuantityT]):
                 )
             params.append(param)
 
-            token = self._lexer.peek()
+            token = self._peek_next_token()
             if token is None:
                 raise FormulaSyntaxError(
                     formula=self._formula,
@@ -245,7 +252,7 @@ class _Parser(Generic[QuantityT]):
         - A function call
         - A bracketed expression
         """
-        token: _token.Token | None = self._lexer.peek()
+        token: _token.Token | None = self._peek_next_token()
         if token is None:
             return None
 
@@ -286,7 +293,7 @@ class _Parser(Generic[QuantityT]):
                 message="Empty formula",
             )
         # There should not be any tokens left
-        token = self._lexer.peek()
+        token = self._peek_next_token()
         if token is not None:
             raise FormulaSyntaxError(
                 formula=self._formula,
