@@ -140,9 +140,6 @@ class Coalesce(Function[QuantityT]):
                         return arg
                     ts = timestamp
                 case Quantity():
-                    # Found a non-None value, unsubscribe from subsequent params
-                    if ctr < self.num_subscribed:
-                        await self._unsubscribe_last_param()
                     if ts is not None:
                         return Sample(timestamp=ts, value=arg)
                     return arg
