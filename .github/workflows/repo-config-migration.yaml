@@ -1,0 +1,60 @@
+# Automatic repo-config migrations for Dependabot PRs
+#
+# The companion auto-dependabot workflow skips repo-config group PRs so
+# they're handled exclusively by the migration workflow.
+#
+# XXX: !!! SECURITY WARNING !!!
+# pull_request_target has write access to the repo, and can read secrets.
+# This is required because Dependabot PRs are treated as fork PRs: the
+# GITHUB_TOKEN is read-only and secrets are unavailable with a plain
+# pull_request trigger.  The action mitigates the risk by:
+#   - Never executing code from the PR (migrate.py is fetched from an
+#     upstream tag, not from the checked-out branch).
+#   - Gating migration steps on github.actor == 'dependabot[bot]'.
+#   - Running checkout with persist-credentials: false and isolating
+#     push credentials from the migration script environment.
+# For more details read:
+# https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
+name: Repo Config Migration
+
+on:
+  merge_group:  # To allow using this as a required check for merging
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  repo-config-migration:
+    name: Migrate Repo Config
+    # Skip if it was triggered by the merge queue. We only need the workflow to
+    # be executed to meet the "Required check" condition for merging, but we
+    # don't need to actually run the job, having the job present as Skipped is
+    # enough.
+    if: |
+      github.event_name == 'pull_request_target' &&
+      contains(github.event.pull_request.title, 'the repo-config group')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Generate token
+        id: create-app-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
+      - name: Migrate
+        uses: frequenz-floss/gh-action-dependabot-migrate@07dc7e74726498c50726a80cc2167a04d896508f # v1.0.0
+        with:
+          script-url-template: >-
+            https://raw.githubusercontent.com/frequenz-floss/frequenz-repo-config-python/{version}/cookiecutter/migrate.py
+          token: ${{ steps.create-app-token.outputs.token }}
+          migration-token: ${{ secrets.REPO_CONFIG_MIGRATION_TOKEN }}
+          sign-commits: "true"
+          auto-merged-label: "tool:auto-merged"
+          migrated-label: "tool:repo-config:migration:executed"
+          intervention-pending-label: "tool:repo-config:migration:intervention-pending"
+          intervention-done-label: "tool:repo-config:migration:intervention-done"
