@@ -12,7 +12,7 @@ import math
 from bisect import bisect, bisect_left
 from collections import deque
 from datetime import datetime, timedelta, timezone
-from typing import assert_never
+from typing import Awaitable, Callable, assert_never
 
 from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
 from frequenz.quantities import Quantity
@@ -160,14 +160,6 @@ class Resampler:
         Args:
             one_shot: Wether the resampling should run only for one resampling
                 period.
-
-        Raises:
-            ResamplingError: If some timeseries source or sink encounters any
-                errors while receiving or sending samples. In this case the
-                timer still runs and the timeseries will keep receiving data.
-                The user should remove (and re-add if desired) the faulty
-                timeseries from the resampler before calling this method
-                again).
         """
         # We use a tolerance of 10% of the resampling period
         tolerance = timedelta(
@@ -200,27 +192,44 @@ class Resampler:
                 case unexpected:
                     assert_never(unexpected)
 
-            # We need to make a copy here because we need to match the results to the
-            # current resamplers, and since we await here, new resamplers could be added
-            # or removed from the dict while we awaiting the resampling, which would
-            # cause the results to be out of sync.
-            resampler_sources = list(self._resamplers)
-            results = await asyncio.gather(
-                *[r.resample(next_tick_time) for r in self._resamplers.values()],
-                return_exceptions=True,
-            )
+            await self._emit_window(next_tick_time)
 
-            exceptions = {
-                source: result
-                for source, result in zip(resampler_sources, results)
-                # CancelledError inherits from BaseException, but we don't want
-                # to catch *all* BaseExceptions here.
-                if isinstance(result, (Exception, asyncio.CancelledError))
-            }
-            if exceptions:
-                raise ResamplingError(exceptions)
             if one_shot:
                 break
+
+    async def _emit_window(self, window_end: datetime) -> None:
+        """Emit resampled samples for all timeseries at the given window boundary.
+
+        Args:
+            window_end: The timestamp marking the end of the resampling window.
+
+        Raises:
+            ResamplingError: If some timeseries source or sink encounters any
+                errors while receiving or sending samples. In this case the
+                timer still runs and the timeseries will keep receiving data.
+                The user should remove (and re-add if desired) the faulty
+                timeseries from the resampler before calling this method
+                again).
+        """
+        # We need to make a copy here because we need to match the results to the
+        # current resamplers, and since we await here, new resamplers could be added
+        # or removed from the dict while we awaiting the resampling, which would
+        # cause the results to be out of sync.
+        resampler_sources = list(self._resamplers)
+        results = await asyncio.gather(
+            *[r.resample(window_end) for r in self._resamplers.values()],
+            return_exceptions=True,
+        )
+
+        exceptions = {
+            source: result
+            for source, result in zip(resampler_sources, results)
+            # CancelledError inherits from BaseException, but we don't want
+            # to catch *all* BaseExceptions here.
+            if isinstance(result, (Exception, asyncio.CancelledError))
+        }
+        if exceptions:
+            raise ResamplingError(exceptions)
 
     def _calculate_window_end(self) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
@@ -528,6 +537,9 @@ class _StreamingHelper:
         self._helper: _ResamplingHelper = helper
         self._source: Source = source
         self._sink: Sink = sink
+        self._sample_callback: Callable[[Sample[Quantity]], Awaitable[None]] | None = (
+            None
+        )
         self._receiving_task: asyncio.Task[None] = asyncio.create_task(
             self._receive_samples()
         )
@@ -545,6 +557,22 @@ class _StreamingHelper:
         """Cancel the receiving task."""
         await cancel_and_await(self._receiving_task)
 
+    def register_sample_callback(
+        self,
+        callback: Callable[[Sample[Quantity]], Awaitable[None]] | None,
+    ) -> None:
+        """Register a callback to be invoked when a sample arrives.
+
+        The callback is called asynchronously each time a sample is received
+        from the source. This allows consumers (like EventResampler) to be
+        notified of incoming samples without polling internal buffers.
+
+        Args:
+            callback: An async function to call when a sample arrives.
+                If `None`, no callback will be called on new samples.
+        """
+        self._sample_callback = callback
+
     async def _receive_samples(self) -> None:
         """Pass received samples to the helper.
 
@@ -554,6 +582,9 @@ class _StreamingHelper:
         async for sample in self._source:
             if sample.value is not None and not sample.value.isnan():
                 self._helper.add_sample((sample.timestamp, sample.value.base_value))
+
+                if self._sample_callback:
+                    await self._sample_callback(sample)
 
     # We need the noqa because pydoclint can't figure out that `recv_exception` is an
     # `Exception` instance.
