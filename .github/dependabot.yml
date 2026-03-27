@@ -35,11 +35,14 @@ updates:
         exclude-patterns:
           - "async-solipsism"
           - "frequenz-client-microgrid"
-          - "frequenz-repo-config*"
+          - "frequenz-repo-config"
+          - "frequenz-repo-config[lib]"
+          - "frequenz-repo-config[extra-lint-examples]"
           - "markdown-callouts"
           - "mkdocs-gen-files"
           - "mkdocs-literate-nav"
           - "mkdocstrings*"
+          - "mkdocstrings[python]"
           - "pydoclint"
           - "pytest-asyncio"
       # We group repo-config updates as it uses optional dependencies that are
@@ -47,10 +50,13 @@ updates:
       # each if we don't group them.
       repo-config:
         patterns:
-          - "frequenz-repo-config*"
+          - "frequenz-repo-config"
+          - "frequenz-repo-config[lib]"
+          - "frequenz-repo-config[extra-lint-examples]"
       mkdocstrings:
         patterns:
           - "mkdocstrings*"
+          - "mkdocstrings[python]"
     ignore:
       # Upgrade to time-machine 2.13.0+ breaks our tests. See:
       # https://github.com/frequenz-floss/frequenz-sdk-python/issues/832
