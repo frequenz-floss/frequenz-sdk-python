@@ -83,19 +83,12 @@ class GridFrequency:
         return self._source_component
 
     @staticmethod
-    def _map_frequency_samples(
-        receiver: Receiver[Sample[Quantity]],
-    ) -> Receiver[Sample[Frequency]]:
+    def _map_frequency_sample(sample: Sample[Quantity]) -> Sample[Frequency]:
         """Handle NaN values and map sample type to Frequency."""
-        return receiver.map(
-            lambda sample: (
-                Sample[Frequency](sample.timestamp, None)
-                if sample.value is None or sample.value.isnan()
-                else Sample(
-                    sample.timestamp, Frequency.from_hertz(sample.value.base_value)
-                )
-            )
-        )
+        if sample.value is None or sample.value.isnan():
+            return Sample[Frequency](sample.timestamp, None)
+
+        return Sample(sample.timestamp, Frequency.from_hertz(sample.value.base_value))
 
     def new_receiver(self) -> Receiver[Sample[Frequency]]:
         """Create a receiver for grid frequency.
@@ -112,7 +105,8 @@ class GridFrequency:
                 self._send_request(self._forwarding_channel.new_sender())
             )
 
-        return self._map_frequency_samples(self._forwarding_channel.new_receiver())
+        receiver = self._forwarding_channel.new_receiver()
+        return receiver.map(self._map_frequency_sample)
 
     async def subscribe(self) -> Receiver[Sample[Frequency]]:
         """Create a receiver for grid frequency."""
@@ -128,7 +122,7 @@ class GridFrequency:
         )
         await self._request_sender.send(component_metric_request)
         receiver = await telem_stream_receiver.receive()
-        return self._map_frequency_samples(receiver)
+        return receiver.map(self._map_frequency_sample)
 
     async def _send_request(self, forwarding_sender: Sender[Sample[Quantity]]) -> None:
         """Send the request for grid frequency."""
