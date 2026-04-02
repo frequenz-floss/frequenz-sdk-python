@@ -238,9 +238,6 @@ class PowerManagingActor(Actor):
                         report_channel = Broadcast[_Report](name=channel_name)
                         report_channel.resend_latest = True
                         self._channels[channel_name] = report_channel
-                        await subscription.report_stream_sender.send(
-                            report_channel.new_receiver()
-                        )
                     return self._channels[channel_name]
 
                 if component_ids not in self._subscriptions:
@@ -248,9 +245,11 @@ class PowerManagingActor(Actor):
                     self._subscriptions[component_ids] = {
                         priority: channel.new_sender()
                     }
+                    await sub.report_stream_sender.send(channel.new_receiver())
                 elif priority not in self._subscriptions[component_ids]:
                     channel = await get_or_create_channel(sub)
                     self._subscriptions[component_ids][priority] = channel.new_sender()
+                    await sub.report_stream_sender.send(channel.new_receiver())
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_system_bounds_tracker(sub.component_ids)
