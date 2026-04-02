@@ -68,7 +68,7 @@ class PowerManagingActor(Actor):
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
         self._proposals_receiver = proposals_receiver
-        self._channel_lookup: dict[str, Broadcast[_Report]] = {}
+        self._channels: dict[str, Broadcast[_Report]] = {}
 
         self._system_bounds: dict[frozenset[ComponentId], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
@@ -234,14 +234,14 @@ class PowerManagingActor(Actor):
                     subscription: ReportRequest,
                 ) -> Broadcast[_Report]:
                     channel_name = subscription.get_channel_name()
-                    if channel_name not in self._channel_lookup:
+                    if channel_name not in self._channels:
                         report_channel = Broadcast[_Report](name=channel_name)
                         report_channel.resend_latest = True
-                        self._channel_lookup[channel_name] = report_channel
+                        self._channels[channel_name] = report_channel
                         await subscription.report_stream_sender.send(
                             report_channel.new_receiver()
                         )
-                    return self._channel_lookup[channel_name]
+                    return self._channels[channel_name]
 
                 if component_ids not in self._subscriptions:
                     channel = await get_or_create_channel(sub)
