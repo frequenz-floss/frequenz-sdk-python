@@ -414,12 +414,10 @@ class MicrogridApiSource:
                 channel_name = request.get_channel_name()
                 # Create missing channels and inform the requesting side via oneshot
                 if channel_name not in self._channels:
-                    telem_stream: Broadcast[Sample[Quantity]] = Broadcast(
-                        name=channel_name
-                    )
-                    self._channels[channel_name] = telem_stream
-                    await request.telem_stream_sender.send(telem_stream.new_receiver())
-                senders.append(self._channels[channel_name].new_sender())
+                    self._channels[channel_name] = Broadcast(name=channel_name)
+                telem_stream = self._channels[channel_name]
+                await request.telem_stream_sender.send(telem_stream.new_receiver())
+                senders.append(telem_stream.new_sender())
             all_senders.append((extraction_method, senders))
 
         return all_senders
