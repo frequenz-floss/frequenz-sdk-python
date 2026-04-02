@@ -42,8 +42,7 @@ class ReportRequest:
         """Get the channel name for the report request.
 
         Returns:
-            The channel name to use to identify the corresponding report channel
-                from the channel registry.
+            The channel name to use to identify the corresponding report channel.
         """
         return f"power_manager.report.{self.component_ids=}.{self.priority=}"
 

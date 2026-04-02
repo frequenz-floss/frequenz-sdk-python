@@ -35,10 +35,8 @@ class ComponentMetricRequest:
     `namespace`, `component_id`, and `metric` will use the same channel, preventing
     unnecessary duplication of data streams.
 
-    The requester and provider must use the same channel name so that they can
-    independently retrieve the same channel from the `ChannelRegistry`.  This is
-    achieved by using the `get_channel_name` method to generate the name on both sides
-    based on parameters set by the requesters.
+    The `get_channel_name` method can be used to obtain a name that uniquely identifies
+    the metric data that will be sent through the telemetry stream.
     """
 
     namespace: str

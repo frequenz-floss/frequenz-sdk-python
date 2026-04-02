@@ -396,7 +396,7 @@ class MicrogridApiSource:
         category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
     ) -> list[tuple[Callable[[Any], float], list[BroadcastSender[Sample[Quantity]]]]]:
-        """Get channel senders from the channel registry for each requested metric.
+        """Get channel senders from the channel lookup dict for each requested metric.
 
         Args:
             category: The category of the component.
@@ -404,8 +404,7 @@ class MicrogridApiSource:
                 certain component.
 
         Returns:
-            A dictionary of output metric names to channel senders from the channel
-                registry.
+            A dictionary of output metric names to channel senders.
         """
         all_senders = []
         for metric, req_list in requests.items():
