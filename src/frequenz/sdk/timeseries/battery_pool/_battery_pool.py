@@ -12,8 +12,13 @@ import asyncio
 import uuid
 from collections import abc
 
-from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import (
+    Broadcast,
+    BroadcastReceiver,
+    OneshotChannel,
+    Receiver,
+    Sender,
+)
 from frequenz.channels.experimental import Pipe
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Energy, Percentage, Power, Temperature

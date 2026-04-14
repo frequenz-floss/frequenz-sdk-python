@@ -16,8 +16,13 @@ import tracemalloc
 from time import perf_counter
 from typing import Any
 
-from frequenz.channels import Broadcast, OneshotChannel, Receiver, ReceiverStoppedError
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import (
+    BroadcastChannel,
+    BroadcastReceiver,
+    OneshotChannel,
+    Receiver,
+    ReceiverStoppedError,
+)
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
@@ -78,15 +83,10 @@ async def benchmark_data_sourcing(  # pylint: disable=too-many-locals
     mock_grid.add_ev_chargers(num_ev_chargers)
     mock_grid.start_mock_client(enable_mock_client)
 
-    request_channel = Broadcast[ComponentMetricRequest](
-        name="DataSourcingActor Request Channel"
-    )
-
-    request_receiver = request_channel.new_receiver(
-        name="datasourcing-benchmark",
+    request_sender, request_receiver = BroadcastChannel[ComponentMetricRequest](
+        name="DataSourcingActor Request Channel",
         limit=(num_ev_chargers * len(COMPONENT_METRIC_IDS)),
     )
-    request_sender = request_channel.new_sender()
 
     consume_tasks = []
 

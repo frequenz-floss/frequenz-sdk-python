@@ -10,8 +10,7 @@ import dataclasses
 import enum
 import typing
 
-from frequenz.channels._broadcast import BroadcastReceiver
-from frequenz.channels._oneshot import OneshotSender
+from frequenz.channels import BroadcastReceiver, OneshotSender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 

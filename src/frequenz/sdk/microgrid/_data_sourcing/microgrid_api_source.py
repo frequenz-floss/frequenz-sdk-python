@@ -8,8 +8,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from frequenz.channels import Broadcast, Receiver
-from frequenz.channels._broadcast import BroadcastSender
+from frequenz.channels import Broadcast, BroadcastSender, Receiver
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric

@@ -3,8 +3,7 @@
 
 """Fetches telemetry streams for components."""
 
-from frequenz.channels import OneshotChannel, Receiver, Sender
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import BroadcastReceiver, OneshotChannel, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Quantity
 

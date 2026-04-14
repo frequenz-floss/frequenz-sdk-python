@@ -6,8 +6,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from frequenz.channels._broadcast import BroadcastReceiver
-from frequenz.channels._oneshot import OneshotSender
+from frequenz.channels import BroadcastReceiver, OneshotSender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity

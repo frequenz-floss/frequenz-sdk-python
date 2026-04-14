@@ -11,8 +11,7 @@ from unittest import mock
 
 import pytest
 import pytest_mock
-from frequenz.channels import Broadcast, OneshotChannel
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import Broadcast, BroadcastReceiver, OneshotChannel
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (

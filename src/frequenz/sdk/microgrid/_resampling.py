@@ -7,8 +7,13 @@
 import asyncio
 import logging
 
-from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import (
+    Broadcast,
+    BroadcastReceiver,
+    OneshotChannel,
+    Receiver,
+    Sender,
+)
 from frequenz.quantities import Quantity
 
 from .._internal._asyncio import cancel_and_await

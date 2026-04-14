@@ -8,8 +8,13 @@ from datetime import datetime, timedelta, timezone
 import async_solipsism
 import pytest
 import time_machine
-from frequenz.channels import Broadcast, OneshotChannel, Receiver, Sender
-from frequenz.channels._broadcast import BroadcastReceiver
+from frequenz.channels import (
+    Broadcast,
+    BroadcastReceiver,
+    OneshotChannel,
+    Receiver,
+    Sender,
+)
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
