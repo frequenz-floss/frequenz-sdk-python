@@ -6,12 +6,16 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from frequenz.channels import BroadcastReceiver, OneshotSender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
+from frequenz.quantities import Quantity
 
 from frequenz.sdk.microgrid._old_component_data import TransitionalMetric
 
 __all__ = ["ComponentMetricRequest", "Metric"]
+
+from frequenz.sdk.timeseries import Sample
 
 
 @dataclass
@@ -30,10 +34,8 @@ class ComponentMetricRequest:
     `namespace`, `component_id`, and `metric` will use the same channel, preventing
     unnecessary duplication of data streams.
 
-    The requester and provider must use the same channel name so that they can
-    independently retrieve the same channel from the `ChannelRegistry`.  This is
-    achieved by using the `get_channel_name` method to generate the name on both sides
-    based on parameters set by the requesters.
+    The `get_channel_name` method can be used to obtain a name that uniquely identifies
+    the metric data that will be sent through the telemetry stream.
     """
 
     namespace: str
@@ -50,6 +52,9 @@ class ComponentMetricRequest:
 
     If None, only live data is streamed.
     """
+
+    telem_stream_sender: OneshotSender[BroadcastReceiver[Sample[Quantity]]]
+    """Sender of a oneshot channel used to send the data stream back to the requester."""
 
     def get_channel_name(self) -> str:
         """Construct the channel name based on the request parameters.

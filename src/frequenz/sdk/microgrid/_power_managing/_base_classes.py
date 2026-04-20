@@ -10,6 +10,7 @@ import dataclasses
 import enum
 import typing
 
+from frequenz.channels import BroadcastReceiver, OneshotSender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 
@@ -31,14 +32,16 @@ class ReportRequest:
     """The component IDs to report on."""
 
     priority: int
-    """The priority of the actor ."""
+    """The priority of the actor."""
+
+    report_stream_sender: OneshotSender[BroadcastReceiver[_Report]]
+    """Oneshot sender to transmit the report receiver."""
 
     def get_channel_name(self) -> str:
         """Get the channel name for the report request.
 
         Returns:
-            The channel name to use to identify the corresponding report channel
-                from the channel registry.
+            The channel name to use to identify the corresponding report channel.
         """
         return f"power_manager.report.{self.component_ids=}.{self.priority=}"
 

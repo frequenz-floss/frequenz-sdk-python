@@ -15,7 +15,6 @@ from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
     ResampledStreamFetcher,
 )
 
-from ..._internal._channels import ChannelRegistry
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ._formula import Formula
 from ._formula_3_phase import Formula3Phase
@@ -44,20 +43,16 @@ class FormulaPool:
     def __init__(
         self,
         namespace: str,
-        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
     ) -> None:
         """Create a new instance.
 
         Args:
             namespace: namespace to use with the data pipeline.
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
         """
         self._namespace: str = namespace
-        self._channel_registry: ChannelRegistry = channel_registry
         self._resampler_subscription_sender: Sender[ComponentMetricRequest] = (
             resampler_subscription_sender
         )
@@ -276,7 +271,6 @@ class FormulaPool:
         """
         return ResampledStreamFetcher(
             self._namespace,
-            self._channel_registry,
             self._resampler_subscription_sender,
             metric,
         )

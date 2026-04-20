@@ -7,6 +7,7 @@
 import asyncio
 from datetime import datetime, timezone
 
+import pytest
 from frequenz.quantities import Frequency
 from pytest_mock import MockerFixture
 
@@ -19,7 +20,8 @@ from .mock_microgrid import MockMicrogrid
 # pylint: disable=protected-access
 
 
-async def test_grid_frequency_none(mocker: MockerFixture) -> None:
+@pytest.mark.parametrize("use_subscribe", [True, False])
+async def test_grid_frequency_none(mocker: MockerFixture, use_subscribe: bool) -> None:
     """Test the grid frequency formula."""
     mockgrid = MockMicrogrid(grid_meter=True)
     mockgrid.add_batteries(2)
@@ -27,13 +29,16 @@ async def test_grid_frequency_none(mocker: MockerFixture) -> None:
     await mockgrid.start(mocker)
 
     grid_freq = microgrid.frequency()
-    grid_freq_recv = grid_freq.new_receiver()
-
-    assert grid_freq._task is not None
-    # We have to wait for the metric request to be sent
-    await grid_freq._task
-    # And consumed
-    await asyncio.sleep(0)
+    if use_subscribe:
+        grid_freq_recv = await grid_freq.subscribe()
+    else:
+        # Deprecated
+        grid_freq_recv = grid_freq.new_receiver()
+        assert grid_freq._task is not None
+        # We have to wait for the metric request to be sent
+        await grid_freq._task
+        # And consumed
+        await asyncio.sleep(0)
 
     await mockgrid.mock_client.send(
         component_data_wrapper.MeterDataWrapper(
@@ -47,7 +52,8 @@ async def test_grid_frequency_none(mocker: MockerFixture) -> None:
     await mockgrid.cleanup()
 
 
-async def test_grid_frequency_1(mocker: MockerFixture) -> None:
+@pytest.mark.parametrize("use_subscribe", [True, False])
+async def test_grid_frequency_1(mocker: MockerFixture, use_subscribe: bool) -> None:
     """Test the grid frequency formula."""
     mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
     mockgrid.add_batteries(2)
@@ -55,13 +61,16 @@ async def test_grid_frequency_1(mocker: MockerFixture) -> None:
 
     async with mockgrid:
         grid_freq = microgrid.frequency()
-        grid_freq_recv = grid_freq.new_receiver()
-
-        assert grid_freq._task is not None
-        # We have to wait for the metric request to be sent
-        await grid_freq._task
-        # And consumed
-        await asyncio.sleep(0)
+        if use_subscribe:
+            grid_freq_recv = await grid_freq.subscribe()
+        else:
+            # Deprecated
+            grid_freq_recv = grid_freq.new_receiver()
+            assert grid_freq._task is not None
+            # We have to wait for the metric request to be sent
+            await grid_freq._task
+            # And consumed
+            await asyncio.sleep(0)
 
         results = []
         grid_meter_data = []
@@ -82,8 +91,9 @@ async def test_grid_frequency_1(mocker: MockerFixture) -> None:
     assert equal_float_lists(results, grid_meter_data)
 
 
+@pytest.mark.parametrize("use_subscribe", [True, False])
 async def test_grid_frequency_no_grid_meter_no_consumer_meter(
-    mocker: MockerFixture,
+    mocker: MockerFixture, use_subscribe: bool
 ) -> None:
     """Test the grid frequency formula without a grid side meter."""
     mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
@@ -94,12 +104,16 @@ async def test_grid_frequency_no_grid_meter_no_consumer_meter(
     async with mockgrid:
         grid_freq = microgrid.frequency()
 
-        grid_freq_recv = grid_freq.new_receiver()
-        # We have to wait for the metric request to be sent
-        assert grid_freq._task is not None
-        await grid_freq._task
-        # And consumed
-        await asyncio.sleep(0)
+        if use_subscribe:
+            grid_freq_recv = await grid_freq.subscribe()
+        else:
+            # Deprecated
+            grid_freq_recv = grid_freq.new_receiver()
+            assert grid_freq._task is not None
+            # We have to wait for the metric request to be sent
+            await grid_freq._task
+            # And consumed
+            await asyncio.sleep(0)
 
         results = []
         meter_data = []
@@ -120,8 +134,9 @@ async def test_grid_frequency_no_grid_meter_no_consumer_meter(
     assert equal_float_lists(results, meter_data)
 
 
+@pytest.mark.parametrize("use_subscribe", [True, False])
 async def test_grid_frequency_no_grid_meter(
-    mocker: MockerFixture,
+    mocker: MockerFixture, use_subscribe: bool
 ) -> None:
     """Test the grid frequency formula without a grid side meter."""
     mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
@@ -131,12 +146,16 @@ async def test_grid_frequency_no_grid_meter(
     async with mockgrid:
         grid_freq = microgrid.frequency()
 
-        grid_freq_recv = grid_freq.new_receiver()
-        # We have to wait for the metric request to be sent
-        assert grid_freq._task is not None
-        await grid_freq._task
-        # And consumed
-        await asyncio.sleep(0)
+        if use_subscribe:
+            grid_freq_recv = await grid_freq.subscribe()
+        else:
+            # Deprecated
+            grid_freq_recv = grid_freq.new_receiver()
+            assert grid_freq._task is not None
+            # We have to wait for the metric request to be sent
+            await grid_freq._task
+            # And consumed
+            await asyncio.sleep(0)
 
         results = []
         meter_data = []
@@ -157,8 +176,9 @@ async def test_grid_frequency_no_grid_meter(
     assert equal_float_lists(results, meter_data)
 
 
+@pytest.mark.parametrize("use_subscribe", [True, False])
 async def test_grid_frequency_only_inverter(
-    mocker: MockerFixture,
+    mocker: MockerFixture, use_subscribe: bool
 ) -> None:
     """Test the grid frequency formula without any meter but only inverters."""
     mockgrid = MockMicrogrid(grid_meter=False, mocker=mocker)
@@ -166,12 +186,16 @@ async def test_grid_frequency_only_inverter(
 
     async with mockgrid:
         grid_freq = microgrid.frequency()
-        grid_freq_recv = grid_freq.new_receiver()
-        # We have to wait for the metric request to be sent
-        assert grid_freq._task is not None
-        await grid_freq._task
-        # And consumed
-        await asyncio.sleep(0)
+        if use_subscribe:
+            grid_freq_recv = await grid_freq.subscribe()
+        else:
+            # Deprecated
+            grid_freq_recv = grid_freq.new_receiver()
+            assert grid_freq._task is not None
+            # We have to wait for the metric request to be sent
+            await grid_freq._task
+            # And consumed
+            await asyncio.sleep(0)
 
         results = []
         meter_data = []

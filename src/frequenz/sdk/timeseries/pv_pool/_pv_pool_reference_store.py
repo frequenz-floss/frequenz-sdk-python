@@ -12,7 +12,7 @@ from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import SolarInverter
 
-from ..._internal._channels import ChannelRegistry, ReceiverFetcher
+from ..._internal._channels import ReceiverFetcher
 from ...microgrid import connection_manager
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import ComponentPoolStatus, Result
@@ -38,7 +38,6 @@ class PVPoolReferenceStore:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        channel_registry: ChannelRegistry,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
         status_receiver: Receiver[ComponentPoolStatus],
         power_manager_requests_sender: Sender[Proposal],
@@ -49,8 +48,6 @@ class PVPoolReferenceStore:
         """Initialize this instance.
 
         Args:
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
             resampler_subscription_sender: A sender for sending metric requests to the
                 resampling actor.
             status_receiver: A receiver that streams the status of the PV inverters in
@@ -69,7 +66,6 @@ class PVPoolReferenceStore:
             ValueError: If any of the provided component_ids are not PV inverters or
                 are unknown to the component graph.
         """
-        self.channel_registry = channel_registry
         self.resampler_subscription_sender = resampler_subscription_sender
         self.status_receiver = status_receiver
         self.power_manager_requests_sender = power_manager_requests_sender
@@ -98,7 +94,6 @@ class PVPoolReferenceStore:
         self.namespace: str = f"pv-pool-{uuid.uuid4()}"
         self.formula_pool = FormulaPool(
             self.namespace,
-            self.channel_registry,
             self.resampler_subscription_sender,
         )
         self.bounds_channel: Broadcast[SystemBounds] = Broadcast(

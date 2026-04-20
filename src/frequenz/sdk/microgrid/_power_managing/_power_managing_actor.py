@@ -11,14 +11,20 @@ import sys
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
-from frequenz.channels import Receiver, Sender, select, selected_from
+from frequenz.channels import (
+    Broadcast,
+    Receiver,
+    Sender,
+    SenderClosedError,
+    select,
+    selected_from,
+)
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
-from ..._internal._channels import ChannelRegistry
 from ...actor import Actor
 from ...timeseries._base_types import SystemBounds
 from .. import _data_pipeline, _power_distributing
@@ -46,7 +52,6 @@ class PowerManagingActor(Actor):
         bounds_subscription_receiver: Receiver[ReportRequest],
         power_distributing_requests_sender: Sender[_power_distributing.Request],
         power_distributing_results_receiver: Receiver[_power_distributing.Result],
-        channel_registry: ChannelRegistry,
         algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
         component_class: type[Battery | EvCharger | SolarInverter],
@@ -60,7 +65,6 @@ class PowerManagingActor(Actor):
                 requests.
             power_distributing_results_receiver: The receiver for power distribution
                 results.
-            channel_registry: The channel registry.
             algorithm: The power management algorithm to use.
             default_power: The default power to use for the components.
             component_class: The class of component this instance is going to support.
@@ -70,8 +74,8 @@ class PowerManagingActor(Actor):
         self._bounds_subscription_receiver = bounds_subscription_receiver
         self._power_distributing_requests_sender = power_distributing_requests_sender
         self._power_distributing_results_receiver = power_distributing_results_receiver
-        self._channel_registry = channel_registry
         self._proposals_receiver = proposals_receiver
+        self._channels: dict[str, Broadcast[_Report]] = {}
 
         self._system_bounds: dict[frozenset[ComponentId], SystemBounds] = {}
         self._bound_tracker_tasks: dict[frozenset[ComponentId], asyncio.Task[None]] = {}
@@ -201,7 +205,7 @@ class PowerManagingActor(Actor):
             )
 
     @override
-    async def _run(self) -> None:
+    async def _run(self) -> None:  # pylint: disable=too-many-branches
         """Run the power managing actor."""
         last_result_partial_failure = False
         drop_old_proposals_timer = Timer(timedelta(seconds=1.0), SkipMissedAndDrift())
@@ -233,18 +237,26 @@ class PowerManagingActor(Actor):
                 component_ids = sub.component_ids
                 priority = sub.priority
 
+                # Get or create channel
+                channel_name = sub.get_channel_name()
+                if channel_name not in self._channels:
+                    report_channel = Broadcast[_Report](name=channel_name)
+                    report_channel.resend_latest = True
+                    self._channels[channel_name] = report_channel
+                channel = self._channels[channel_name]
+
+                # Ensure receiver is sent via oneshot channel (once)
+                try:
+                    await sub.report_stream_sender.send(channel.new_receiver())
+                except SenderClosedError:
+                    pass
+
                 if component_ids not in self._subscriptions:
                     self._subscriptions[component_ids] = {
-                        priority: self._channel_registry.get_or_create(
-                            _Report, sub.get_channel_name()
-                        ).new_sender()
+                        priority: channel.new_sender()
                     }
                 elif priority not in self._subscriptions[component_ids]:
-                    self._subscriptions[component_ids][priority] = (
-                        self._channel_registry.get_or_create(
-                            _Report, sub.get_channel_name()
-                        ).new_sender()
-                    )
+                    self._subscriptions[component_ids][priority] = channel.new_sender()
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_system_bounds_tracker(sub.component_ids)

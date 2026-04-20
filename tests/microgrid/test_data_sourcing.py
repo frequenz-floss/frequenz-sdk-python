@@ -11,7 +11,7 @@ from unittest import mock
 
 import pytest
 import pytest_mock
-from frequenz.channels import Broadcast
+from frequenz.channels import Broadcast, BroadcastReceiver, OneshotChannel
 from frequenz.client.common.microgrid import MicrogridId
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
@@ -24,7 +24,6 @@ from frequenz.client.microgrid.component import (
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
-from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.microgrid._data_sourcing import (
     ComponentMetricRequest,
     DataSourcingActor,
@@ -84,88 +83,45 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     return mock_conn_manager
 
 
+@pytest.mark.parametrize(
+    ("component_id", "metric", "expected_sample_value"),
+    [
+        (ComponentId(4), Metric.AC_ACTIVE_POWER, 100.0),
+        (ComponentId(4), Metric.AC_REACTIVE_POWER, 100.0),
+        (ComponentId(6), Metric.AC_ACTIVE_POWER, 0.0),
+        (ComponentId(9), Metric.BATTERY_SOC_PCT, 9.0),
+        (ComponentId(9), Metric.BATTERY_SOC_PCT, 9.0),
+        (ComponentId(12), Metric.AC_ACTIVE_POWER, -13.0),
+    ],
+)
 async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
     mock_connection_manager: mock.Mock,  # pylint: disable=redefined-outer-name,unused-argument
+    component_id: ComponentId,
+    metric: Metric,
+    expected_sample_value: float,
 ) -> None:
     """Tests for the DataSourcingActor."""
     req_chan = Broadcast[ComponentMetricRequest](name="data_sourcing_requests")
     req_sender = req_chan.new_sender()
 
-    registry = ChannelRegistry(name="test-registry")
-
-    async with DataSourcingActor(req_chan.new_receiver(), registry):
-        active_power_request_4 = ComponentMetricRequest(
-            "test-namespace", ComponentId(4), Metric.AC_ACTIVE_POWER, None
+    async with DataSourcingActor(req_chan.new_receiver()):
+        telem_stream_sender, telem_stream_receiver = OneshotChannel[
+            BroadcastReceiver[Sample[Quantity]]
+        ]()
+        component_metric_request = ComponentMetricRequest(
+            "test-namespace",
+            component_id,
+            metric,
+            None,
+            telem_stream_sender,
         )
-        active_power_recv_4 = registry.get_or_create(
-            Sample[Quantity], active_power_request_4.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(active_power_request_4)
+        await req_sender.send(component_metric_request)
+        telem_stream = await telem_stream_receiver.receive()
 
-        reactive_power_request_4 = ComponentMetricRequest(
-            "test-namespace", ComponentId(4), Metric.AC_REACTIVE_POWER, None
-        )
-        reactive_power_recv_4 = registry.get_or_create(
-            Sample[Quantity], reactive_power_request_4.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(reactive_power_request_4)
-
-        active_power_request_6 = ComponentMetricRequest(
-            "test-namespace", ComponentId(6), Metric.AC_ACTIVE_POWER, None
-        )
-        active_power_recv_6 = registry.get_or_create(
-            Sample[Quantity], active_power_request_6.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(active_power_request_6)
-
-        soc_request_9 = ComponentMetricRequest(
-            "test-namespace", ComponentId(9), Metric.BATTERY_SOC_PCT, None
-        )
-        soc_recv_9 = registry.get_or_create(
-            Sample[Quantity], soc_request_9.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(soc_request_9)
-
-        soc2_request_9 = ComponentMetricRequest(
-            "test-namespace", ComponentId(9), Metric.BATTERY_SOC_PCT, None
-        )
-        soc2_recv_9 = registry.get_or_create(
-            Sample[Quantity], soc2_request_9.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(soc2_request_9)
-
-        active_power_request_12 = ComponentMetricRequest(
-            "test-namespace", ComponentId(12), Metric.AC_ACTIVE_POWER, None
-        )
-        active_power_recv_12 = registry.get_or_create(
-            Sample[Quantity], active_power_request_12.get_channel_name()
-        ).new_receiver()
-        await req_sender.send(active_power_request_12)
-
-        for i in range(3):
-            sample = await active_power_recv_4.receive()
+        for i in range(10):
+            sample = await telem_stream.receive()
             assert sample.value is not None
-            assert 100.0 + i == sample.value.base_value
-
-            sample = await reactive_power_recv_4.receive()
-            assert sample.value is not None
-            assert 100.0 + i == sample.value.base_value
-
-            sample = await active_power_recv_6.receive()
-            assert sample.value is not None
-            assert 0.0 + i == sample.value.base_value
-
-            sample = await soc_recv_9.receive()
-            assert sample.value is not None
-            assert 9.0 + i == sample.value.base_value
-
-            sample = await soc2_recv_9.receive()
-            assert sample.value is not None
-            assert 9.0 + i == sample.value.base_value
-
-            sample = await active_power_recv_12.receive()
-            assert sample.value is not None
-            assert -13.0 + i == sample.value.base_value
+            assert expected_sample_value + i == sample.value.base_value
 
 
 def _new_meter_data(

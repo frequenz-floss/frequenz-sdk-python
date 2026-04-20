@@ -8,14 +8,13 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Broadcast, BroadcastSender, Receiver, SenderClosedError
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import run_forever
-from ..._internal._channels import ChannelRegistry
 from ...microgrid import connection_manager
 from ...timeseries import Sample
 from .._old_component_data import (
@@ -159,16 +158,8 @@ class MicrogridApiSource:
     Used by the DataSourcingActor.
     """
 
-    def __init__(
-        self,
-        registry: ChannelRegistry,
-    ) -> None:
-        """Create a `MicrogridApiSource` instance.
-
-        Args:
-            registry: A channel registry.  To be replaced by a singleton
-                instance.
-        """
+    def __init__(self) -> None:
+        """Create a `MicrogridApiSource` instance."""
         self._comp_categories_cache: dict[ComponentId, ComponentCategory | int] = {}
 
         self.comp_data_receivers: dict[ComponentId, Receiver[Any]] = {}
@@ -177,10 +168,12 @@ class MicrogridApiSource:
         self.comp_data_tasks: dict[ComponentId, asyncio.Task[None]] = {}
         """The dictionary of component IDs to asyncio tasks."""
 
-        self._registry = registry
         self._req_streaming_metrics: dict[
             ComponentId, dict[Metric | TransitionalMetric, list[ComponentMetricRequest]]
         ] = {}
+
+        self._channels: dict[str, Broadcast[Sample[Quantity]]] = {}
+        """Metric data channels by channel name, to enable reuse."""
 
     async def _get_component_category(
         self, comp_id: ComponentId
@@ -397,12 +390,12 @@ class MicrogridApiSource:
         _logger.error(err)
         raise ValueError(err)
 
-    def _get_metric_senders(
+    async def _get_metric_senders(
         self,
         category: ComponentCategory | int,
         requests: dict[Metric | TransitionalMetric, list[ComponentMetricRequest]],
-    ) -> list[tuple[Callable[[Any], float], list[Sender[Sample[Quantity]]]]]:
-        """Get channel senders from the channel registry for each requested metric.
+    ) -> list[tuple[Callable[[Any], float], list[BroadcastSender[Sample[Quantity]]]]]:
+        """Get channel senders from the channel lookup dict for each requested metric.
 
         Args:
             category: The category of the component.
@@ -410,21 +403,27 @@ class MicrogridApiSource:
                 certain component.
 
         Returns:
-            A dictionary of output metric names to channel senders from the channel
-                registry.
+            A dictionary of output metric names to channel senders.
         """
-        return [
-            (
-                self._get_data_extraction_method(category, metric),
-                [
-                    self._registry.get_or_create(
-                        Sample[Quantity], request.get_channel_name()
-                    ).new_sender()
-                    for request in req_list
-                ],
-            )
-            for (metric, req_list) in requests.items()
-        ]
+        all_senders = []
+        for metric, req_list in requests.items():
+            extraction_method = self._get_data_extraction_method(category, metric)
+            senders = []
+            for request in req_list:
+                channel_name = request.get_channel_name()
+                # Create missing channels
+                if channel_name not in self._channels:
+                    self._channels[channel_name] = Broadcast(name=channel_name)
+                telem_stream = self._channels[channel_name]
+                # Ensure request sender gets the telemetry stream (once)
+                try:
+                    await request.telem_stream_sender.send(telem_stream.new_receiver())
+                except SenderClosedError:
+                    pass
+                senders.append(telem_stream.new_sender())
+            all_senders.append((extraction_method, senders))
+
+        return all_senders
 
     async def _handle_data_stream(
         self,
@@ -446,7 +445,7 @@ class MicrogridApiSource:
                 await self._check_requested_component_and_metrics(
                     comp_id, category, self._req_streaming_metrics[comp_id]
                 )
-                stream_senders = self._get_metric_senders(
+                stream_senders = await self._get_metric_senders(
                     category, self._req_streaming_metrics[comp_id]
                 )
             api_data_receiver: Receiver[Any] = self.comp_data_receivers[comp_id]

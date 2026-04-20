@@ -13,12 +13,17 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import (
+    Broadcast,
+    BroadcastReceiver,
+    OneshotChannel,
+    Receiver,
+    Sender,
+)
 from frequenz.client.microgrid.component import Component, EvCharger, Inverter, Meter
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity, Voltage
 
-from .._internal._channels import ChannelRegistry
 from .._internal._graph_traversal import find_first_descendant_component
 from ..timeseries._base_types import Sample, Sample3Phase
 
@@ -55,7 +60,6 @@ class VoltageStreamer:
     def __init__(
         self,
         resampler_subscription_sender: Sender[ComponentMetricRequest],
-        channel_registry: ChannelRegistry,
         source_component: Component | None = None,
     ):
         """Initialize the phase-to-neutral voltage streaming.
@@ -63,8 +67,6 @@ class VoltageStreamer:
         Args:
             resampler_subscription_sender: The sender for sending metric
                 requests to the resampling actor.
-            channel_registry: The channel registry for the phase-to-neutral
-                voltage streaming.
             source_component: The source component to receive the
                 phase-to-neutral voltage. If None, it fetches the source
                 component from the connection manager.
@@ -72,9 +74,6 @@ class VoltageStreamer:
         """
         self._resampler_subscription_sender = resampler_subscription_sender
         """The sender for sending metric requests to the resampling actor."""
-
-        self._channel_registry = channel_registry
-        """The channel registry for the phase-to-neutral voltage streaming."""
 
         from ..microgrid import (  # pylint: disable=import-outside-toplevel
             connection_manager,
@@ -99,6 +98,8 @@ class VoltageStreamer:
         self._channel_key = f"{self._namespace}-all-phases"
         """The channel key for the phase-to-neutral voltage streaming."""
 
+        self._telem_channel: Broadcast[Sample3Phase[Voltage]] | None = None
+
     @property
     def source(self) -> Component:
         """Get the component to fetch the phase-to-neutral voltage from.
@@ -107,6 +108,14 @@ class VoltageStreamer:
             The component to fetch the phase-to-neutral voltage from.
         """
         return self._source_component
+
+    @property
+    def _channel(self) -> Broadcast[Sample3Phase[Voltage]]:
+        if self._telem_channel is None:
+            self._telem_channel = Broadcast[Sample3Phase[Voltage]](
+                name=self._channel_key
+            )
+        return self._telem_channel
 
     def new_receiver(self) -> Receiver[Sample3Phase[Voltage]]:
         """Create a receiver for the phase-to-neutral voltage.
@@ -118,9 +127,7 @@ class VoltageStreamer:
             A receiver that will receive the phase-to-neutral voltage as a
             3-phase sample.
         """
-        receiver = self._channel_registry.get_or_create(
-            Sample3Phase[Voltage], self._channel_key
-        ).new_receiver()
+        receiver = self._channel.new_receiver()
 
         if not self._task:
             self._task = asyncio.create_task(self._send_request())
@@ -143,21 +150,21 @@ class VoltageStreamer:
         )
         phases_rx: list[Receiver[Sample[Quantity]]] = []
         for metric in metrics:
+            telem_stream_sender, telem_stream_receiver = OneshotChannel[
+                BroadcastReceiver[Sample[Quantity]]
+            ]()
             req = ComponentMetricRequest(
-                self._namespace, self._source_component.id, metric, None
+                namespace=self._namespace,
+                component_id=self._source_component.id,
+                metric=metric,
+                start_time=None,
+                telem_stream_sender=telem_stream_sender,
             )
 
             await self._resampler_subscription_sender.send(req)
+            phases_rx.append(await telem_stream_receiver.receive())
 
-            phases_rx.append(
-                self._channel_registry.get_or_create(
-                    Sample[Quantity], req.get_channel_name()
-                ).new_receiver()
-            )
-
-        sender = self._channel_registry.get_or_create(
-            Sample3Phase[Voltage], self._channel_key
-        ).new_sender()
+        sender = self._channel.new_sender()
 
         _logger.debug(
             "Sent request for fetching voltage from: %s", self._source_component
