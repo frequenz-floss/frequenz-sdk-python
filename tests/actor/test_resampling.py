@@ -195,7 +195,7 @@ async def test_duplicate_request(
 
 
 async def test_resubscribe(fake_time: time_machine.Coordinates) -> None:
-    """Test that resampling works when e receiver resubscribes.
+    """Test that resampling works when the receiver resubscribes.
 
     For example, Coalesce may close its receivers and resubscribe to the
     same component later on. ComponentMetricsResamplingActor must provide
