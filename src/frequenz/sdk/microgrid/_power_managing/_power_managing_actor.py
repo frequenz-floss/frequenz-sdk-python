@@ -205,7 +205,7 @@ class PowerManagingActor(Actor):
             )
 
     @override
-    async def _run(self) -> None:
+    async def _run(self) -> None:  # pylint: disable=too-many-branches
         """Run the power managing actor."""
         last_result_partial_failure = False
         drop_old_proposals_timer = Timer(timedelta(seconds=1.0), SkipMissedAndDrift())
