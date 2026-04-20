@@ -11,7 +11,14 @@ import sys
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
-from frequenz.channels import Broadcast, Receiver, Sender, select, selected_from
+from frequenz.channels import (
+    Broadcast,
+    Receiver,
+    Sender,
+    SenderClosedError,
+    select,
+    selected_from,
+)
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
@@ -230,26 +237,26 @@ class PowerManagingActor(Actor):
                 component_ids = sub.component_ids
                 priority = sub.priority
 
-                async def get_or_create_channel(
-                    subscription: ReportRequest,
-                ) -> Broadcast[_Report]:
-                    channel_name = subscription.get_channel_name()
-                    if channel_name not in self._channels:
-                        report_channel = Broadcast[_Report](name=channel_name)
-                        report_channel.resend_latest = True
-                        self._channels[channel_name] = report_channel
-                    return self._channels[channel_name]
+                # Get or create channel
+                channel_name = sub.get_channel_name()
+                if channel_name not in self._channels:
+                    report_channel = Broadcast[_Report](name=channel_name)
+                    report_channel.resend_latest = True
+                    self._channels[channel_name] = report_channel
+                channel = self._channels[channel_name]
+
+                # Ensure receiver is sent via oneshot channel (once)
+                try:
+                    await sub.report_stream_sender.send(channel.new_receiver())
+                except SenderClosedError:
+                    pass
 
                 if component_ids not in self._subscriptions:
-                    channel = await get_or_create_channel(sub)
                     self._subscriptions[component_ids] = {
                         priority: channel.new_sender()
                     }
-                    await sub.report_stream_sender.send(channel.new_receiver())
                 elif priority not in self._subscriptions[component_ids]:
-                    channel = await get_or_create_channel(sub)
                     self._subscriptions[component_ids][priority] = channel.new_sender()
-                    await sub.report_stream_sender.send(channel.new_receiver())
 
                 if sub.component_ids not in self._bound_tracker_tasks:
                     self._add_system_bounds_tracker(sub.component_ids)

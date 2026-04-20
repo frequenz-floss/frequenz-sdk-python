@@ -8,7 +8,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from frequenz.channels import Broadcast, BroadcastSender, Receiver
+from frequenz.channels import Broadcast, BroadcastSender, Receiver, SenderClosedError
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentCategory
 from frequenz.client.microgrid.metrics import Metric
@@ -411,11 +411,15 @@ class MicrogridApiSource:
             senders = []
             for request in req_list:
                 channel_name = request.get_channel_name()
-                # Create missing channels and inform the requesting side via oneshot
+                # Create missing channels
                 if channel_name not in self._channels:
                     self._channels[channel_name] = Broadcast(name=channel_name)
                 telem_stream = self._channels[channel_name]
-                await request.telem_stream_sender.send(telem_stream.new_receiver())
+                # Ensure request sender gets the telemetry stream (once)
+                try:
+                    await request.telem_stream_sender.send(telem_stream.new_receiver())
+                except SenderClosedError:
+                    pass
                 senders.append(telem_stream.new_sender())
             all_senders.append((extraction_method, senders))
 
