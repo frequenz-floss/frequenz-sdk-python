@@ -99,6 +99,9 @@ class Function(abc.ABC, Generic[QuantityT]):
 class Coalesce(Function[QuantityT]):
     """A function that returns the first non-None argument."""
 
+    REQUIRED_CONSECUTIVE_STABLE_SAMPLES = 3
+    """Number of samples after which a source is considered stable."""
+
     num_subscribed: int = 0
     """Number of parameters currently subscribed to."""
 
@@ -135,7 +138,7 @@ class Coalesce(Function[QuantityT]):
                             self.num_samples += 1
                             # Unsubscribe from last component when the
                             # other component streams are reasonably stable.
-                            if self.num_samples >= 3:
+                            if self.num_samples >= self.REQUIRED_CONSECUTIVE_STABLE_SAMPLES:
                                 await self._unsubscribe_last_param()
                         return arg
                     ts = timestamp
