@@ -1,8 +1,7 @@
 # License: MIT
-# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2026 Frequenz Energy-as-a-Service GmbH
 
-"""Tests for the `EVChargerPool`."""
-
+"""Tests for the `PVPool`."""
 
 import asyncio
 from unittest.mock import MagicMock
@@ -12,14 +11,13 @@ from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
 from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid, timeseries
+from frequenz.sdk import timeseries
 from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk.microgrid._power_managing import ReportRequest, _Report
-from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPool
-from frequenz.sdk.timeseries.ev_charger_pool._ev_charger_pool_reference_store import (
-    EVChargerPoolReferenceStore,
+from frequenz.sdk.timeseries.pv_pool import PVPool
+from frequenz.sdk.timeseries.pv_pool._pv_pool_reference_store import (
+    PVPoolReferenceStore,
 )
-from tests.timeseries.mock_microgrid import MockMicrogrid
 
 
 def _new_power_status_report(target_power_watts: float) -> _Report:
@@ -32,25 +30,6 @@ def _new_power_status_report(target_power_watts: float) -> _Report:
     )
 
 
-class TestEVChargerPool:
-    """Tests for the `EVChargerPool`."""
-
-    async def test_ev_power(  # pylint: disable=too-many-locals
-        self,
-        mocker: MockerFixture,
-    ) -> None:
-        """Test the ev power formula."""
-        mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
-        mockgrid.add_ev_chargers(3)
-
-        async with mockgrid:
-            ev_pool = microgrid.new_ev_charger_pool(priority=5)
-            power_receiver = ev_pool.power.new_receiver()
-
-            await mockgrid.mock_resampler.send_meter_power([16.0])
-            assert (await power_receiver.receive()).value == Power.from_watts(16.0)
-
-
 async def test_power_status_same_instance_subscriptions_work(
     mocker: MockerFixture,
 ) -> None:
@@ -58,8 +37,8 @@ async def test_power_status_same_instance_subscriptions_work(
     mock_cm = MagicMock()
     mock_graph = MagicMock()
     mock_graph.components.return_value = [
-        MagicMock(id=ComponentId(12)),
-        MagicMock(id=ComponentId(22)),
+        MagicMock(id=ComponentId(28)),
+        MagicMock(id=ComponentId(38)),
     ]
     mock_cm.component_graph = mock_graph
     mocker.patch(
@@ -68,12 +47,12 @@ async def test_power_status_same_instance_subscriptions_work(
     )
     mocker.patch("frequenz.sdk.microgrid.connection_manager.get", return_value=mock_cm)
 
-    registry = ChannelRegistry(name="ev-pool-test")
-    requests_channel = Broadcast[ReportRequest](name="ev-pool-requests")
+    registry = ChannelRegistry(name="pv-pool-test")
+    requests_channel = Broadcast[ReportRequest](name="pv-pool-requests")
     requests_rx = requests_channel.new_receiver()
-    component_ids = frozenset({ComponentId(12), ComponentId(22)})
-    pool = EVChargerPool(
-        pool_ref_store=EVChargerPoolReferenceStore(
+    component_ids = frozenset({ComponentId(28), ComponentId(38)})
+    pool = PVPool(
+        pool_ref_store=PVPoolReferenceStore(
             channel_registry=registry,
             resampler_subscription_sender=MagicMock(),
             status_receiver=MagicMock(),
@@ -82,7 +61,7 @@ async def test_power_status_same_instance_subscriptions_work(
             power_distribution_results_fetcher=MagicMock(),
             component_ids=component_ids,
         ),
-        name="ev-pool",
+        name="pv-pool",
         priority=5,
     )
 

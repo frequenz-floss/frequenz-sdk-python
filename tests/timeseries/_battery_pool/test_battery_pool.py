@@ -15,17 +15,19 @@ from contextlib import AsyncExitStack
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Generic, TypeVar
+from unittest.mock import MagicMock
 
 import async_solipsism
 import pytest
 import time_machine
-from frequenz.channels import Receiver, Sender
+from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, Component
 from frequenz.quantities import Energy, Percentage, Power, Temperature
 from pytest_mock import MockerFixture
 
-from frequenz.sdk import microgrid
+from frequenz.sdk import microgrid, timeseries
+from frequenz.sdk._internal._channels import ChannelRegistry
 from frequenz.sdk._internal._constants import (
     MAX_BATTERY_DATA_AGE_SEC,
     WAIT_FOR_COMPONENT_DATA_SEC,
@@ -34,9 +36,13 @@ from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_managers._battery_manager import (
     _get_battery_inverter_mappings,
 )
+from frequenz.sdk.microgrid._power_managing import ReportRequest, _Report
 from frequenz.sdk.timeseries import Bounds, ResamplerConfig2, Sample
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.battery_pool import BatteryPool
+from frequenz.sdk.timeseries.battery_pool._battery_pool_reference_store import (
+    BatteryPoolReferenceStore,
+)
 
 from ...timeseries.mock_microgrid import MockMicrogrid
 from ...utils.component_data_streamer import MockComponentDataStreamer
@@ -48,6 +54,16 @@ from ...utils.component_graph_utils import (
 from ...utils.mock_microgrid_client import MockMicrogridClient
 
 _logger = logging.getLogger(__name__)
+
+
+def _new_power_status_report(target_power_watts: float) -> _Report:
+    """Create a distinct report for power status assertions."""
+    target_power = Power.from_watts(target_power_watts)
+    return _Report(
+        target_power=target_power,
+        _inclusion_bounds=timeseries.Bounds(target_power, target_power),
+        _exclusion_bounds=None,
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -1200,3 +1216,58 @@ async def run_temperature_test(  # pylint: disable=too-many-locals
     streamer.start_streaming(latest_data, sampling_rate=0.1)
     msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
     compare_messages(msg, Sample(now, Temperature.from_celsius(15.0)))
+
+
+async def test_power_status_same_instance_subscriptions_work(
+    mocker: MockerFixture,
+) -> None:
+    """Ensure same-instance power_status subscriptions share the same channel."""
+    mock_cm = MagicMock()
+    mock_graph = MagicMock()
+    mock_graph.components.return_value = [
+        MagicMock(id=ComponentId(8)),
+        MagicMock(id=ComponentId(18)),
+    ]
+    mock_cm.component_graph = mock_graph
+    mocker.patch(
+        "frequenz.sdk.microgrid.connection_manager._CONNECTION_MANAGER",
+        mock_cm,
+    )
+    mocker.patch("frequenz.sdk.microgrid.connection_manager.get", return_value=mock_cm)
+
+    registry = ChannelRegistry(name="battery-pool-test")
+    requests_channel = Broadcast[ReportRequest](name="battery-pool-requests")
+    requests_rx = requests_channel.new_receiver()
+    component_ids = frozenset({ComponentId(8), ComponentId(18)})
+    pool = BatteryPool(
+        pool_ref_store=BatteryPoolReferenceStore(
+            channel_registry=registry,
+            resampler_subscription_sender=MagicMock(),
+            batteries_status_receiver=MagicMock(),
+            power_manager_requests_sender=MagicMock(),
+            power_manager_bounds_subscription_sender=requests_channel.new_sender(),
+            power_distribution_results_fetcher=MagicMock(),
+            min_update_interval=timedelta(seconds=1),
+            batteries_id=component_ids,
+        ),
+        name="battery-pool",
+        priority=5,
+    )
+
+    first_status_rx = pool.power_status.new_receiver()
+    second_status_rx = pool.power_status.new_receiver()
+
+    await asyncio.sleep(0)
+
+    first_request = await asyncio.wait_for(requests_rx.receive(), timeout=1.0)
+    second_request = await asyncio.wait_for(requests_rx.receive(), timeout=1.0)
+    assert second_request.get_channel_name() == first_request.get_channel_name()
+
+    await registry.get_or_create(
+        _Report, first_request.get_channel_name()
+    ).new_sender().send(_new_power_status_report(123.0))
+
+    first_report = await asyncio.wait_for(first_status_rx.receive(), timeout=1.0)
+    second_report = await asyncio.wait_for(second_status_rx.receive(), timeout=1.0)
+    assert first_report.target_power == Power.from_watts(123.0)
+    assert second_report.target_power == Power.from_watts(123.0)
