@@ -99,7 +99,7 @@ async def test_actors_started(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Unable to create a BatteryPool. These component IDs are either not "
+            "Unable to create BatteryPool. These component IDs are either not "
             + "batteries or are unknown: frozenset({ComponentId(4)})"
         ),
     ):
@@ -108,7 +108,7 @@ async def test_actors_started(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Unable to create a PVPool. These component IDs are either not PV "
+            "Unable to create PVPool. These component IDs are either not PV "
             + "inverters or are unknown: frozenset({ComponentId(1)})"
         ),
     ):
@@ -117,7 +117,7 @@ async def test_actors_started(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Unable to create an EVChargerPool. These component IDs are either "
+            "Unable to create EVChargerPool. These component IDs are either "
             + "not EV chargers or are unknown: frozenset({ComponentId(4)})"
         ),
     ):

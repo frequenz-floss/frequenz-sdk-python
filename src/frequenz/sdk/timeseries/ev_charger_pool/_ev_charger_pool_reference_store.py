@@ -3,25 +3,17 @@
 
 """Manages shared state/tasks for a set of EV chargers."""
 
-import asyncio
 import uuid
-from collections import abc
+from typing import Type
 
-from frequenz.channels import Broadcast, Receiver, Sender
-from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import EvCharger
+from frequenz.client.microgrid.component import Component, EvCharger
+from typing_extensions import override
 
-from ..._internal._channels import ChannelRegistry, ReceiverFetcher
-from ...microgrid import connection_manager
-from ...microgrid._data_sourcing import ComponentMetricRequest
-from ...microgrid._power_distributing import ComponentPoolStatus, Result
-from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
-from .._base_types import SystemBounds
-from ..formulas._formula_pool import FormulaPool
+from ..abstract_pool import AbstractPoolReferenceStore
 from ._system_bounds_tracker import EVCSystemBoundsTracker
 
 
-class EVChargerPoolReferenceStore:
+class EVChargerPoolReferenceStore(AbstractPoolReferenceStore):
     """A class for maintaining the shared state/tasks for a set of pool of EV chargers.
 
     This includes ownership of
@@ -34,77 +26,30 @@ class EVChargerPoolReferenceStore:
     They are exposed through the EVChargerPool class.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        *,
-        channel_registry: ChannelRegistry,
-        resampler_subscription_sender: Sender[ComponentMetricRequest],
-        status_receiver: Receiver[ComponentPoolStatus],
-        power_manager_requests_sender: Sender[Proposal],
-        power_manager_bounds_subs_sender: Sender[ReportRequest],
-        power_distribution_results_fetcher: ReceiverFetcher[Result],
-        component_ids: abc.Set[ComponentId] | None = None,
-    ):
-        """Create an instance of the class.
+    @staticmethod
+    def get_component_class() -> Type[Component]:
+        """Class of the component type."""
+        return EvCharger
 
-        Args:
-            channel_registry: A channel registry instance shared with the resampling
-                actor.
-            resampler_subscription_sender: A sender for sending metric requests to the
-                resampling actor.
-            status_receiver: A receiver that streams the status of the EV Chargers in
-                the pool.
-            power_manager_requests_sender: A Channel sender for sending power
-                requests to the power managing actor.
-            power_manager_bounds_subs_sender: A Channel sender for sending power bounds
-                subscription requests to the power managing actor.
-            power_distribution_results_fetcher: A ReceiverFetcher for the results from
-                the power distributing actor.
-            component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all EV Chargers in the microgrid will be fetched
-                from the component graph.
+    @staticmethod
+    def get_pool_type_name() -> str:
+        """Name of the pool type, for display purposes."""
+        return "EVChargerPool"
 
-        Raises:
-            ValueError: If any of the specified component_ids are not EV chargers
-                or are unknown to the component graph.
-        """
-        self.channel_registry = channel_registry
-        self.resampler_subscription_sender = resampler_subscription_sender
-        self.status_receiver = status_receiver
-        self.power_manager_requests_sender = power_manager_requests_sender
-        self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
-        self.power_distribution_results_fetcher = power_distribution_results_fetcher
+    @staticmethod
+    def get_component_type_name_plural() -> str:
+        """Name of the component type, for display purposes."""
+        return "EV chargers"
 
-        graph = connection_manager.get().component_graph
-        all_ev_chargers = frozenset(
-            {evc.id for evc in graph.components(matching_types=EvCharger)}
-        )
+    @override
+    def get_namespace(self) -> str:
+        """Namespace to use with the data pipeline."""
+        return f"ev-charger-pool-{uuid.uuid4()}"
 
-        if component_ids is not None:
-            self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
-            if not self.component_ids.issubset(all_ev_chargers):
-                unknown_ids = self.component_ids - all_ev_chargers
-                raise ValueError(
-                    "Unable to create an EVChargerPool. These component IDs are either "
-                    + f"not EV chargers or are unknown: {unknown_ids}"
-                )
-        else:
-            self.component_ids = all_ev_chargers
-
-        self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
-
-        self.namespace: str = f"ev-charger-pool-{uuid.uuid4()}"
-        self.formula_pool = FormulaPool(
-            self.namespace,
-            self.channel_registry,
-            self.resampler_subscription_sender,
-        )
-
-        self.bounds_channel: Broadcast[SystemBounds] = Broadcast(
-            name=f"System Bounds for EV Chargers: {component_ids}",
-            resend_latest=True,
-        )
-        self.bounds_tracker: EVCSystemBoundsTracker = EVCSystemBoundsTracker(
+    @override
+    def create_bounds_tracker(self) -> None:
+        """Create the bounds tracker for the pool."""
+        self.bounds_tracker = EVCSystemBoundsTracker(
             self.component_ids,
             self.status_receiver,
             self.bounds_channel.new_sender(),
@@ -114,5 +59,6 @@ class EVChargerPoolReferenceStore:
     async def stop(self) -> None:
         """Stop all tasks and channels owned by the EVChargerPool."""
         await self.formula_pool.stop()
-        await self.bounds_tracker.stop()
+        if self.bounds_tracker is not None:
+            await self.bounds_tracker.stop()
         self.status_receiver.close()
