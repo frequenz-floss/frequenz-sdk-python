@@ -851,7 +851,7 @@ class TestCoalesceFunction:
                     expected_subscriptions=[True, True, True],
                 ),
                 self.CoalesceSample(
-                    values=[10.0, None, 15.0],
+                    values=[None, 12.0, 15.0],
                     expected_subscriptions=[True, True, True],
                 ),
                 self.CoalesceSample(

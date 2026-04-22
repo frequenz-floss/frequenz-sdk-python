@@ -105,12 +105,11 @@ class Coalesce(Function[QuantityT]):
     num_subscribed: int = 0
     """Number of parameters currently subscribed to."""
 
-    num_samples: int = 0
-    """Number of samples received since last subscription change.
+    used_param: int = 0
+    """Index (1-based) of the param that gave the most recent samples."""
 
-    This only counts samples from parameters other than the last one,
-    and may indicate that the last parameter can be unsubscribed from.
-    """
+    num_samples: int = 0
+    """Number of consecutive non-None samples received from used_param."""
 
     @property
     @override
@@ -129,17 +128,23 @@ class Coalesce(Function[QuantityT]):
         args = await self._synchronizer.evaluate(
             self.params[: self.num_subscribed], sync_to_first_node=True
         )
-        for ctr, arg in enumerate(args, start=1):
+        for param, arg in enumerate(args, start=1):
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
-                        # Found a non-None value
-                        if ctr < self.num_subscribed:
-                            self.num_samples += 1
-                            # Unsubscribe from last component when the
-                            # other component streams are reasonably stable.
-                            if self.num_samples >= self.REQUIRED_CONSECUTIVE_STABLE_SAMPLES:
-                                await self._unsubscribe_last_param()
+                        if param != self.used_param:
+                            # Got a sample from a different parameter
+                            self.used_param = param
+                            self.num_samples = 0
+
+                        self.num_samples += 1
+
+                        if (
+                            self.num_samples == self.REQUIRED_CONSECUTIVE_STABLE_SAMPLES
+                            and self.used_param < self.num_subscribed
+                        ):
+                            await self._unsubscribe_all_params_after(self.used_param)
+
                         return arg
                     ts = timestamp
                 case Quantity():
@@ -180,16 +185,15 @@ class Coalesce(Function[QuantityT]):
             self.num_subscribed += 1
             self.num_samples = 0
 
-    async def _unsubscribe_last_param(self) -> None:
-        """Unsubscribe from the last parameter."""
-        if self.num_subscribed > 1:
+    async def _unsubscribe_all_params_after(self, index: int) -> None:
+        """Unsubscribe from parameters after the given index."""
+        for param in self.params[index:]:
             _logger.debug(
                 "Coalesce unsubscribing from param: %s",
-                self.num_subscribed,
+                param,
             )
-            await self.params[self.num_subscribed - 1].unsubscribe()
-            self.num_subscribed -= 1
-            self.num_samples = 0
+            await param.unsubscribe()
+        self.num_subscribed = index
 
 
 @dataclass
