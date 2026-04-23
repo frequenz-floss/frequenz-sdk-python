@@ -830,33 +830,136 @@ class TestCoalesceFunction:
             ],
         )
 
-    async def test_coalesce_unsubscribe(self) -> None:
-        """Test coalesce only unsubscribes after 3 samples."""
-        await self.run_test(
-            "COALESCE(#0, #1, #2, 0.0)",
-            [
-                # First subscription is added before the first sample.
-                # Every sample can add one subscription.
-                self.CoalesceSample(
-                    values=[None, None, 15.0],
-                    expected_subscriptions=[True, True, False],
-                ),
-                self.CoalesceSample(
-                    values=[None, None, 15.0],
-                    expected_subscriptions=[True, True, True],
-                ),
-                # After 3 samples, the last subscription is dropped.
-                self.CoalesceSample(
-                    values=[None, 12.0, 15.0],
-                    expected_subscriptions=[True, True, True],
-                ),
-                self.CoalesceSample(
-                    values=[None, 12.0, 15.0],
-                    expected_subscriptions=[True, True, True],
-                ),
-                self.CoalesceSample(
-                    values=[None, 12.0, 15.0],
-                    expected_subscriptions=[True, True, False],
-                ),
-            ],
-        )
+    @pytest.mark.parametrize(
+        ("formula_str", "samples"),
+        [
+            (
+                "COALESCE(#0, #1, #2, 0.0)",
+                [
+                    # First subscription is added before the first sample.
+                    # Every sample can add one subscription.
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    # Param 2 is stable after 3 samples, unsubscribe from 3
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                ],
+            ),
+            (
+                "COALESCE(#0, #1, #2, 0.0)",
+                [
+                    # Subscribe to all 3 params
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    # Param 1 is stable after 3 samples, unsubscribe from 2 and 3
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, False, False],
+                    ),
+                ],
+            ),
+            (
+                "COALESCE(#0, #1, #2, 0.0)",
+                [
+                    # Subscribe to all 3 params
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    # Param 2 stabilizes, but param 1 takes precedence.
+                    # We stay subscribed.
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                ],
+            ),
+            (
+                "COALESCE(#0, #1, #2, 0.0)",
+                [
+                    # Subscribe to all 3 params
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    # Params 1 and 2 give intermittent values,
+                    # neither is stable. Keep subscriptions.
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                ],
+            ),
+        ],
+    )
+    async def test_coalesce_unsubscribe(
+        self, formula_str: str, samples: list[CoalesceSample]
+    ) -> None:
+        """Test coalesce unsubscribe behavior."""
+        await self.run_test(formula_str, samples)
