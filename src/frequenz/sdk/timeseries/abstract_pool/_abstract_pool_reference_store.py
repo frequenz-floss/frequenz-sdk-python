@@ -124,3 +124,10 @@ class AbstractPoolReferenceStore(ABC):
     @abstractmethod
     def create_bounds_tracker(self) -> None:
         """Create the bounds tracker for the pool."""
+
+    async def stop(self) -> None:
+        """Stop all tasks and channels."""
+        await self.formula_pool.stop()
+        if self.bounds_tracker is not None:
+            await self.bounds_tracker.stop()
+        self.status_receiver.close()

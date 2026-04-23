@@ -94,12 +94,10 @@ class BatteryPoolReferenceStore(AbstractPoolReferenceStore):
         self._batteries = self.component_ids
         self._working_batteries: set[ComponentId] = set()
         self._update_battery_status_task: asyncio.Task[None] | None = None
-        self._batteries_status_receiver: Receiver[ComponentPoolStatus] = (
-            batteries_status_receiver
-        )
+
         if self._batteries:
             self._update_battery_status_task = asyncio.create_task(
-                self._update_battery_status(self._batteries_status_receiver)
+                self._update_battery_status(self.status_receiver)
             )
         self._min_update_interval: timedelta = min_update_interval
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
@@ -130,15 +128,15 @@ class BatteryPoolReferenceStore(AbstractPoolReferenceStore):
         """Create the bounds tracker for the pool."""
 
     async def stop(self) -> None:
-        """Stop all pending async tasks."""
+        """Stop all tasks and channels."""
+        await super().stop()
+
         tasks_to_stop: list[Awaitable[Any]] = [
             method.stop() for method in self._active_methods.values()
         ]
-        tasks_to_stop.append(self.formula_pool.stop())
         if self._update_battery_status_task:
             tasks_to_stop.append(cancel_and_await(self._update_battery_status_task))
         await asyncio.gather(*tasks_to_stop)
-        self._batteries_status_receiver.close()
 
     async def _update_battery_status(
         self, receiver: Receiver[ComponentPoolStatus]

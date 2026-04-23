@@ -57,10 +57,3 @@ class PVPoolReferenceStore(AbstractPoolReferenceStore):
                 self.bounds_channel.new_sender(),
             )
             self.bounds_tracker.start()
-
-    async def stop(self) -> None:
-        """Stop all tasks and channels owned by the PVInverterPool."""
-        await self.formula_pool.stop()
-        if self.bounds_tracker is not None:
-            await self.bounds_tracker.stop()
-        self.status_receiver.close()
