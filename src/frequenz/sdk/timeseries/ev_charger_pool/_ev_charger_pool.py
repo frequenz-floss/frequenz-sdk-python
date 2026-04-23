@@ -10,13 +10,15 @@ from ...microgrid import connection_manager
 from ...timeseries import Bounds
 from ..abstract_pool import AbstractPool
 from ..formulas import Formula, Formula3Phase
+from ._ev_charger_pool_reference_store import EVChargerPoolReferenceStore
+from ._result_types import EVChargerPoolReport
 
 
 class EVChargerPoolError(Exception):
     """An error that occurred in any of the EVChargerPool methods."""
 
 
-class EVChargerPool(AbstractPool):
+class EVChargerPool(AbstractPool[EVChargerPoolReferenceStore, EVChargerPoolReport]):
     """An interface for interaction with pools of EV Chargers.
 
     Provides:

@@ -7,6 +7,7 @@ import asyncio
 import uuid
 from abc import ABC, abstractmethod
 from collections import abc
+from typing import Generic, TypeVar, cast
 
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
@@ -15,19 +16,22 @@ from frequenz.sdk._internal._channels import MappingReceiverFetcher, ReceiverFet
 from frequenz.sdk.microgrid import _power_distributing, _power_managing
 from frequenz.sdk.timeseries import Bounds
 from frequenz.sdk.timeseries._base_types import SystemBounds
-from frequenz.sdk.timeseries.abstract_pool._abstract_pool_reference_store import (
-    AbstractPoolReferenceStore,
-)
 from frequenz.sdk.timeseries.formulas import Formula
 
+from ._abstract_pool_reference_store import AbstractPoolReferenceStore
+from ._abstract_pool_report import AbstractPoolReport
 
-class AbstractPool(ABC):
+RefStoreT = TypeVar("RefStoreT", bound=AbstractPoolReferenceStore)
+ReportT = TypeVar("ReportT", bound=AbstractPoolReport)
+
+
+class AbstractPool(ABC, Generic[RefStoreT, ReportT]):
     """Abstract base class for component pools."""
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
-        pool_ref_store: AbstractPoolReferenceStore,
+        pool_ref_store: RefStoreT,
         name: str | None,
         priority: int,
     ) -> None:
@@ -97,7 +101,7 @@ class AbstractPool(ABC):
         """
 
     @property
-    def power_status(self) -> ReceiverFetcher[_power_managing._Report]:
+    def power_status(self) -> ReceiverFetcher[ReportT]:
         """Get a receiver to receive new power status reports when they change.
 
         These include
@@ -124,7 +128,7 @@ class AbstractPool(ABC):
         )
         channel.resend_latest = True
 
-        return channel
+        return cast(ReceiverFetcher[ReportT], channel)
 
     @property
     def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:

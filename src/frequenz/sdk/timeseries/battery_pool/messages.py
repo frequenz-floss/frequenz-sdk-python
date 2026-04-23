@@ -16,11 +16,12 @@ from ...microgrid._power_distributing import (
     Success,
 )
 from .._base_types import Bounds
+from ..abstract_pool import AbstractPoolReport
 
 
 # This class is used to expose the generic reports from the PowerManager with specific
 # documentation for the battery pool.
-class BatteryPoolReport(typing.Protocol):
+class BatteryPoolReport(AbstractPoolReport, typing.Protocol):
     """A status report for a battery pool."""
 
     @property

@@ -7,10 +7,11 @@ import typing
 
 from frequenz.quantities import Power
 
-from .._base_types import Bounds
+from .. import Bounds
+from ..abstract_pool import AbstractPoolReport
 
 
-class EVChargerPoolReport(typing.Protocol):
+class EVChargerPoolReport(AbstractPoolReport, typing.Protocol):
     """A status report for an EV chargers pool."""
 
     @property

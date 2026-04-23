@@ -28,11 +28,12 @@ from ._metric_calculator import (
     SoCCalculator,
     TemperatureCalculator,
 )
+from .messages import BatteryPoolReport
 
 # pylint: disable=protected-access
 
 
-class BatteryPool(AbstractPool):
+class BatteryPool(AbstractPool[BatteryPoolReferenceStore, BatteryPoolReport]):
     """An interface for interaction with pools of batteries.
 
     Provides:

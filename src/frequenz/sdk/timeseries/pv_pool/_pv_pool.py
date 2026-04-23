@@ -11,13 +11,15 @@ from frequenz.sdk.microgrid import connection_manager
 from ...timeseries import Bounds
 from ..abstract_pool import AbstractPool
 from ..formulas import Formula
+from ._pv_pool_reference_store import PVPoolReferenceStore
+from ._result_types import PVPoolReport
 
 
 class PVPoolError(Exception):
     """An error that occurred in any of the PVPool methods."""
 
 
-class PVPool(AbstractPool):
+class PVPool(AbstractPool[PVPoolReferenceStore, PVPoolReport]):
     """An interface for interaction with pools of PV inverters.
 
     Provides:
