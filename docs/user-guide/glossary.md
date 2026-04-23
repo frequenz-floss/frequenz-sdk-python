@@ -173,7 +173,7 @@ They are generally placed in front of another [component](#component), e.g., an
 
 #### Sensor
 
-A device for [measuring](#measurement] ambient [metrics](#metric) (for example
+A device for [measuring](#measurement) ambient [metrics](#metric) (for example
 temperature, humidity, etc.).
 
 ### Component
