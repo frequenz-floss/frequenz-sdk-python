@@ -201,6 +201,25 @@ class ResamplerConfig:
     time the resampler is created.
     """
 
+    tick_delay: timedelta = field(default=timedelta(0), kw_only=True)
+    """Delay before processing each resampling tick.
+
+    This delays when resampling computation happens, while keeping the
+    resampling windows aligned to the original timer tick boundaries. This
+    delay is only a time-based buffer, not a strict synchronization mechanism.
+
+    Warning:
+        This is an experimental option and may be changed or deprecated in
+        the future.
+
+    Example:
+        This can be used in cascaded resampling setups to reduce timing races
+        where downstream windows are processed before upstream resampled values
+        are emitted.
+
+    It must be non-negative and smaller than `resampling_period`.
+    """
+
     def __post_init__(self) -> None:
         """Check that config values are valid.
 
@@ -244,6 +263,13 @@ class ResamplerConfig:
         if self.align_to is not None and self.align_to.tzinfo is None:
             raise ValueError(
                 f"align_to ({self.align_to}) should be a timezone aware datetime"
+            )
+        if self.tick_delay < timedelta(0):
+            raise ValueError(f"tick_delay ({self.tick_delay}) should be non-negative")
+        if self.tick_delay >= self.resampling_period:
+            raise ValueError(
+                f"tick_delay ({self.tick_delay}) should be smaller than "
+                f"resampling_period ({self.resampling_period})"
             )
 
 
@@ -414,4 +440,11 @@ class ResamplerConfig2(ResamplerConfig):
         if self.align_to is not None:
             raise ValueError(
                 f"align_to ({self.align_to}) must be specified via timer_config"
+            )
+        if self.tick_delay < timedelta(0):
+            raise ValueError(f"tick_delay ({self.tick_delay}) should be non-negative")
+        if self.tick_delay >= self.resampling_period:
+            raise ValueError(
+                f"tick_delay ({self.tick_delay}) should be smaller than "
+                f"resampling_period ({self.resampling_period})"
             )
