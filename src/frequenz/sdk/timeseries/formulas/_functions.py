@@ -132,10 +132,15 @@ class Coalesce(Function[QuantityT]):
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
-                        if param != self.used_param:
-                            # Got a sample from a different parameter
-                            self.used_param = param
-                            self.num_samples = 0
+                        # Keep track of which parameter we are getting samples from.
+                        # this slightly convoluted check ensures that we unsubscribe
+                        # from the last parameter if any earlier one produces at least
+                        # REQUIRED_CONSECUTIVE_STABLE_SAMPLES samples, regardless of
+                        # intermittent non-None values received from other params.
+                        match self.used_param > 0 and args[self.used_param - 1]:
+                            case False | Sample(value=None):
+                                self.used_param = param
+                                self.num_samples = 0
 
                         self.num_samples += 1
 

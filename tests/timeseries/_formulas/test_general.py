@@ -836,8 +836,7 @@ class TestCoalesceFunction:
             (
                 "COALESCE(#0, #1, #2, 0.0)",
                 [
-                    # First subscription is added before the first sample.
-                    # Every sample can add one subscription.
+                    # Subscribe to all 3 params
                     CoalesceSample(
                         values=[None, None, 15.0],
                         expected_subscriptions=[True, True, False],
@@ -900,8 +899,9 @@ class TestCoalesceFunction:
                         values=[None, None, 15.0],
                         expected_subscriptions=[True, True, True],
                     ),
-                    # Param 2 stabilizes, but param 1 takes precedence.
-                    # We stay subscribed.
+                    # Param 2 is stable after 3 samples, param 1 does not reset the counter.
+                    # This means intermittent values from param 1 will not prevent us from
+                    # unsubscribing from param 3 if param 2 is stable.
                     CoalesceSample(
                         values=[None, 12.0, 15.0],
                         expected_subscriptions=[True, True, True],
@@ -912,6 +912,45 @@ class TestCoalesceFunction:
                     ),
                     CoalesceSample(
                         values=[10.0, 12.0, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                ],
+            ),
+            (
+                "COALESCE(#0, #1, #2, 0.0)",
+                [
+                    # Subscribe to all 3 params
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, False],
+                    ),
+                    CoalesceSample(
+                        values=[None, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    # Params 1 and 2 only give intermittent values. Keep subscriptions.
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[10.0, None, 15.0],
                         expected_subscriptions=[True, True, True],
                     ),
                 ],
@@ -928,22 +967,14 @@ class TestCoalesceFunction:
                         values=[None, None, 15.0],
                         expected_subscriptions=[True, True, True],
                     ),
-                    # Params 1 and 2 give intermittent values,
-                    # neither is stable. Keep subscriptions.
-                    CoalesceSample(
-                        values=[None, 12.0, 15.0],
-                        expected_subscriptions=[True, True, True],
-                    ),
+                    # Param 2 gives us a sample while we count param 1 samples,
+                    # we miss it and only unsubscribe after param 2 has received 4 samples.
                     CoalesceSample(
                         values=[10.0, None, 15.0],
                         expected_subscriptions=[True, True, True],
                     ),
                     CoalesceSample(
-                        values=[None, 12.0, 15.0],
-                        expected_subscriptions=[True, True, True],
-                    ),
-                    CoalesceSample(
-                        values=[10.0, None, 15.0],
+                        values=[10.0, 12.0, 15.0],
                         expected_subscriptions=[True, True, True],
                     ),
                     CoalesceSample(
@@ -951,8 +982,12 @@ class TestCoalesceFunction:
                         expected_subscriptions=[True, True, True],
                     ),
                     CoalesceSample(
-                        values=[10.0, None, 15.0],
+                        values=[None, 12.0, 15.0],
                         expected_subscriptions=[True, True, True],
+                    ),
+                    CoalesceSample(
+                        values=[None, 12.0, 15.0],
+                        expected_subscriptions=[True, True, False],
                     ),
                 ],
             ),
