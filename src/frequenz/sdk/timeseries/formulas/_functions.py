@@ -99,7 +99,17 @@ class Function(abc.ABC, Generic[QuantityT]):
 class Coalesce(Function[QuantityT]):
     """A function that returns the first non-None argument."""
 
+    REQUIRED_CONSECUTIVE_STABLE_SAMPLES = 3
+    """Number of samples after which a source is considered stable."""
+
     num_subscribed: int = 0
+    """Number of parameters currently subscribed to."""
+
+    used_param: int = 0
+    """Index (1-based) of the param that gave the most recent samples."""
+
+    num_samples: int = 0
+    """Number of consecutive non-None samples received from used_param."""
 
     @property
     @override
@@ -118,19 +128,31 @@ class Coalesce(Function[QuantityT]):
         args = await self._synchronizer.evaluate(
             self.params[: self.num_subscribed], sync_to_first_node=True
         )
-        for ctr, arg in enumerate(args, start=1):
+        for param, arg in enumerate(args, start=1):
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
-                        # Found a non-None value, unsubscribe from subsequent params
-                        if ctr < self.num_subscribed:
-                            await self._unsubscribe_all_params_after(ctr)
+                        # Keep track of which parameter we are getting samples from.
+                        # this slightly convoluted check ensures that we unsubscribe
+                        # from the last parameter if any earlier one produces at least
+                        # REQUIRED_CONSECUTIVE_STABLE_SAMPLES samples, regardless of
+                        # intermittent non-None values received from other params.
+                        match self.used_param > 0 and args[self.used_param - 1]:
+                            case False | Sample(value=None):
+                                self.used_param = param
+                                self.num_samples = 0
+
+                        self.num_samples += 1
+
+                        if (
+                            self.num_samples == self.REQUIRED_CONSECUTIVE_STABLE_SAMPLES
+                            and self.used_param < self.num_subscribed
+                        ):
+                            await self._unsubscribe_all_params_after(self.used_param)
+
                         return arg
                     ts = timestamp
                 case Quantity():
-                    # Found a non-None value, unsubscribe from subsequent params
-                    if ctr < self.num_subscribed:
-                        await self._unsubscribe_all_params_after(ctr)
                     if ts is not None:
                         return Sample(timestamp=ts, value=arg)
                     return arg
@@ -166,6 +188,7 @@ class Coalesce(Function[QuantityT]):
             )
             await self.params[self.num_subscribed].subscribe()
             self.num_subscribed += 1
+            self.num_samples = 0
 
     async def _unsubscribe_all_params_after(self, index: int) -> None:
         """Unsubscribe from parameters after the given index."""
