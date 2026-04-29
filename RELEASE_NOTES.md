@@ -14,4 +14,10 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+- Transient component data outages (e.g. Modbus timeouts) no longer collapse
+  the reported system power bounds to `[0, 0]`.  Previously the
+  `PowerManagingActor` propagated `inclusion_bounds=None` through to the
+  Matryoshka allocation algorithm which clamped it to zero, causing all
+  downstream actors to drop their setpoints.  The last known good bounds are
+  now retained when the bounds calculator emits `None` due to stale data.
+  (Fixes [#1396](https://github.com/frequenz-floss/frequenz-sdk-python/pull/1396))

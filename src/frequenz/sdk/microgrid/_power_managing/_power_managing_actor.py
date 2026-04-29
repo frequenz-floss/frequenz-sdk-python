@@ -128,15 +128,43 @@ class PowerManagingActor(Actor):
         """
         last_bounds: SystemBounds | None = None
         async for bounds in bounds_receiver:
-            if (
-                last_bounds is not None
-                and bounds.inclusion_bounds == last_bounds.inclusion_bounds
-            ):
+            if not self._should_update_bounds(bounds, last_bounds):
+                last_bounds = bounds
                 continue
             last_bounds = bounds
             self._system_bounds[component_ids] = bounds
             await self._send_updated_target_power(component_ids, None)
             await self._send_reports(component_ids)
+
+    @staticmethod
+    def _should_update_bounds(
+        new_bounds: SystemBounds,
+        last_bounds: SystemBounds | None,
+    ) -> bool:
+        """Decide whether the bounds tracker should propagate *new_bounds*.
+
+        This is a no-op if *new_bounds* is identical to *last_bounds*.  When
+        the system loses contact with a component (e.g.  a Modbus timeout) the
+        BoundsCalculator emits ``inclusion_bounds=None``.  If we already know
+        good bounds we hold them — "no data" is not the same as "zero power
+        available".
+        """
+        if last_bounds is None:
+            return True
+        if new_bounds.inclusion_bounds == last_bounds.inclusion_bounds:
+            return False
+        if (
+            new_bounds.inclusion_bounds is None
+            and last_bounds.inclusion_bounds is not None
+        ):
+            _logger.warning(
+                "PowerManagingActor: ignoring transient bounds outage. "
+                "Holding last known bounds [%s, %s]",
+                last_bounds.inclusion_bounds.lower,
+                last_bounds.inclusion_bounds.upper,
+            )
+            return False
+        return True
 
     def _add_system_bounds_tracker(self, component_ids: frozenset[ComponentId]) -> None:
         """Add a system bounds tracker for the given components.
