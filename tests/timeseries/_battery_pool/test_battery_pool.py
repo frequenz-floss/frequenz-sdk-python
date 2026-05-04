@@ -1248,7 +1248,7 @@ async def test_power_status_same_instance_subscriptions_work(
             power_manager_bounds_subscription_sender=requests_channel.new_sender(),
             power_distribution_results_fetcher=MagicMock(),
             min_update_interval=timedelta(seconds=1),
-            batteries_id=component_ids,
+            component_ids=component_ids,
         ),
         name="battery-pool",
         priority=5,

@@ -437,7 +437,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                         self._battery_power_wrapper.distribution_results_fetcher()
                     ),
                     min_update_interval=self._resampler_config.resampling_period,
-                    batteries_id=component_ids,
+                    component_ids=component_ids,
                 )
             )
 

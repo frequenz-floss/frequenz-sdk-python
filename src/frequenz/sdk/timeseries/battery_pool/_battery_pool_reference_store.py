@@ -47,7 +47,7 @@ class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
         power_manager_bounds_subscription_sender: Sender[ReportRequest],
         power_distribution_results_fetcher: ReceiverFetcher[Result],
         min_update_interval: timedelta,
-        batteries_id: Set[ComponentId] | None = None,
+        component_ids: Set[ComponentId] | None = None,
     ) -> None:
         """Create the class instance.
 
@@ -77,9 +77,9 @@ class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
                 the timestamp of the last received component data.
                 It is currently impossible to use resampling actor for these metrics,
                 because we can't specify resampling function for them.
-            batteries_id: Subset of the batteries that should be included in the
-                battery pool. If None or empty, then all batteries from the microgrid
-                will be used.
+            component_ids: An optional list of component_ids belonging to this pool.  If
+                not specified, IDs of all components of the components type of this pool
+                in the microgrid will be fetched from the component graph.
         """
         super().__init__(
             channel_registry=channel_registry,
@@ -88,7 +88,7 @@ class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
             power_manager_requests_sender=power_manager_requests_sender,
             power_manager_bounds_subs_sender=power_manager_bounds_subscription_sender,
             power_distribution_results_fetcher=power_distribution_results_fetcher,
-            component_ids=batteries_id,
+            component_ids=component_ids,
         )
 
         self._batteries = self.component_ids
