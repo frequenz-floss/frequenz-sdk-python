@@ -9,7 +9,7 @@ from typing_extensions import override
 from frequenz.sdk.microgrid import connection_manager
 
 from ...timeseries import Bounds
-from ..abstract_pool import AbstractPool
+from ..component_pool import ComponentPool
 from ..formulas import Formula
 from ._pv_pool_reference_store import PVPoolReferenceStore
 from ._result_types import PVPoolReport
@@ -19,7 +19,7 @@ class PVPoolError(Exception):
     """An error that occurred in any of the PVPool methods."""
 
 
-class PVPool(AbstractPool[PVPoolReferenceStore, PVPoolReport]):
+class PVPool(ComponentPool[PVPoolReferenceStore, PVPoolReport]):
     """An interface for interaction with pools of PV inverters.
 
     Provides:

@@ -18,7 +18,7 @@ from ..._internal._channels import ReceiverFetcher
 from ...microgrid import _power_managing, connection_manager
 from ...timeseries import Sample
 from .._base_types import SystemBounds
-from ..abstract_pool import AbstractPool
+from ..component_pool import ComponentPool
 from ..formulas import Formula
 from ._battery_pool_reference_store import BatteryPoolReferenceStore
 from ._methods import SendOnUpdate
@@ -33,7 +33,7 @@ from .messages import BatteryPoolReport
 # pylint: disable=protected-access
 
 
-class BatteryPool(AbstractPool[BatteryPoolReferenceStore, BatteryPoolReport]):
+class BatteryPool(ComponentPool[BatteryPoolReferenceStore, BatteryPoolReport]):
     """An interface for interaction with pools of batteries.
 
     Provides:

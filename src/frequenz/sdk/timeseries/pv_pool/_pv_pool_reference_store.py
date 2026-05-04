@@ -9,11 +9,11 @@ from typing import Type
 from frequenz.client.microgrid.component import Component, SolarInverter
 from typing_extensions import override
 
-from ..abstract_pool import AbstractPoolReferenceStore
+from ..component_pool._component_pool_reference_store import ComponentPoolReferenceStore
 from ._system_bounds_tracker import PVSystemBoundsTracker
 
 
-class PVPoolReferenceStore(AbstractPoolReferenceStore):
+class PVPoolReferenceStore(ComponentPoolReferenceStore):
     """A class for maintaining the shared state/tasks for a set of pool of PV inverters.
 
     This includes ownership of

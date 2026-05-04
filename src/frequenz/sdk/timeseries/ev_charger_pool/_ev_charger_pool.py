@@ -8,7 +8,7 @@ from typing_extensions import override
 
 from ...microgrid import connection_manager
 from ...timeseries import Bounds
-from ..abstract_pool import AbstractPool
+from ..component_pool import ComponentPool
 from ..formulas import Formula, Formula3Phase
 from ._ev_charger_pool_reference_store import EVChargerPoolReferenceStore
 from ._result_types import EVChargerPoolReport
@@ -18,7 +18,7 @@ class EVChargerPoolError(Exception):
     """An error that occurred in any of the EVChargerPool methods."""
 
 
-class EVChargerPool(AbstractPool[EVChargerPoolReferenceStore, EVChargerPoolReport]):
+class EVChargerPool(ComponentPool[EVChargerPoolReferenceStore, EVChargerPoolReport]):
     """An interface for interaction with pools of EV Chargers.
 
     Provides:

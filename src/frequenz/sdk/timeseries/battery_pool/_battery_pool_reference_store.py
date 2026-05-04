@@ -20,11 +20,11 @@ from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import Result
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
-from ..abstract_pool import AbstractPoolReferenceStore
+from ..component_pool._component_pool_reference_store import ComponentPoolReferenceStore
 from ._methods import MetricAggregator
 
 
-class BatteryPoolReferenceStore(AbstractPoolReferenceStore):
+class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
     """A class for maintaining the shared state/tasks for a set of pool of batteries.
 
     This includes ownership of

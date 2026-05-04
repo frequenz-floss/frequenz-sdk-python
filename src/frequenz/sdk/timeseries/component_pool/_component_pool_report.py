@@ -10,7 +10,7 @@ from frequenz.quantities import Power
 from .._base_types import Bounds
 
 
-class AbstractPoolReport(typing.Protocol):
+class ComponentPoolReport(typing.Protocol):
     """A status report for a component pool."""
 
     @property

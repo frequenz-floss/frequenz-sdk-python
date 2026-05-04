@@ -18,14 +18,14 @@ from frequenz.sdk.timeseries import Bounds
 from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.formulas import Formula
 
-from ._abstract_pool_reference_store import AbstractPoolReferenceStore
-from ._abstract_pool_report import AbstractPoolReport
+from ._component_pool_reference_store import ComponentPoolReferenceStore
+from ._component_pool_report import ComponentPoolReport
 
-RefStoreT = TypeVar("RefStoreT", bound=AbstractPoolReferenceStore)
-ReportT = TypeVar("ReportT", bound=AbstractPoolReport)
+RefStoreT = TypeVar("RefStoreT", bound=ComponentPoolReferenceStore)
+ReportT = TypeVar("ReportT", bound=ComponentPoolReport)
 
 
-class AbstractPool(ABC, Generic[RefStoreT, ReportT]):
+class ComponentPool(ABC, Generic[RefStoreT, ReportT]):
     """Abstract base class for component pools."""
 
     def __init__(  # pylint: disable=too-many-arguments

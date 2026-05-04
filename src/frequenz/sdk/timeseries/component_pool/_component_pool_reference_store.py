@@ -22,7 +22,7 @@ from frequenz.sdk.timeseries._base_types import SystemBounds
 from frequenz.sdk.timeseries.formulas._formula_pool import FormulaPool
 
 
-class AbstractPoolReferenceStore(ABC):
+class ComponentPoolReferenceStore(ABC):
     """Abstract base class for pool reference stores."""
 
     def __init__(  # pylint: disable=too-many-arguments
