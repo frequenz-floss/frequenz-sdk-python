@@ -38,6 +38,8 @@ from frequenz.sdk.microgrid._old_component_data import (
 )
 from frequenz.sdk.timeseries import Sample
 
+from ..utils.receive_timeout import Timeout, receive_timeout
+
 T = TypeVar("T", bound=ComponentData)
 
 _MICROGRID_ID = MicrogridId(1)
@@ -166,6 +168,109 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
             sample = await active_power_recv_12.receive()
             assert sample.value is not None
             assert -13.0 + i == sample.value.base_value
+
+
+async def test_duplicate_requests_do_not_block_new_receivers(
+    mock_connection_manager: mock.Mock,  # pylint: disable=redefined-outer-name,unused-argument
+) -> None:
+    """Ensure duplicate direct subscriptions still deliver samples."""
+    req_chan = Broadcast[ComponentMetricRequest](name="data_sourcing_requests")
+    req_sender = req_chan.new_sender()
+    registry = ChannelRegistry(name="test-registry")
+
+    request = ComponentMetricRequest(
+        "test-namespace",
+        ComponentId(4),
+        Metric.AC_ACTIVE_POWER,
+        None,
+    )
+
+    async with DataSourcingActor(req_chan.new_receiver(), registry):
+        first_receiver = registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        ).new_receiver()
+        await req_sender.send(request)
+
+        first_sample = await receive_timeout(first_receiver, timeout=1.0)
+        assert first_sample is not Timeout
+
+        second_receiver = registry.get_or_create(
+            Sample[Quantity], request.get_channel_name()
+        ).new_receiver()
+        await req_sender.send(request)
+
+        second_sample = await receive_timeout(second_receiver, timeout=1.0)
+        assert second_sample is not Timeout
+
+
+async def test_unknown_component_request_does_not_block_later_valid_request(
+    mock_connection_manager: mock.Mock,  # pylint: disable=redefined-outer-name,unused-argument
+) -> None:
+    """Ensure unknown component requests don't block later valid streams."""
+    req_chan = Broadcast[ComponentMetricRequest](name="data_sourcing_requests")
+    req_sender = req_chan.new_sender()
+    registry = ChannelRegistry(name="test-registry")
+
+    unknown_request = ComponentMetricRequest(
+        "unknown-component",
+        ComponentId(999),
+        Metric.AC_ACTIVE_POWER,
+        None,
+    )
+    valid_request = ComponentMetricRequest(
+        "valid-component",
+        ComponentId(4),
+        Metric.AC_ACTIVE_POWER,
+        None,
+    )
+
+    async with DataSourcingActor(req_chan.new_receiver(), registry):
+        valid_receiver = registry.get_or_create(
+            Sample[Quantity], valid_request.get_channel_name()
+        ).new_receiver()
+
+        await req_sender.send(unknown_request)
+        await req_sender.send(valid_request)
+
+        valid_sample = await receive_timeout(valid_receiver, timeout=1.0)
+        assert valid_sample is not Timeout
+
+
+@pytest.mark.skip(
+    reason="This is currently failing, but we are probably not going to "
+    "fix it since the data sourcing actor will likely go away."
+)
+async def test_invalid_metric_request_does_not_block_later_valid_request(
+    mock_connection_manager: mock.Mock,  # pylint: disable=redefined-outer-name,unused-argument
+) -> None:
+    """Ensure a bad request doesn't poison later valid subscriptions."""
+    req_chan = Broadcast[ComponentMetricRequest](name="data_sourcing_requests")
+    req_sender = req_chan.new_sender()
+    registry = ChannelRegistry(name="test-registry")
+
+    invalid_request = ComponentMetricRequest(
+        "invalid-metric",
+        ComponentId(4),
+        Metric.BATTERY_SOC_PCT,
+        None,
+    )
+    valid_request = ComponentMetricRequest(
+        "valid-metric",
+        ComponentId(4),
+        Metric.AC_ACTIVE_POWER,
+        None,
+    )
+
+    async with DataSourcingActor(req_chan.new_receiver(), registry):
+        valid_receiver = registry.get_or_create(
+            Sample[Quantity], valid_request.get_channel_name()
+        ).new_receiver()
+
+        await req_sender.send(invalid_request)
+        await req_sender.send(valid_request)
+
+        valid_sample = await receive_timeout(valid_receiver, timeout=1.0)
+        assert valid_sample is not Timeout
 
 
 def _new_meter_data(
