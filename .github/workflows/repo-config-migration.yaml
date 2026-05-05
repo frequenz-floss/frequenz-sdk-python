@@ -24,8 +24,11 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
+  # Commit migration changes back to the PR branch.
   contents: write
+  # Create and normalize migration state labels.
   issues: write
+  # Read/update pull request metadata and comments.
   pull-requests: write
 
 jobs:
@@ -46,6 +49,14 @@ jobs:
         with:
           app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
           private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
+          # Push migration commits to the PR branch.
+          permission-contents: write
+          # Manage labels when auto-merging patch-only updates.
+          permission-issues: write
+          # Approve pull requests and enable auto-merge.
+          permission-pull-requests: write
+          # Allow pushes when migration changes workflow files.
+          permission-workflows: write
       - name: Migrate
         uses: frequenz-floss/gh-action-dependabot-migrate@07dc7e74726498c50726a80cc2167a04d896508f # v1.0.0
         with:

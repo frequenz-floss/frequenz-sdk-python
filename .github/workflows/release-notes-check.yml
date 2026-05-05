@@ -18,6 +18,7 @@ jobs:
     name: Check release notes are updated
     runs-on: ubuntu-slim
     permissions:
+      # Read pull request metadata to evaluate labels and changed files.
       pull-requests: read
     steps:
       - name: Check for a release notes update

@@ -12,7 +12,9 @@ on:
   pull_request_target:
 
 permissions:
+  # Read repository contents and Dependabot metadata used by the nested action.
   contents: read
+  # The nested action also uses `github.token` internally for PR operations.
   pull-requests: write
 
 jobs:
@@ -20,7 +22,8 @@ jobs:
     name: Auto-merge Dependabot PR
     if: >
       github.actor == 'dependabot[bot]' &&
-      !contains(github.event.pull_request.title, 'the repo-config group')
+      !contains(github.event.pull_request.title, 'the repo-config group') &&
+      !contains(github.event.pull_request.title, 'Bump black from ')
     runs-on: ubuntu-slim
     steps:
       - name: Generate GitHub App token
@@ -29,6 +32,12 @@ jobs:
         with:
           app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
           private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
+          # Merge Dependabot PRs.
+          permission-contents: write
+          # Create the auto-merged label if it does not exist.
+          permission-issues: write
+          # Approve PRs, add labels, and enable auto-merge.
+          permission-pull-requests: write
 
       - name: Auto-merge Dependabot PR
         uses: frequenz-floss/dependabot-auto-approve@e943399cc9d76fbb6d7faae446cd57301d110165 # v1.5.0

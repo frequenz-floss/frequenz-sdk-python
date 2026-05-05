@@ -1,0 +1,88 @@
+# Automatic black formatting migration for Dependabot PRs
+#
+# When Dependabot upgrades black, this workflow installs the new version
+# and runs `black .` so the PR already contains any formatting changes
+# introduced by the upgrade, while leaving the PR open for review.
+#
+# Black uses calendar versioning.  Only the first release of a new calendar
+# year may introduce formatting changes (major bump in Dependabot's terms).
+# Minor and patch updates within a year keep formatting stable, so they stay
+# in the regular Dependabot groups and are auto-merged normally.
+#
+# The companion auto-dependabot workflow skips major black PRs so they're
+# handled exclusively by this migration workflow.
+#
+# XXX: !!! SECURITY WARNING !!!
+# pull_request_target has write access to the repo, and can read secrets.
+# This is required because Dependabot PRs are treated as fork PRs: the
+# GITHUB_TOKEN is read-only and secrets are unavailable with a plain
+# pull_request trigger.  The action mitigates the risk by:
+#   - Never executing code from the PR (the migration script is embedded
+#     in this workflow file on the base branch, not taken from the PR).
+#   - Gating migration steps on github.actor == 'dependabot[bot]'.
+#   - Running checkout with persist-credentials: false and isolating
+#     push credentials from the migration script environment.
+# For more details read:
+# https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
+name: Black Migration
+
+on:
+  merge_group:  # To allow using this as a required check for merging
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  # Commit reformatted files back to the PR branch.
+  contents: write
+  # Create and normalize migration state labels.
+  issues: write
+  # Read/update pull request metadata and comments.
+  pull-requests: write
+
+jobs:
+  black-migration:
+    name: Migrate Black
+    # Skip if it was triggered by the merge queue. We only need the workflow to
+    # be executed to meet the "Required check" condition for merging, but we
+    # don't need to actually run the job, having the job present as Skipped is
+    # enough.
+    if: |
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      contains(github.event.pull_request.title, 'Bump black from ')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Generate token
+        id: create-app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
+          # Push reformatted files to the PR branch.
+          permission-contents: write
+          # Create and normalize migration state labels.
+          permission-issues: write
+          # Read/update pull request metadata and labels.
+          permission-pull-requests: write
+      - name: Migrate
+        uses: frequenz-floss/gh-action-dependabot-migrate@b389f72f9282346920150a67495efbae450ac07b  # v1.1.0
+        with:
+          migration-script: |
+            import os
+            import subprocess
+            import sys
+
+            version = os.environ["MIGRATION_VERSION"].lstrip("v")
+            subprocess.run(
+                [sys.executable, "-Im", "pip", "install", f"black=={version}"],
+                check=True,
+            )
+            subprocess.run([sys.executable, "-Im", "black", "."], check=True)
+          token: ${{ steps.create-app-token.outputs.token }}
+          auto-merge-on-changes: "false"
+          sign-commits: "true"
+          auto-merged-label: "tool:auto-merged"
+          migrated-label: "tool:black:migration:executed"
+          intervention-pending-label: "tool:black:migration:intervention-pending"
+          intervention-done-label: "tool:black:migration:intervention-done"
