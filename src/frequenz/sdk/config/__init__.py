@@ -41,10 +41,10 @@ disable it you can pass `logging_config_key=None` to the `ConfigManager`.
 
 # Receiving configurations
 
-To receive configurations, you can create a receiver using the [`new_receiver()`][
-frequenz.sdk.config.ConfigManager.new_receiver] method. The receiver will receive
-configurations from the manager for a particular key, and validate and load the
-configurations to a dataclass using [`marshmallow_dataclass`][].
+To receive configurations, you can create a receiver using the
+[`new_receiver()`][frequenz.sdk.config.ConfigManager.new_receiver] method. The
+receiver will receive configurations from the manager for a particular key, and
+validate and load the configurations to a dataclass using [`marshmallow_dataclass`][].
 
 If the key is a sequence of strings, it will be treated as a nested key and the
 receiver will receive the configuration under the nested key. For example
