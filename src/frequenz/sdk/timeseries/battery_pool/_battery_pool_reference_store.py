@@ -3,7 +3,6 @@
 
 """User interface for requesting aggregated battery-inverter data."""
 
-
 import asyncio
 import uuid
 from collections.abc import Awaitable, Set

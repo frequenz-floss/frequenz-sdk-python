@@ -3,7 +3,6 @@
 
 """Module that defines how to aggregate metrics from battery-inverter components."""
 
-
 import logging
 import math
 from abc import ABC, abstractmethod

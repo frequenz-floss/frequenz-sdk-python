@@ -3,7 +3,6 @@
 
 """Classes to track the status of components in the microgrid."""
 
-
 import enum
 from abc import ABC, abstractmethod
 from collections import abc

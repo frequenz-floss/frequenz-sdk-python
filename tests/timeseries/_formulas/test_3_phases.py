@@ -3,7 +3,6 @@
 
 """Tests for three phase formulas."""
 
-
 import asyncio
 from collections import OrderedDict
 from collections.abc import Callable

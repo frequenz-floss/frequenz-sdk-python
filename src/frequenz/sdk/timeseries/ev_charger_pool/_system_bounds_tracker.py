@@ -3,7 +3,6 @@
 
 """System bounds tracker for the EV chargers."""
 
-
 import asyncio
 from collections import abc
 

@@ -3,7 +3,6 @@
 
 """Tests for fetching and streaming the phase-to-neutral voltage."""
 
-
 import asyncio
 
 from pytest_mock import MockerFixture

@@ -3,7 +3,6 @@
 
 """Methods for processing battery-inverter data."""
 
-
 import asyncio
 import logging
 from abc import ABC, abstractmethod

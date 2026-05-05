@@ -3,7 +3,6 @@
 
 """Memory allocation benchmark for the ringbuffer."""
 
-
 import argparse
 import tracemalloc
 from datetime import datetime, timedelta, timezone

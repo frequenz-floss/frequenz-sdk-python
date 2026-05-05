@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Frequenz Python SDK resampling example."""
+
 import asyncio
 import dataclasses
 from datetime import datetime, timedelta, timezone

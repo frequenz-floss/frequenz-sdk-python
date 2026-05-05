@@ -3,7 +3,6 @@
 
 """Mock data_pipeline."""
 
-
 import asyncio
 import math
 from datetime import datetime, timezone

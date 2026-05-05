@@ -3,7 +3,6 @@
 
 """Ringbuffer implementation with focus on time & memory efficiency."""
 
-
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone

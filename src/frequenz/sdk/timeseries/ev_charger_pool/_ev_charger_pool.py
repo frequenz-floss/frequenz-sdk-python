@@ -3,7 +3,6 @@
 
 """Interactions with pools of EV Chargers."""
 
-
 import asyncio
 import uuid
 from collections import abc

@@ -109,7 +109,6 @@ async for sample in other_current.new_receiver():
 ```
 """
 
-
 from ._formula import Formula
 from ._formula_3_phase import Formula3Phase
 

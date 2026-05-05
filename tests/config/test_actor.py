@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Test for ConfigManager."""
+
 import os
 import pathlib
 from collections import defaultdict
@@ -134,8 +135,7 @@ class TestActorConfigManager:
         config_receiver = config_channel.new_receiver()
 
         config_file2 = config_file.parent / "config2.toml"
-        config_file2.write_text(
-            """
+        config_file2.write_text("""
             logging_lvl = 'ERROR'
             var1 = "0"
             var2 = "15"
@@ -149,8 +149,7 @@ class TestActorConfigManager:
             b = 2
             c = 4
             d = 3
-            """
-        )
+            """)
 
         async with ConfigManagingActor(
             [config_file, config_file2],
@@ -178,12 +177,10 @@ class TestActorConfigManager:
             }
 
             # We overwrite config_file with just two variables
-            config_file.write_text(
-                """
+            config_file.write_text("""
                 logging_lvl = 'INFO'
                 list_non_strict_bool = ["false", "0", "true"]
-                """
-            )
+                """)
 
             config = await config_receiver.receive()
             assert config is not None
@@ -205,8 +202,7 @@ class TestActorConfigManager:
             }
 
             # Now we only update logging_lvl in config_file2, it still takes precedence
-            config_file2.write_text(
-                """
+            config_file2.write_text("""
                     logging_lvl = 'DEBUG'
                     var1 = "0"
                     var2 = "15"
@@ -220,8 +216,7 @@ class TestActorConfigManager:
                     b = 2
                     c = 4
                     d = 3
-                    """
-            )
+                    """)
 
             config = await config_receiver.receive()
             assert config is not None
@@ -240,14 +235,11 @@ class TestActorConfigManager:
 
             # Now add one variable to config_file not present in config_file2 and remove
             # a bunch of variables from config_file2 too, and update a few
-            config_file.write_text(
-                """
+            config_file.write_text("""
                 logging_lvl = 'INFO'
                 var10 = "10"
-                """
-            )
-            config_file2.write_text(
-                """
+                """)
+            config_file2.write_text("""
                     logging_lvl = 'DEBUG'
                     var1 = "3"
                     var_off = "on"
@@ -255,8 +247,7 @@ class TestActorConfigManager:
                     a = 1
                     b = 2
                     c = 4
-                    """
-            )
+                    """)
 
             config = await config_receiver.receive()
             assert config is not None

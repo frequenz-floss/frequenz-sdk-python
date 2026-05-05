@@ -3,7 +3,6 @@
 
 """A logical meter for calculating high level metrics for a microgrid."""
 
-
 import uuid
 
 from frequenz.channels import Sender

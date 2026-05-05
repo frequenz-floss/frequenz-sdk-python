@@ -3,7 +3,6 @@
 
 """Script with an example how to use BatteryPool."""
 
-
 import asyncio
 import logging
 from datetime import timedelta

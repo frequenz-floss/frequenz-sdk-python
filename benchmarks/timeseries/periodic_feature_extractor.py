@@ -9,7 +9,6 @@ the performance of a numpy implementation with a python
 implementation.
 """
 
-
 import asyncio
 import collections.abc
 import contextlib

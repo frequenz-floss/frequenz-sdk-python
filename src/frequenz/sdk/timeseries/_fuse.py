@@ -2,6 +2,7 @@
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
 """Fuse data class."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

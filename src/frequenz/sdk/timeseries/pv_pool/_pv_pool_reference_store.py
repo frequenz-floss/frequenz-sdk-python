@@ -3,7 +3,6 @@
 
 """Manages shared state/tasks for a set of PV inverters."""
 
-
 import asyncio
 import uuid
 from collections import abc

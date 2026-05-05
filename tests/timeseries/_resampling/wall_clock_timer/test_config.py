@@ -3,7 +3,6 @@
 
 """Tests for the `WallClockTimerConfig` class."""
 
-
 import math
 import re
 from datetime import datetime, timedelta, timezone

@@ -3,7 +3,6 @@
 
 """Tests for the `EVChargerPool`."""
 
-
 import asyncio
 from unittest.mock import MagicMock
 

@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Simple test for the BaseActor."""
+
 import asyncio
 from typing import Literal, assert_never
 

@@ -2,6 +2,7 @@
 # Copyright © 2022 Frequenz Energy-as-a-Service GmbH
 
 """Setup for all the tests."""
+
 import contextlib
 from collections.abc import Iterator
 from datetime import timedelta

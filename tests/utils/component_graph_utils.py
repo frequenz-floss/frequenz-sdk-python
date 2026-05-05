@@ -3,7 +3,6 @@
 
 """Utils for tests that uses component graph."""
 
-
 from dataclasses import dataclass
 
 from frequenz.client.common.microgrid import MicrogridId

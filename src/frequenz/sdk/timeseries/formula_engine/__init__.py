@@ -3,7 +3,6 @@
 
 """Deprecated Formula Engine."""
 
-
 from typing_extensions import TypeAlias
 
 from .._base_types import QuantityT

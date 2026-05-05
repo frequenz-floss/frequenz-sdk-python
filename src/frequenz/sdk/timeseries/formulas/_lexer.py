@@ -3,7 +3,6 @@
 
 """A lexer for formula strings."""
 
-
 from __future__ import annotations
 
 from collections.abc import Iterator

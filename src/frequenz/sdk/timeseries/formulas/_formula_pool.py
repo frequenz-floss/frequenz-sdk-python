@@ -3,7 +3,6 @@
 
 """A formula pool for helping with tracking running formulas."""
 
-
 import logging
 import sys
 
