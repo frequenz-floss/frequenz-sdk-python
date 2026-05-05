@@ -3,7 +3,6 @@
 
 """Tool for mocking streams of component data."""
 
-
 import asyncio
 from dataclasses import replace
 from datetime import datetime, timezone

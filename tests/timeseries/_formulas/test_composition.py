@@ -3,7 +3,6 @@
 
 """Tests for formula composition."""
 
-
 import math
 from contextlib import AsyncExitStack
 

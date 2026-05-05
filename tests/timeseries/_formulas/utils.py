@@ -3,7 +3,6 @@
 
 """Utils for testing formulas."""
 
-
 from collections.abc import Callable
 from math import isclose
 

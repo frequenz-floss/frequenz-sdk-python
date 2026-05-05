@@ -3,6 +3,7 @@
 
 # pylint: disable=too-many-lines
 """Tests for distribution algorithm."""
+
 import math
 from collections.abc import Sequence, Set
 from dataclasses import dataclass

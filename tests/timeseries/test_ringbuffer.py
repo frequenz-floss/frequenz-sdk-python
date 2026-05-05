@@ -3,7 +3,6 @@
 
 """Tests for the `OrderedRingbuffer` class."""
 
-
 import random
 from datetime import datetime, timedelta, timezone
 from itertools import cycle, islice

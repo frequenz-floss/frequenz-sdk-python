@@ -6,6 +6,7 @@
 This module provides the `Grid` type, which represents a grid connection point
 in a microgrid.
 """
+
 from __future__ import annotations
 
 import logging

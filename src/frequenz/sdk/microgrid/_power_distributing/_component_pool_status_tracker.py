@@ -3,7 +3,6 @@
 
 """Class that tracks the status of pool of components."""
 
-
 import asyncio
 import contextlib
 from collections import abc

@@ -3,7 +3,6 @@
 
 """Tests for the logical meter."""
 
-
 import asyncio
 from datetime import datetime, timezone
 

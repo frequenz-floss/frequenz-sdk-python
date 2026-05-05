@@ -3,7 +3,6 @@
 
 """Utility functions to run and synchronize the execution of actors."""
 
-
 import asyncio
 import logging
 

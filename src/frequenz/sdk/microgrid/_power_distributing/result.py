@@ -3,7 +3,6 @@
 
 """Results from PowerDistributingActor."""
 
-
 import dataclasses
 from collections import abc
 

@@ -3,7 +3,6 @@
 
 """A data window that moves with the latest datapoints of a data stream."""
 
-
 import asyncio
 import logging
 import math

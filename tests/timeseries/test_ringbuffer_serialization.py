@@ -3,7 +3,6 @@
 
 """Tests for the `SerializableRingBuffer` class."""
 
-
 import random
 from datetime import datetime, timedelta, timezone
 from typing import Any

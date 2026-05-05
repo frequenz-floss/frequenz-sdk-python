@@ -3,7 +3,6 @@
 
 """Tests for the logical meter."""
 
-
 from contextlib import AsyncExitStack
 
 from frequenz.quantities import Power

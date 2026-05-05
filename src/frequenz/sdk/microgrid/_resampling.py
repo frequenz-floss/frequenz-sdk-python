@@ -3,7 +3,6 @@
 
 """An actor to resample microgrid component metrics."""
 
-
 import asyncio
 import dataclasses
 import logging

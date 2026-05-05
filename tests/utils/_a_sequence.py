@@ -3,7 +3,6 @@
 
 """Helper class to compare two sequences without caring about the underlying type."""
 
-
 from collections.abc import Sequence
 from typing import Any
 

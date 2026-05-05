@@ -10,6 +10,7 @@ tests. The rest will be filled with default protobuf values.
 This also abstracts away changes in the protobuf definition and minimizes the places
 that will need to be updated in such cases.
 """
+
 from __future__ import annotations
 
 import math

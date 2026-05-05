@@ -9,7 +9,6 @@ The actor receives power requests from the power manager, process them by
 distributing the power between the components and sends the results back to it.
 """
 
-
 import asyncio
 import logging
 from datetime import datetime, timedelta

@@ -3,7 +3,6 @@
 
 """Tests for timeseries base types."""
 
-
 from datetime import datetime, timezone
 
 from frequenz.quantities import Power

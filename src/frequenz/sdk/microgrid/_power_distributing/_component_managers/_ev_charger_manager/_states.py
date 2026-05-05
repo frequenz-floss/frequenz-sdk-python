@@ -3,7 +3,6 @@
 
 """Power distribution state tracking for ev chargers."""
 
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable

@@ -12,7 +12,6 @@ underlying buffer, e.g. the moving window, with the same start and end time
 modulo a fixed period.
 """
 
-
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -376,7 +375,7 @@ class PeriodicFeatureExtractor:
         Returns:
             A tuple containing the reshaped numpy array and the window size.
         """
-        (start_pos, end_pos, window_size) = self._get_buffer_bounds(start, end)
+        start_pos, end_pos, window_size = self._get_buffer_bounds(start, end)
 
         if start_pos >= end_pos:
             window_start = self._buffer[start_pos : self._moving_window.count_valid()]
@@ -408,5 +407,5 @@ class PeriodicFeatureExtractor:
         Returns:
             The averaged timeseries window.
         """
-        (reshaped, window_size) = self._get_reshaped_np_array(start, end)
+        reshaped, window_size = self._get_reshaped_np_array(start, end)
         return np.average(reshaped[:, :window_size], axis=0, weights=weights)

@@ -3,7 +3,6 @@
 
 """Background service that tracks the status of an EV charger."""
 
-
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
