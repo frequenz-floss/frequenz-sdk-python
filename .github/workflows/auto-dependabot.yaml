@@ -1,21 +1,39 @@
 name: Auto-merge Dependabot PR
 
 on:
-  pull_request:
+  # XXX: !!! SECURITY WARNING !!!
+  # pull_request_target has write access to the repo, and can read secrets. We
+  # need to audit any external actions executed in this workflow and make sure no
+  # checked out code is run (not even installing dependencies, as installing
+  # dependencies usually can execute pre/post-install scripts). We should also
+  # only use hashes to pick the action to execute (instead of tags or branches).
+  # For more details read:
+  # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
   auto-merge:
-    if: github.actor == 'dependabot[bot]'
+    name: Auto-merge Dependabot PR
+    if: >
+      github.actor == 'dependabot[bot]' &&
+      !contains(github.event.pull_request.title, 'the repo-config group')
     runs-on: ubuntu-slim
     steps:
-      - name: Auto-merge Dependabot PR
-        uses: frequenz-floss/dependabot-auto-approve@e943399cc9d76fbb6d7faae446cd57301d110165  # v1.5.0
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
+
+      - name: Auto-merge Dependabot PR
+        uses: frequenz-floss/dependabot-auto-approve@e943399cc9d76fbb6d7faae446cd57301d110165 # v1.5.0
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
           dependency-type: 'all'
           auto-merge: 'true'
           merge-method: 'merge'

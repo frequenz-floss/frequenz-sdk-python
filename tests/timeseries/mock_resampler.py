@@ -6,7 +6,7 @@
 
 import asyncio
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 
 from frequenz.channels import Broadcast, Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
@@ -191,7 +191,7 @@ class MockResampler:
         self._meter_voltage_senders = voltage_senders(meter_ids)
         self._meter_power_3_phase_senders = power_3_phase_senders(meter_ids)
 
-        self._next_ts = datetime.now()
+        self._next_ts = datetime.now(timezone.utc)
 
         mocker.patch(
             "frequenz.sdk.microgrid._data_pipeline._DataPipeline"
@@ -209,7 +209,7 @@ class MockResampler:
 
     def next_ts(self) -> None:
         """Increment the timestamp."""
-        self._next_ts = datetime.now()
+        self._next_ts = datetime.now(timezone.utc)
 
     def _handle_task_done(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():

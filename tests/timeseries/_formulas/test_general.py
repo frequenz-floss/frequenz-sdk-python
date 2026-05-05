@@ -7,7 +7,7 @@ import asyncio
 import logging
 from collections import OrderedDict
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
@@ -67,7 +67,7 @@ class TestFormulas:
         async with formula as formula:
             results_rx = formula.new_receiver()
             await asyncio.sleep(0.1)  # Allow time for setup
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             tests_passed = 0
 
             for io_pair in io_pairs:
@@ -400,7 +400,7 @@ class TestFormulaComposition:
 
         result_chan = formula.new_receiver()
         await asyncio.sleep(0.1)
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         tests_passed = 0
         for io_pair in io_pairs:
             io_input, io_output = io_pair
@@ -779,7 +779,7 @@ class TestCoalesceFunction:
 
         result_chan = formula.new_receiver()
         await asyncio.sleep(0.1)
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         async def send_sample(values: list[float | None]) -> None:
             nonlocal now

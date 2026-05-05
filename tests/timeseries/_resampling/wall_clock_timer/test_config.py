@@ -96,7 +96,10 @@ def test_align_to_timezone_unaware() -> None:
     with pytest.raises(
         ValueError, match=r"^align_to (.*) should be a timezone aware datetime$"
     ):
-        _ = WallClockTimerConfig(align_to=datetime(2020, 1, 1, tzinfo=None))
+        # Ignore the timezone-aware flake8 check because we want to validate it at runtime
+        _ = WallClockTimerConfig(
+            align_to=datetime(2020, 1, 1, tzinfo=None)  # noqa: DTZ001
+        )
 
 
 _VALID_NUMBERS = [

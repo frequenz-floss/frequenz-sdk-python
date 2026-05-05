@@ -4,7 +4,7 @@
 """Tests for timeseries base types."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from frequenz.quantities import Power
 
@@ -50,7 +50,7 @@ EXCLUSION_BOUND = Bounds(lower=Power.from_watts(40), upper=Power.from_watts(50))
 def test_system_bounds_contains() -> None:
     """Tests with complete system bounds."""
     system_bounds = SystemBounds(
-        timestamp=datetime.now(),
+        timestamp=datetime.now(timezone.utc),
         inclusion_bounds=INCLUSION_BOUND,
         exclusion_bounds=EXCLUSION_BOUND,
     )
@@ -63,7 +63,7 @@ def test_system_bounds_contains() -> None:
 def test_system_bounds_contains_no_exclusion() -> None:
     """Tests with no exclusion bounds."""
     system_bounds_no_exclusion = SystemBounds(
-        timestamp=datetime.now(),
+        timestamp=datetime.now(timezone.utc),
         inclusion_bounds=INCLUSION_BOUND,
         exclusion_bounds=None,
     )
@@ -74,7 +74,7 @@ def test_system_bounds_contains_no_exclusion() -> None:
 def test_system_bounds_contains_no_inclusion() -> None:
     """Tests with no inclusion bounds."""
     system_bounds_no_inclusion = SystemBounds(
-        timestamp=datetime.now(),
+        timestamp=datetime.now(timezone.utc),
         inclusion_bounds=None,
         exclusion_bounds=EXCLUSION_BOUND,
     )
@@ -85,7 +85,7 @@ def test_system_bounds_contains_no_inclusion() -> None:
 def test_system_bounds_contains_no_bounds() -> None:
     """Tests with no bounds."""
     system_bounds_no_bounds = SystemBounds(
-        timestamp=datetime.now(),
+        timestamp=datetime.now(timezone.utc),
         inclusion_bounds=None,
         exclusion_bounds=None,
     )

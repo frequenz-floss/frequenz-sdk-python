@@ -193,7 +193,7 @@ class TestEVChargerPoolControl:
         mocker: MockerFixture,
     ) -> None:
         """Test setting power."""
-        traveller = time_machine.travel(datetime(2012, 12, 12))
+        traveller = time_machine.travel(datetime(2012, 12, 12, tzinfo=timezone.utc))
         mock_time = traveller.start()
 
         set_power = cast(
