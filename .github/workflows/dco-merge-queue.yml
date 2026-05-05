@@ -3,6 +3,9 @@ name: DCO
 on:
   merge_group:
 
+# Drop all token permissions: this workflow only runs a local echo command.
+permissions: {}
+
 jobs:
   DCO:
     runs-on: ubuntu-slim
