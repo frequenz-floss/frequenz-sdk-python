@@ -7,7 +7,7 @@
 import asyncio
 from collections import OrderedDict
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import async_solipsism
@@ -87,7 +87,7 @@ class TestFormula3Phase:
 
         await asyncio.sleep(0.1)
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         for inputs, expected_output in io_pairs:
             _ = await asyncio.gather(
                 *[

@@ -433,12 +433,12 @@ def test_ringbuffer_empty_buffer() -> None:
         OrderedRingBuffer(
             empty_np_buffer,
             sampling_period=timedelta(seconds=1),
-            align_to=datetime(1, 1, 1),
+            align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
         )
         OrderedRingBuffer(
             empty_list_buffer,
             sampling_period=timedelta(seconds=1),
-            align_to=datetime(1, 1, 1),
+            align_to=datetime(1, 1, 1, tzinfo=timezone.utc),
         )
 
 
