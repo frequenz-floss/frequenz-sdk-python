@@ -258,7 +258,7 @@ class BatteryPool(ComponentPool[BatteryPoolReferenceStore, BatteryPoolReport]):
 
     @override
     @property
-    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
+    def system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can

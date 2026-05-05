@@ -146,7 +146,7 @@ class ComponentPool(ABC, Generic[RefStoreT, ReportT]):
         )
 
     @property
-    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
+    def system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
         """Return a receiver fetcher for the system power bounds."""
         return self._pool_ref_store.bounds_channel
 

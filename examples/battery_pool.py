@@ -30,8 +30,7 @@ async def main() -> None:
     receivers = [
         battery_pool.soc.new_receiver(limit=1),
         battery_pool.capacity.new_receiver(limit=1),
-        # pylint: disable-next=protected-access
-        battery_pool._system_power_bounds.new_receiver(limit=1),
+        battery_pool.system_power_bounds.new_receiver(limit=1),
     ]
 
     async for metric in merge(*receivers):
