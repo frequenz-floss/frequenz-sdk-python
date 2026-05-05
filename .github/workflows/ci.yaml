@@ -28,11 +28,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - amd64
-          - arm
-        os:
+        platform:
           - ubuntu-24.04
+          - ubuntu-24.04-arm
         python:
           - "3.11"
           - "3.12"
@@ -42,7 +40,7 @@ jobs:
           # that uses the same venv to run multiple linting sessions
           - "ci_checks_max"
           - "pytest_min"
-    runs-on: ${{ matrix.os }}${{ matrix.arch != 'amd64' && format('-{0}', matrix.arch) || '' }}
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Run nox
@@ -61,7 +59,7 @@ jobs:
     needs: ["nox"]
     # We skip this job only if nox was also skipped
     if: always() && needs.nox.result != 'skipped'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     env:
       DEPS_RESULT: ${{ needs.nox.result }}
     steps:
@@ -106,16 +104,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - amd64
-          - arm
-        os:
+        platform:
           - ubuntu-24.04
+          - ubuntu-24.04-arm
         python:
           - "3.11"
           - "3.12"
           - "3.13"
-    runs-on: ${{ matrix.os }}${{ matrix.arch != 'amd64' && format('-{0}', matrix.arch) || '' }}
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Setup Git
@@ -163,7 +159,7 @@ jobs:
     needs: ["test-installation"]
     # We skip this job only if test-installation was also skipped
     if: always() && needs.test-installation.result != 'skipped'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     env:
       DEPS_RESULT: ${{ needs.test-installation.result }}
     steps:
@@ -278,7 +274,7 @@ jobs:
       # discussions to create the release announcement in the discussion forums
       contents: write
       discussions: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - name: Download distribution files
         uses: actions/download-artifact@v8
