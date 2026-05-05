@@ -1930,10 +1930,10 @@ and update the logging configuration accordingly.</p>
 <p>This feature is enabled by default using the key <code>logging</code> in the configuration file. To
 disable it you can pass <code>logging_config_key=None</code> to the <code>ConfigManager</code>.</p>
 <h2 id="frequenz.sdk.config--receiving-configurations">Receiving configurations<a class="headerlink" href="#frequenz.sdk.config--receiving-configurations" title="Permanent link">¤</a></h2>
-<p>To receive configurations, you can create a receiver using the [<code>new_receiver()</code>][
-frequenz.sdk.config.ConfigManager.new_receiver] method. The receiver will receive
-configurations from the manager for a particular key, and validate and load the
-configurations to a dataclass using <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshmallow_dataclass/html/marshmallow_dataclass.html#module-marshmallow_dataclass"><code>marshmallow_dataclass</code></a>.</p>
+<p>To receive configurations, you can create a receiver using the
+<a class="autorefs autorefs-internal" title="new_receiver" href="../../reference/frequenz/sdk/config/#frequenz.sdk.config.ConfigManager.new_receiver"><code>new_receiver()</code></a> method. The
+receiver will receive configurations from the manager for a particular key, and
+validate and load the configurations to a dataclass using <a class="autorefs autorefs-external" href="https://lovasoa.github.io/marshmallow_dataclass/html/marshmallow_dataclass.html#module-marshmallow_dataclass"><code>marshmallow_dataclass</code></a>.</p>
 <p>If the key is a sequence of strings, it will be treated as a nested key and the
 receiver will receive the configuration under the nested key. For example
 <code>["key", "subkey"]</code> will get only <code>config["key"]["subkey"]</code>.</p>
