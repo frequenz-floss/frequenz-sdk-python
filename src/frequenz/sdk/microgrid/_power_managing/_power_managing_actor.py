@@ -149,20 +149,17 @@ class PowerManagingActor(Actor):
             battery_pool = _data_pipeline.new_battery_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
-            # pylint: disable-next=protected-access
-            bounds_receiver = battery_pool._system_power_bounds.new_receiver()
+            bounds_receiver = battery_pool.system_power_bounds.new_receiver()
         elif issubclass(self._component_class, EvCharger):
             ev_charger_pool = _data_pipeline.new_ev_charger_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
-            # pylint: disable-next=protected-access
-            bounds_receiver = ev_charger_pool._system_power_bounds.new_receiver()
+            bounds_receiver = ev_charger_pool.system_power_bounds.new_receiver()
         elif issubclass(self._component_class, SolarInverter):
             pv_pool = _data_pipeline.new_pv_pool(
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
-            # pylint: disable-next=protected-access
-            bounds_receiver = pv_pool._system_power_bounds.new_receiver()
+            bounds_receiver = pv_pool.system_power_bounds.new_receiver()
         else:
             _logger.error(
                 "PowerManagingActor: Unsupported component class: %s",

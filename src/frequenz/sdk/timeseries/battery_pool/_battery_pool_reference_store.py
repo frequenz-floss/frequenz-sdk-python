@@ -1,5 +1,5 @@
 # License: MIT
-# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+# Copyright © 2026 Frequenz Energy-as-a-Service GmbH
 
 """User interface for requesting aggregated battery-inverter data."""
 
@@ -7,24 +7,24 @@ import asyncio
 import uuid
 from collections.abc import Awaitable, Set
 from datetime import timedelta
-from typing import Any
+from typing import Any, Type
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import Battery
+from frequenz.client.microgrid.component import Battery, Component
+from typing_extensions import override
 
 from ..._internal._asyncio import cancel_and_await
 from ..._internal._channels import ChannelRegistry, ReceiverFetcher
-from ...microgrid import connection_manager
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ...microgrid._power_distributing import Result
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
 from ...microgrid._power_managing._base_classes import Proposal, ReportRequest
-from ..formulas._formula_pool import FormulaPool
+from ..component_pool._component_pool_reference_store import ComponentPoolReferenceStore
 from ._methods import MetricAggregator
 
 
-class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
+class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
     """A class for maintaining the shared state/tasks for a set of pool of batteries.
 
     This includes ownership of
@@ -47,7 +47,7 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
         power_manager_bounds_subscription_sender: Sender[ReportRequest],
         power_distribution_results_fetcher: ReceiverFetcher[Result],
         min_update_interval: timedelta,
-        batteries_id: Set[ComponentId] | None = None,
+        component_ids: Set[ComponentId] | None = None,
     ) -> None:
         """Create the class instance.
 
@@ -77,84 +77,66 @@ class BatteryPoolReferenceStore:  # pylint: disable=too-many-instance-attributes
                 the timestamp of the last received component data.
                 It is currently impossible to use resampling actor for these metrics,
                 because we can't specify resampling function for them.
-            batteries_id: Subset of the batteries that should be included in the
-                battery pool. If None or empty, then all batteries from the microgrid
-                will be used.
-
-        Raises:
-            ValueError: If any of the specified batteries is not present in the
-                microgrid.
+            component_ids: An optional list of component_ids belonging to this pool.  If
+                not specified, IDs of all components of the components type of this pool
+                in the microgrid will be fetched from the component graph.
         """
-        self._batteries: frozenset[ComponentId]
-        all_batteries = self._get_all_batteries()
-        if batteries_id:
-            self._batteries = frozenset(batteries_id)
-            if not self._batteries.issubset(all_batteries):
-                unknown_ids = self._batteries - all_batteries
-                raise ValueError(
-                    "Unable to create a BatteryPool. These component IDs are either "
-                    + "not batteries or are unknown: "
-                    + f"{unknown_ids}"
-                )
-        else:
-            self._batteries = all_batteries
-
-        self._working_batteries: set[ComponentId] = set()
-
-        self._update_battery_status_task: asyncio.Task[None] | None = None
-        self._batteries_status_receiver: Receiver[ComponentPoolStatus] = (
-            batteries_status_receiver
+        super().__init__(
+            channel_registry=channel_registry,
+            resampler_subscription_sender=resampler_subscription_sender,
+            status_receiver=batteries_status_receiver,
+            power_manager_requests_sender=power_manager_requests_sender,
+            power_manager_bounds_subs_sender=power_manager_bounds_subscription_sender,
+            power_distribution_results_fetcher=power_distribution_results_fetcher,
+            component_ids=component_ids,
         )
+
+        self._batteries = self.component_ids
+        self._working_batteries: set[ComponentId] = set()
+        self._update_battery_status_task: asyncio.Task[None] | None = None
+
         if self._batteries:
             self._update_battery_status_task = asyncio.create_task(
-                self._update_battery_status(self._batteries_status_receiver)
+                self._update_battery_status(self.status_receiver)
             )
-
         self._min_update_interval: timedelta = min_update_interval
-
-        self._power_manager_requests_sender: Sender[Proposal] = (
-            power_manager_requests_sender
-        )
-
-        self._power_manager_bounds_subscription_sender: Sender[ReportRequest] = (
-            power_manager_bounds_subscription_sender
-        )
-
         self._active_methods: dict[str, MetricAggregator[Any]] = {}
-        self._power_bounds_subs: dict[str, asyncio.Task[None]] = {}
-        self._namespace: str = f"battery-pool-{self._batteries}-{uuid.uuid4()}"
-        self._power_distributing_namespace: str = f"power-distributor-{self._namespace}"
-        self._channel_registry: ChannelRegistry = channel_registry
-        self._power_dist_results_fetcher: ReceiverFetcher[Result] = (
-            power_distribution_results_fetcher
-        )
-        self._formula_pool: FormulaPool = FormulaPool(
-            self._namespace,
-            self._channel_registry,
-            resampler_subscription_sender,
-        )
+        self._power_distributing_namespace: str = f"power-distributor-{self.namespace}"
+
+    @staticmethod
+    def get_component_class() -> Type[Component]:
+        """Class of the component type."""
+        return Battery
+
+    @staticmethod
+    def get_pool_type_name() -> str:
+        """Name of the pool type, for display purposes."""
+        return "BatteryPool"
+
+    @staticmethod
+    def get_component_type_name_plural() -> str:
+        """Name of the component type, for display purposes."""
+        return "batteries"
+
+    @override
+    def get_namespace(self) -> str:
+        """Namespace to use with the data pipeline."""
+        return f"battery-pool-{self.component_ids}-{uuid.uuid4()}"
+
+    @override
+    def create_bounds_tracker(self) -> None:
+        """Create the bounds tracker for the pool."""
 
     async def stop(self) -> None:
-        """Stop all pending async tasks."""
+        """Stop all tasks and channels."""
+        await super().stop()
+
         tasks_to_stop: list[Awaitable[Any]] = [
             method.stop() for method in self._active_methods.values()
         ]
-        tasks_to_stop.append(self._formula_pool.stop())
         if self._update_battery_status_task:
             tasks_to_stop.append(cancel_and_await(self._update_battery_status_task))
         await asyncio.gather(*tasks_to_stop)
-        self._batteries_status_receiver.close()
-
-    def _get_all_batteries(self) -> frozenset[ComponentId]:
-        """Get all batteries from the microgrid.
-
-        Returns:
-            All batteries in the microgrid.
-        """
-        graph = connection_manager.get().component_graph
-        return frozenset(
-            battery.id for battery in graph.components(matching_types=Battery)
-        )
 
     async def _update_battery_status(
         self, receiver: Receiver[ComponentPoolStatus]

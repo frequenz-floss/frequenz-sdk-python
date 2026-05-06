@@ -8,9 +8,10 @@ import typing
 from frequenz.quantities import Power
 
 from .._base_types import Bounds
+from ..component_pool._component_pool_report import ComponentPoolReport
 
 
-class PVPoolReport(typing.Protocol):
+class PVPoolReport(ComponentPoolReport, typing.Protocol):
     """A status report for a PV pool."""
 
     @property

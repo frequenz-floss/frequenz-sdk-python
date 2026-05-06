@@ -902,9 +902,7 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
                 sampling_rate=0.1,
             )
 
-    # pylint: disable=protected-access
-    receiver = battery_pool._system_power_bounds.new_receiver(limit=50)
-    # pylint: enable=protected-access
+    receiver = battery_pool.system_power_bounds.new_receiver(limit=50)
 
     # First metrics delivers slower because of the startup delay in the pool.
     msg = await asyncio.wait_for(
@@ -1248,7 +1246,7 @@ async def test_power_status_same_instance_subscriptions_work(
             power_manager_bounds_subscription_sender=requests_channel.new_sender(),
             power_distribution_results_fetcher=MagicMock(),
             min_update_interval=timedelta(seconds=1),
-            batteries_id=component_ids,
+            component_ids=component_ids,
         ),
         name="battery-pool",
         priority=5,

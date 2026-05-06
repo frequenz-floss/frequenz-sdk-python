@@ -3,20 +3,14 @@
 
 """Interactions with pools of PV inverters."""
 
-import asyncio
-import uuid
-from collections import abc
-
-from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.quantities import Power
+from typing_extensions import override
 
 from frequenz.sdk.microgrid import connection_manager
 
-from ..._internal._channels import MappingReceiverFetcher, ReceiverFetcher
-from ...microgrid import _power_distributing, _power_managing
 from ...timeseries import Bounds
-from .._base_types import SystemBounds
-from ..formulas._formula import Formula
+from ..component_pool import ComponentPool
+from ..formulas import Formula
 from ._pv_pool_reference_store import PVPoolReferenceStore
 from ._result_types import PVPoolReport
 
@@ -25,7 +19,7 @@ class PVPoolError(Exception):
     """An error that occurred in any of the PVPool methods."""
 
 
-class PVPool:
+class PVPool(ComponentPool[PVPoolReferenceStore, PVPoolReport]):
     """An interface for interaction with pools of PV inverters.
 
     Provides:
@@ -33,30 +27,7 @@ class PVPool:
         measurements of the PV inverters in the pool.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        *,
-        pool_ref_store: PVPoolReferenceStore,
-        name: str | None,
-        priority: int,
-    ) -> None:
-        """Initialize the instance.
-
-        !!! note
-            `PVPool` instances are not meant to be created directly by users. Use the
-            [`microgrid.new_pv_pool`][frequenz.sdk.microgrid.new_pv_pool] method for
-            creating `PVPool` instances.
-
-        Args:
-            pool_ref_store: The reference store for the PV pool.
-            name: The name of the PV pool.
-            priority: The priority of the PV pool.
-        """
-        self._pool_ref_store = pool_ref_store
-        unique_id = uuid.uuid4()
-        self._source_id = str(unique_id) if name is None else f"{name}-{unique_id}"
-        self._priority = priority
-
+    @override
     async def propose_power(
         self,
         power: Power | None,
@@ -77,7 +48,7 @@ class PVPool:
         Args:
             power: The power to propose for the PV inverters in the pool.  If `None`,
                 this proposal will not have any effect on the target power, unless
-                bounds are specified.  When speficied without bounds, bounds for lower
+                bounds are specified.  When specified without bounds, bounds for lower
                 priority actors will be shifted by this power.  If both are `None`, it
                 is equivalent to not having a proposal or withdrawing a previous one.
             bounds: The power bounds for the proposal.  When specified, this will limit
@@ -88,27 +59,10 @@ class PVPool:
         """
         if power is not None and power > Power.zero():
             raise PVPoolError("Charge powers for PV inverters is not supported.")
-        await self._pool_ref_store.power_manager_requests_sender.send(
-            _power_managing.Proposal(
-                source_id=self._source_id,
-                preferred_power=power,
-                bounds=bounds,
-                component_ids=self._pool_ref_store.component_ids,
-                priority=self._priority,
-                creation_time=asyncio.get_running_loop().time(),
-            )
-        )
+        await super().propose_power(power, bounds=bounds)
 
     @property
-    def component_ids(self) -> abc.Set[ComponentId]:
-        """Return component IDs of all PV inverters managed by this PVPool.
-
-        Returns:
-            Set of managed component IDs.
-        """
-        return self._pool_ref_store.component_ids
-
-    @property
+    @override
     def power(self) -> Formula[Power]:
         """Fetch the total power for the PV Inverters in the pool.
 
@@ -130,62 +84,3 @@ class PVPool:
                 self._pool_ref_store.component_ids
             ),
         )
-
-    @property
-    def power_status(self) -> ReceiverFetcher[PVPoolReport]:
-        """Get a receiver to receive new power status reports when they change.
-
-        These include
-          - the current inclusion/exclusion bounds available for the pool's priority,
-          - the current target power for the pool's set of batteries,
-          - the result of the last distribution request for the pool's set of batteries.
-
-        Returns:
-            A receiver that will stream power status reports for the pool's priority.
-        """
-        sub = _power_managing.ReportRequest(
-            source_id=self._source_id,
-            priority=self._priority,
-            component_ids=self._pool_ref_store.component_ids,
-        )
-        self._pool_ref_store.power_bounds_subs[sub.get_channel_name()] = (
-            asyncio.create_task(
-                self._pool_ref_store.power_manager_bounds_subs_sender.send(sub)
-            )
-        )
-        channel = self._pool_ref_store.channel_registry.get_or_create(
-            _power_managing._Report,  # pylint: disable=protected-access
-            sub.get_channel_name(),
-        )
-        channel.resend_latest = True
-
-        return channel
-
-    @property
-    def power_distribution_results(self) -> ReceiverFetcher[_power_distributing.Result]:
-        """Get a receiver to receive power distribution results.
-
-        Returns:
-            A receiver that will stream power distribution results for the pool's set of
-            PV inverters.
-        """
-        return MappingReceiverFetcher(
-            self._pool_ref_store.power_distribution_results_fetcher,
-            lambda recv: recv.filter(
-                lambda x: x.request.component_ids == self._pool_ref_store.component_ids
-            ),
-        )
-
-    async def stop(self) -> None:
-        """Stop all tasks and channels owned by the PVPool."""
-        # This was closing the pool_ref_store, which is not correct, because those are
-        # shared.
-        #
-        # This method will do until we have a mechanism to track the resources created
-        # through it.  It can also eventually cleanup the pool_ref_store, when it is
-        # holding the last reference to it.
-
-    @property
-    def _system_power_bounds(self) -> ReceiverFetcher[SystemBounds]:
-        """Return a receiver fetcher for the system power bounds."""
-        return self._pool_ref_store.bounds_channel
