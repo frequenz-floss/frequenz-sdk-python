@@ -200,6 +200,11 @@ class Resampler:
                 case unexpected:
                     assert_never(unexpected)
 
+            # Delay processing to let upstream cascaded resamplers emit their
+            # boundary samples first; window boundaries still use next_tick_time.
+            if self._config.tick_delay:
+                await asyncio.sleep(self._config.tick_delay.total_seconds())
+
             # We need to make a copy here because we need to match the results to the
             # current resamplers, and since we await here, new resamplers could be added
             # or removed from the dict while we awaiting the resampling, which would
