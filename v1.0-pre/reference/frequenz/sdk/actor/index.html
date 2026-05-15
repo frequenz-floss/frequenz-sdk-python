@@ -1721,6 +1721,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.ResamplerConfig.tick_delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;tick_delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#frequenz.sdk.actor.ResamplerConfig.warn_buffer_len" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3211,6 +3222,17 @@
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;resampling_period
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequenz.sdk.actor.ResamplerConfig.tick_delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;tick_delay
       
     </span>
   </a>
@@ -7232,7 +7254,33 @@ the exception group).</p>
 <span class="normal"><a href="#__codelineno-0-244">244</a></span>
 <span class="normal"><a href="#__codelineno-0-245">245</a></span>
 <span class="normal"><a href="#__codelineno-0-246">246</a></span>
-<span class="normal"><a href="#__codelineno-0-247">247</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span>
+<span class="normal"><a href="#__codelineno-0-248">248</a></span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span>
+<span class="normal"><a href="#__codelineno-0-250">250</a></span>
+<span class="normal"><a href="#__codelineno-0-251">251</a></span>
+<span class="normal"><a href="#__codelineno-0-252">252</a></span>
+<span class="normal"><a href="#__codelineno-0-253">253</a></span>
+<span class="normal"><a href="#__codelineno-0-254">254</a></span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span>
+<span class="normal"><a href="#__codelineno-0-256">256</a></span>
+<span class="normal"><a href="#__codelineno-0-257">257</a></span>
+<span class="normal"><a href="#__codelineno-0-258">258</a></span>
+<span class="normal"><a href="#__codelineno-0-259">259</a></span>
+<span class="normal"><a href="#__codelineno-0-260">260</a></span>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="k">class</span><span class="w"> </span><span class="nc">ResamplerConfig</span><span class="p">:</span>
 </span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Resampler configuration.&quot;&quot;&quot;</span>
 </span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>
@@ -7340,50 +7388,76 @@ the exception group).</p>
 </span><span id="__span-0-201"><a id="__codelineno-0-201" name="__codelineno-0-201"></a><span class="sd">    time the resampler is created.</span>
 </span><span id="__span-0-202"><a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-203"><a id="__codelineno-0-203" name="__codelineno-0-203"></a>
-</span><span id="__span-0-204"><a id="__codelineno-0-204" name="__codelineno-0-204"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-205"><a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
+</span><span id="__span-0-204"><a id="__codelineno-0-204" name="__codelineno-0-204"></a>    <span class="n">tick_delay</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-205"><a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Delay before processing each resampling tick.</span>
 </span><span id="__span-0-206"><a id="__codelineno-0-206" name="__codelineno-0-206"></a>
-</span><span id="__span-0-207"><a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="sd">        Raises:</span>
-</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="sd">            ValueError: If any value is out of range.</span>
-</span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209"></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="__span-0-210"><a id="__codelineno-0-210" name="__codelineno-0-210"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
-</span><span id="__span-0-211"><a id="__codelineno-0-211" name="__codelineno-0-211"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a>                <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
-</span><span id="__span-0-213"><a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="p">)</span>
-</span><span id="__span-0-214"><a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
-</span><span id="__span-0-215"><a id="__codelineno-0-215" name="__codelineno-0-215"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-216"><a id="__codelineno-0-216" name="__codelineno-0-216"></a>                <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
-</span><span id="__span-0-217"><a id="__codelineno-0-217" name="__codelineno-0-217"></a>            <span class="p">)</span>
-</span><span id="__span-0-218"><a id="__codelineno-0-218" name="__codelineno-0-218"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220"></a>                <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
-</span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221"></a>            <span class="p">)</span>
-</span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-223"><a id="__codelineno-0-223" name="__codelineno-0-223"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-224"><a id="__codelineno-0-224" name="__codelineno-0-224"></a>                <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
-</span><span id="__span-0-225"><a id="__codelineno-0-225" name="__codelineno-0-225"></a>                <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
-</span><span id="__span-0-226"><a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="p">)</span>
-</span><span id="__span-0-227"><a id="__codelineno-0-227" name="__codelineno-0-227"></a>
-</span><span id="__span-0-228"><a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-229"><a id="__codelineno-0-229" name="__codelineno-0-229"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-230"><a id="__codelineno-0-230" name="__codelineno-0-230"></a>                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
-</span><span id="__span-0-231"><a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="p">)</span>
-</span><span id="__span-0-232"><a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-234"><a id="__codelineno-0-234" name="__codelineno-0-234"></a>                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
-</span><span id="__span-0-235"><a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
-</span><span id="__span-0-236"><a id="__codelineno-0-236" name="__codelineno-0-236"></a>                <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
-</span><span id="__span-0-237"><a id="__codelineno-0-237" name="__codelineno-0-237"></a>            <span class="p">)</span>
-</span><span id="__span-0-238"><a id="__codelineno-0-238" name="__codelineno-0-238"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-239"><a id="__codelineno-0-239" name="__codelineno-0-239"></a>            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="__span-0-240"><a id="__codelineno-0-240" name="__codelineno-0-240"></a>                <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
-</span><span id="__span-0-241"><a id="__codelineno-0-241" name="__codelineno-0-241"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
-</span><span id="__span-0-242"><a id="__codelineno-0-242" name="__codelineno-0-242"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
-</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>            <span class="p">)</span>
-</span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a>                <span class="sa">f</span><span class="s2">&quot;align_to (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="si">}</span><span class="s2">) should be a timezone aware datetime&quot;</span>
-</span><span id="__span-0-247"><a id="__codelineno-0-247" name="__codelineno-0-247"></a>            <span class="p">)</span>
+</span><span id="__span-0-207"><a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="sd">    This delays when resampling computation happens, while keeping the</span>
+</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="sd">    resampling windows aligned to the original timer tick boundaries. This</span>
+</span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209"></a><span class="sd">    delay is only a time-based buffer, not a strict synchronization mechanism.</span>
+</span><span id="__span-0-210"><a id="__codelineno-0-210" name="__codelineno-0-210"></a>
+</span><span id="__span-0-211"><a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="sd">    Warning:</span>
+</span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a><span class="sd">        This is an experimental option and may be changed or deprecated in</span>
+</span><span id="__span-0-213"><a id="__codelineno-0-213" name="__codelineno-0-213"></a><span class="sd">        the future.</span>
+</span><span id="__span-0-214"><a id="__codelineno-0-214" name="__codelineno-0-214"></a>
+</span><span id="__span-0-215"><a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="sd">    Example:</span>
+</span><span id="__span-0-216"><a id="__codelineno-0-216" name="__codelineno-0-216"></a><span class="sd">        This can be used in cascaded resampling setups to reduce timing races</span>
+</span><span id="__span-0-217"><a id="__codelineno-0-217" name="__codelineno-0-217"></a><span class="sd">        where downstream windows are processed before upstream resampled values</span>
+</span><span id="__span-0-218"><a id="__codelineno-0-218" name="__codelineno-0-218"></a><span class="sd">        are emitted.</span>
+</span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a>
+</span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="sd">    It must be non-negative and smaller than `resampling_period`.</span>
+</span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222"></a>
+</span><span id="__span-0-223"><a id="__codelineno-0-223" name="__codelineno-0-223"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-224"><a id="__codelineno-0-224" name="__codelineno-0-224"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
+</span><span id="__span-0-225"><a id="__codelineno-0-225" name="__codelineno-0-225"></a>
+</span><span id="__span-0-226"><a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="sd">        Raises:</span>
+</span><span id="__span-0-227"><a id="__codelineno-0-227" name="__codelineno-0-227"></a><span class="sd">            ValueError: If any value is out of range.</span>
+</span><span id="__span-0-228"><a id="__codelineno-0-228" name="__codelineno-0-228"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-229"><a id="__codelineno-0-229" name="__codelineno-0-229"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+</span><span id="__span-0-230"><a id="__codelineno-0-230" name="__codelineno-0-230"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-231"><a id="__codelineno-0-231" name="__codelineno-0-231"></a>                <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+</span><span id="__span-0-232"><a id="__codelineno-0-232" name="__codelineno-0-232"></a>            <span class="p">)</span>
+</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+</span><span id="__span-0-234"><a id="__codelineno-0-234" name="__codelineno-0-234"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-235"><a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
+</span><span id="__span-0-236"><a id="__codelineno-0-236" name="__codelineno-0-236"></a>            <span class="p">)</span>
+</span><span id="__span-0-237"><a id="__codelineno-0-237" name="__codelineno-0-237"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="__span-0-238"><a id="__codelineno-0-238" name="__codelineno-0-238"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-239"><a id="__codelineno-0-239" name="__codelineno-0-239"></a>                <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
+</span><span id="__span-0-240"><a id="__codelineno-0-240" name="__codelineno-0-240"></a>            <span class="p">)</span>
+</span><span id="__span-0-241"><a id="__codelineno-0-241" name="__codelineno-0-241"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-242"><a id="__codelineno-0-242" name="__codelineno-0-242"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>                <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
+</span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a>                <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>            <span class="p">)</span>
+</span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a>
+</span><span id="__span-0-247"><a id="__codelineno-0-247" name="__codelineno-0-247"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="__span-0-248"><a id="__codelineno-0-248" name="__codelineno-0-248"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a>                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
+</span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a>            <span class="p">)</span>
+</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a>                <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
+</span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a>                <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
+</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>                <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
+</span><span id="__span-0-256"><a id="__codelineno-0-256" name="__codelineno-0-256"></a>            <span class="p">)</span>
+</span><span id="__span-0-257"><a id="__codelineno-0-257" name="__codelineno-0-257"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a>            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="__span-0-259"><a id="__codelineno-0-259" name="__codelineno-0-259"></a>                <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
+</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
+</span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a>            <span class="p">)</span>
+</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a>                <span class="sa">f</span><span class="s2">&quot;align_to (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="si">}</span><span class="s2">) should be a timezone aware datetime&quot;</span>
+</span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a>            <span class="p">)</span>
+</span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="__span-0-268"><a id="__codelineno-0-268" name="__codelineno-0-268"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tick_delay (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span><span class="si">}</span><span class="s2">) should be non-negative&quot;</span><span class="p">)</span>
+</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="p">:</span>
+</span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a>                <span class="sa">f</span><span class="s2">&quot;tick_delay (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span><span class="si">}</span><span class="s2">) should be smaller than &quot;</span>
+</span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a>                <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273"></a>            <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
               </details>
 
@@ -7672,6 +7746,50 @@ value.</p>
 
 
 
+<h6 id="frequenz.sdk.actor.ResamplerConfig.tick_delay" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">tick_delay</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#frequenz.sdk.actor.ResamplerConfig.tick_delay" class="headerlink" title="Permanent link">¤</a></h6>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">tick_delay</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="dataclasses.field" href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field">field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="dataclasses.field(default)">default</span></span><span class="o">=</span><span class="n"><a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta">timedelta</a></span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n"><span title="dataclasses.field(kw_only)">kw_only</span></span><span class="o">=</span><span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Delay before processing each resampling tick.</p>
+<p>This delays when resampling computation happens, while keeping the
+resampling windows aligned to the original timer tick boundaries. This
+delay is only a time-based buffer, not a strict synchronization mechanism.</p>
+
+
+<details class="warning" open>
+  <summary>Warning</summary>
+  <p>This is an experimental option and may be changed or deprecated in
+the future.</p>
+</details>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>This can be used in cascaded resampling setups to reduce timing races
+where downstream windows are processed before upstream resampled values
+are emitted.</p>
+</details>        <p>It must be non-negative and smaller than <code>resampling_period</code>.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h6 id="frequenz.sdk.actor.ResamplerConfig.warn_buffer_len" class="doc doc-heading">
             <span class="doc doc-object-name doc-attribute-name">warn_buffer_len</span>
 
@@ -7746,26 +7864,7 @@ logs, so buffers don't grow too big inadvertently.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/frequenz/sdk/timeseries/_resampling/_config.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-204">204</a></span>
-<span class="normal"><a href="#__codelineno-0-205">205</a></span>
-<span class="normal"><a href="#__codelineno-0-206">206</a></span>
-<span class="normal"><a href="#__codelineno-0-207">207</a></span>
-<span class="normal"><a href="#__codelineno-0-208">208</a></span>
-<span class="normal"><a href="#__codelineno-0-209">209</a></span>
-<span class="normal"><a href="#__codelineno-0-210">210</a></span>
-<span class="normal"><a href="#__codelineno-0-211">211</a></span>
-<span class="normal"><a href="#__codelineno-0-212">212</a></span>
-<span class="normal"><a href="#__codelineno-0-213">213</a></span>
-<span class="normal"><a href="#__codelineno-0-214">214</a></span>
-<span class="normal"><a href="#__codelineno-0-215">215</a></span>
-<span class="normal"><a href="#__codelineno-0-216">216</a></span>
-<span class="normal"><a href="#__codelineno-0-217">217</a></span>
-<span class="normal"><a href="#__codelineno-0-218">218</a></span>
-<span class="normal"><a href="#__codelineno-0-219">219</a></span>
-<span class="normal"><a href="#__codelineno-0-220">220</a></span>
-<span class="normal"><a href="#__codelineno-0-221">221</a></span>
-<span class="normal"><a href="#__codelineno-0-222">222</a></span>
-<span class="normal"><a href="#__codelineno-0-223">223</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-223">223</a></span>
 <span class="normal"><a href="#__codelineno-0-224">224</a></span>
 <span class="normal"><a href="#__codelineno-0-225">225</a></span>
 <span class="normal"><a href="#__codelineno-0-226">226</a></span>
@@ -7789,50 +7888,83 @@ logs, so buffers don't grow too big inadvertently.</p>
 <span class="normal"><a href="#__codelineno-0-244">244</a></span>
 <span class="normal"><a href="#__codelineno-0-245">245</a></span>
 <span class="normal"><a href="#__codelineno-0-246">246</a></span>
-<span class="normal"><a href="#__codelineno-0-247">247</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-204"><a id="__codelineno-0-204" name="__codelineno-0-204"></a><span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-205"><a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
-</span><span id="__span-0-206"><a id="__codelineno-0-206" name="__codelineno-0-206"></a>
-</span><span id="__span-0-207"><a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="sd">        ValueError: If any value is out of range.</span>
-</span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-210"><a id="__codelineno-0-210" name="__codelineno-0-210"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
-</span><span id="__span-0-211"><a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
-</span><span id="__span-0-213"><a id="__codelineno-0-213" name="__codelineno-0-213"></a>        <span class="p">)</span>
-</span><span id="__span-0-214"><a id="__codelineno-0-214" name="__codelineno-0-214"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
-</span><span id="__span-0-215"><a id="__codelineno-0-215" name="__codelineno-0-215"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-216"><a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
-</span><span id="__span-0-217"><a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="p">)</span>
-</span><span id="__span-0-218"><a id="__codelineno-0-218" name="__codelineno-0-218"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220"></a>            <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
-</span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221"></a>        <span class="p">)</span>
-</span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-223"><a id="__codelineno-0-223" name="__codelineno-0-223"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-224"><a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
-</span><span id="__span-0-225"><a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
-</span><span id="__span-0-226"><a id="__codelineno-0-226" name="__codelineno-0-226"></a>        <span class="p">)</span>
-</span><span id="__span-0-227"><a id="__codelineno-0-227" name="__codelineno-0-227"></a>
-</span><span id="__span-0-228"><a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-229"><a id="__codelineno-0-229" name="__codelineno-0-229"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-230"><a id="__codelineno-0-230" name="__codelineno-0-230"></a>            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
-</span><span id="__span-0-231"><a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="p">)</span>
-</span><span id="__span-0-232"><a id="__codelineno-0-232" name="__codelineno-0-232"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-234"><a id="__codelineno-0-234" name="__codelineno-0-234"></a>            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
-</span><span id="__span-0-235"><a id="__codelineno-0-235" name="__codelineno-0-235"></a>            <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
-</span><span id="__span-0-236"><a id="__codelineno-0-236" name="__codelineno-0-236"></a>            <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
-</span><span id="__span-0-237"><a id="__codelineno-0-237" name="__codelineno-0-237"></a>        <span class="p">)</span>
-</span><span id="__span-0-238"><a id="__codelineno-0-238" name="__codelineno-0-238"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
-</span><span id="__span-0-239"><a id="__codelineno-0-239" name="__codelineno-0-239"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="__span-0-240"><a id="__codelineno-0-240" name="__codelineno-0-240"></a>            <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
-</span><span id="__span-0-241"><a id="__codelineno-0-241" name="__codelineno-0-241"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
-</span><span id="__span-0-242"><a id="__codelineno-0-242" name="__codelineno-0-242"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
-</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>        <span class="p">)</span>
-</span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a>            <span class="sa">f</span><span class="s2">&quot;align_to (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="si">}</span><span class="s2">) should be a timezone aware datetime&quot;</span>
-</span><span id="__span-0-247"><a id="__codelineno-0-247" name="__codelineno-0-247"></a>        <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span>
+<span class="normal"><a href="#__codelineno-0-248">248</a></span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span>
+<span class="normal"><a href="#__codelineno-0-250">250</a></span>
+<span class="normal"><a href="#__codelineno-0-251">251</a></span>
+<span class="normal"><a href="#__codelineno-0-252">252</a></span>
+<span class="normal"><a href="#__codelineno-0-253">253</a></span>
+<span class="normal"><a href="#__codelineno-0-254">254</a></span>
+<span class="normal"><a href="#__codelineno-0-255">255</a></span>
+<span class="normal"><a href="#__codelineno-0-256">256</a></span>
+<span class="normal"><a href="#__codelineno-0-257">257</a></span>
+<span class="normal"><a href="#__codelineno-0-258">258</a></span>
+<span class="normal"><a href="#__codelineno-0-259">259</a></span>
+<span class="normal"><a href="#__codelineno-0-260">260</a></span>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-223"><a id="__codelineno-0-223" name="__codelineno-0-223"></a><span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-224"><a id="__codelineno-0-224" name="__codelineno-0-224"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check that config values are valid.</span>
+</span><span id="__span-0-225"><a id="__codelineno-0-225" name="__codelineno-0-225"></a>
+</span><span id="__span-0-226"><a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="sd">    Raises:</span>
+</span><span id="__span-0-227"><a id="__codelineno-0-227" name="__codelineno-0-227"></a><span class="sd">        ValueError: If any value is out of range.</span>
+</span><span id="__span-0-228"><a id="__codelineno-0-228" name="__codelineno-0-228"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-229"><a id="__codelineno-0-229" name="__codelineno-0-229"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+</span><span id="__span-0-230"><a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-231"><a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">) must be positive&quot;</span>
+</span><span id="__span-0-232"><a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="p">)</span>
+</span><span id="__span-0-233"><a id="__codelineno-0-233" name="__codelineno-0-233"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+</span><span id="__span-0-234"><a id="__codelineno-0-234" name="__codelineno-0-234"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-235"><a id="__codelineno-0-235" name="__codelineno-0-235"></a>            <span class="sa">f</span><span class="s2">&quot;max_data_age_in_periods (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_age_in_periods</span><span class="si">}</span><span class="s2">) should be at least 1.0&quot;</span>
+</span><span id="__span-0-236"><a id="__codelineno-0-236" name="__codelineno-0-236"></a>        <span class="p">)</span>
+</span><span id="__span-0-237"><a id="__codelineno-0-237" name="__codelineno-0-237"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="__span-0-238"><a id="__codelineno-0-238" name="__codelineno-0-238"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-239"><a id="__codelineno-0-239" name="__codelineno-0-239"></a>            <span class="sa">f</span><span class="s2">&quot;warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">) should be at least 1&quot;</span>
+</span><span id="__span-0-240"><a id="__codelineno-0-240" name="__codelineno-0-240"></a>        <span class="p">)</span>
+</span><span id="__span-0-241"><a id="__codelineno-0-241" name="__codelineno-0-241"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-242"><a id="__codelineno-0-242" name="__codelineno-0-242"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-243"><a id="__codelineno-0-243" name="__codelineno-0-243"></a>            <span class="sa">f</span><span class="s2">&quot;max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">) should &quot;</span>
+</span><span id="__span-0-244"><a id="__codelineno-0-244" name="__codelineno-0-244"></a>            <span class="sa">f</span><span class="s2">&quot;be bigger than warn_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="__span-0-245"><a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="p">)</span>
+</span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a>
+</span><span id="__span-0-247"><a id="__codelineno-0-247" name="__codelineno-0-247"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="__span-0-248"><a id="__codelineno-0-248" name="__codelineno-0-248"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a>            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) should at least 1&quot;</span>
+</span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a>        <span class="p">)</span>
+</span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-253"><a id="__codelineno-0-253" name="__codelineno-0-253"></a>            <span class="sa">f</span><span class="s2">&quot;initial_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="si">}</span><span class="s2">) is bigger &quot;</span>
+</span><span id="__span-0-254"><a id="__codelineno-0-254" name="__codelineno-0-254"></a>            <span class="sa">f</span><span class="s2">&quot;than max_buffer_len (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_len</span><span class="si">}</span><span class="s2">), use a smaller &quot;</span>
+</span><span id="__span-0-255"><a id="__codelineno-0-255" name="__codelineno-0-255"></a>            <span class="s2">&quot;initial_buffer_len or a bigger max_buffer_len&quot;</span>
+</span><span id="__span-0-256"><a id="__codelineno-0-256" name="__codelineno-0-256"></a>        <span class="p">)</span>
+</span><span id="__span-0-257"><a id="__codelineno-0-257" name="__codelineno-0-257"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">:</span>
+</span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a>        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="__span-0-259"><a id="__codelineno-0-259" name="__codelineno-0-259"></a>            <span class="s2">&quot;initial_buffer_len (</span><span class="si">%s</span><span class="s2">) is bigger than warn_buffer_len (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">initial_buffer_len</span><span class="p">,</span>
+</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">warn_buffer_len</span><span class="p">,</span>
+</span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a>        <span class="p">)</span>
+</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a>            <span class="sa">f</span><span class="s2">&quot;align_to (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">align_to</span><span class="si">}</span><span class="s2">) should be a timezone aware datetime&quot;</span>
+</span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a>        <span class="p">)</span>
+</span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="__span-0-268"><a id="__codelineno-0-268" name="__codelineno-0-268"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tick_delay (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span><span class="si">}</span><span class="s2">) should be non-negative&quot;</span><span class="p">)</span>
+</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="p">:</span>
+</span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a>            <span class="sa">f</span><span class="s2">&quot;tick_delay (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_delay</span><span class="si">}</span><span class="s2">) should be smaller than &quot;</span>
+</span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a>            <span class="sa">f</span><span class="s2">&quot;resampling_period (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resampling_period</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273"></a>        <span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
