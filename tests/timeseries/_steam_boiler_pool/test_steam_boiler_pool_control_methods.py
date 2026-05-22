@@ -1,0 +1,250 @@
+# License: MIT
+# Copyright © 2026 Frequenz Energy-as-a-Service GmbH
+
+"""Test the steam boiler pool control methods."""
+
+import asyncio
+from collections.abc import AsyncIterator, Callable
+from datetime import datetime, timedelta, timezone
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock
+
+import async_solipsism
+import pytest
+import time_machine
+from frequenz.channels import Receiver
+from frequenz.client.microgrid.component import ComponentStateCode
+from frequenz.quantities import Power
+from pytest_mock import MockerFixture
+
+from frequenz.sdk import microgrid
+from frequenz.sdk.microgrid import _power_distributing
+from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
+from frequenz.sdk.microgrid._old_component_data import SteamBoilerData
+from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
+from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
+    ComponentPoolStatusTracker,
+)
+from frequenz.sdk.timeseries import ResamplerConfig2
+from frequenz.sdk.timeseries.steam_boiler_pool import SteamBoilerPoolReport
+
+from ...microgrid.fixtures import _Mocks
+from ...utils.component_data_streamer import MockComponentDataStreamer
+from ...utils.component_data_wrapper import MeterDataWrapper
+from ..mock_microgrid import MockMicrogrid
+
+# pylint: disable=protected-access
+
+
+@pytest.fixture
+def event_loop_policy() -> async_solipsism.EventLoopPolicy:
+    """Event loop policy."""
+    return async_solipsism.EventLoopPolicy()
+
+
+@pytest.fixture
+async def mocks(mocker: MockerFixture) -> AsyncIterator[_Mocks]:
+    """Create the mocks."""
+    mockgrid = MockMicrogrid(grid_meter=True)
+    mockgrid.add_steam_boilers(4)
+    await mockgrid.start(mocker)
+
+    # pylint: disable=protected-access
+    if microgrid._data_pipeline._DATA_PIPELINE is not None:
+        microgrid._data_pipeline._DATA_PIPELINE = None
+    await microgrid._data_pipeline.initialize(
+        ResamplerConfig2(resampling_period=timedelta(seconds=0.1))
+    )
+    streamer = MockComponentDataStreamer(mockgrid.mock_client)
+
+    dp = cast(_DataPipeline, microgrid._data_pipeline._DATA_PIPELINE)
+
+    _mocks = _Mocks(
+        mockgrid,
+        streamer,
+        dp._steam_boiler_power_wrapper.status_channel.new_sender(),
+    )
+    try:
+        yield _mocks
+    finally:
+        await _mocks.stop()
+
+
+class TestSteamBoilerPoolControl:
+    """Test the steam boiler pool control methods."""
+
+    async def _patch_steam_boiler_pool_status(
+        self,
+        mocks: _Mocks,
+        mocker: MockerFixture,
+        component_ids: list[int] | None = None,
+    ) -> None:
+        """Patch the steam boiler pool status.
+
+        If `component_ids` is not None, the mock will always return `component_ids`.
+        Otherwise, it will return the requested components.
+        """
+        if component_ids:
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.return_value = component_ids
+            mocker.patch(
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._steam_boiler_manager._steam_boiler_manager.ComponentPoolStatusTracker",
+                return_value=mock,
+            )
+        else:
+            mock = MagicMock(spec=ComponentPoolStatusTracker)
+            mock.get_working_components.side_effect = set
+            mocker.patch(
+                "frequenz.sdk.microgrid._power_distributing._component_managers"
+                "._steam_boiler_manager._steam_boiler_manager.ComponentPoolStatusTracker",
+                return_value=mock,
+            )
+        await mocks.component_status_sender.send(
+            ComponentPoolStatus(
+                working=set(mocks.microgrid.steam_boiler_ids), uncertain=set()
+            )
+        )
+
+    async def _patch_power_distributing_actor(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        del mocker
+
+    async def _init_steam_boilers(self, mocks: _Mocks) -> None:
+        now = datetime.now(tz=timezone.utc)
+        for steam_boiler_id in mocks.microgrid.steam_boiler_ids:
+            mocks.streamer.start_streaming(
+                SteamBoilerData(
+                    component_id=steam_boiler_id,
+                    timestamp=now,
+                    states={ComponentStateCode.READY},
+                    active_power=0.0,
+                    power_lower_bound=0.0,
+                    power_upper_bound=16.0 * 230.0 * 3,
+                ),
+                0.05,
+            )
+
+        for meter_id in mocks.microgrid.meter_ids:
+            mocks.streamer.start_streaming(
+                MeterDataWrapper(
+                    meter_id,
+                    now,
+                    voltage_per_phase=(230.0, 230.0, 230.0),
+                ),
+                0.05,
+            )
+
+    async def _recv_reports_until(
+        self,
+        bounds_rx: Receiver[SteamBoilerPoolReport],
+        check: Callable[[SteamBoilerPoolReport], bool],
+    ) -> SteamBoilerPoolReport | None:
+        """Receive reports until the given condition is met."""
+        max_reports = 10
+        ctr = 0
+        while ctr < max_reports:
+            ctr += 1
+            async with asyncio.timeout(10.0):
+                report = await bounds_rx.receive()
+            if check(report):
+                return report
+        return None
+
+    def _assert_report(  # pylint: disable=too-many-arguments
+        self,
+        report: SteamBoilerPoolReport | None,
+        *,
+        power: float | None,
+        lower: float,
+        upper: float,
+        dist_result: _power_distributing.Result | None = None,
+        expected_result_pred: (
+            Callable[[_power_distributing.Result], bool] | None
+        ) = None,
+    ) -> None:
+        assert report is not None
+        assert report.target_power == (
+            Power.from_watts(power) if power is not None else None
+        )
+        assert report.bounds is not None
+        assert report.bounds.lower == Power.from_watts(lower)
+        assert report.bounds.upper == Power.from_watts(upper)
+        if expected_result_pred is not None:
+            assert dist_result is not None
+            assert expected_result_pred(dist_result)
+
+    async def test_setting_power(
+        self,
+        mocks: _Mocks,
+        mocker: MockerFixture,
+    ) -> None:
+        """Test setting power."""
+        traveller = time_machine.travel(datetime(2012, 12, 12, tzinfo=timezone.utc))
+        mock_time = traveller.start()
+
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
+        )
+        await self._init_steam_boilers(mocks)
+        steam_boiler_pool = microgrid.new_steam_boiler_pool(priority=5)
+        await self._patch_steam_boiler_pool_status(mocks, mocker)
+        await self._patch_power_distributing_actor(mocker)
+
+        bounds_rx = steam_boiler_pool.power_status.new_receiver()
+        # Receive reports until all steam boilers are initialized
+        latest_report = await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.bounds is not None and x.bounds.upper.as_watts() == 44160.0,
+        )
+
+        self._assert_report(latest_report, power=None, lower=0.0, upper=44160.0)
+
+        # Check that steam boilers are initialized to Power.zero()
+        assert set_power.call_count == 4
+        assert all(x.args[1] == 0.0 for x in set_power.call_args_list)
+
+        set_power.reset_mock()
+        await steam_boiler_pool.propose_power(Power.from_watts(40000.0))
+        # ignore one report because it is not always immediately updated.
+        latest_report = await self._recv_reports_until(
+            bounds_rx,
+            lambda r: r.target_power == Power.from_watts(40000.0),
+        )
+        self._assert_report(latest_report, power=40000.0, lower=0.0, upper=44160.0)
+        mock_time.shift(timedelta(seconds=60))
+        await asyncio.sleep(0.15)
+
+        # Components are set initial power
+        assert set_power.call_count == 4
+        assert all(x.args[1] == 6600.0 for x in set_power.call_args_list)
+
+        # All available power is allocated. 3 steam boilers are set to 11040.0
+        # and the last one is set to 6880.0
+        set_power.reset_mock()
+        mock_time.shift(timedelta(seconds=60))
+        await asyncio.sleep(0.15)
+        assert set_power.call_count == 4
+
+        boilers_11040 = [
+            x.args for x in set_power.call_args_list if x.args[1] == 11040.0
+        ]
+        assert 3 == len(boilers_11040)
+        boilers_6680 = [x.args for x in set_power.call_args_list if x.args[1] == 6880.0]
+        assert 1 == len(boilers_6680)
+
+        # Throttle the power
+        set_power.reset_mock()
+        await steam_boiler_pool.propose_power(Power.from_watts(32000.0))
+        await bounds_rx.receive()  # Receive the next report and discard it.
+        await asyncio.sleep(0.02)
+        assert set_power.call_count == 1
+
+        stopped_boilers = [x.args for x in set_power.call_args_list if x.args[1] == 0.0]
+        assert 1 == len(stopped_boilers)
+        assert stopped_boilers[0][0] in [boiler[0] for boiler in boilers_11040]
+
+        traveller.stop()

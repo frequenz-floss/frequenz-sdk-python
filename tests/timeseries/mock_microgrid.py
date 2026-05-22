@@ -27,6 +27,7 @@ from frequenz.client.microgrid.component import (
     LiIonBattery,
     Meter,
     SolarInverter,
+    SteamBoiler,
 )
 from frequenz.microgrid_component_graph import ComponentGraph
 from pytest_mock import MockerFixture
@@ -55,6 +56,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     grid_id = ComponentId(1)
     _grid_meter_id = ComponentId(4)
 
+    steam_boiler_id_suffix = 10
     chp_id_suffix = 5
     evc_id_suffix = 6
     meter_id_suffix = 7
@@ -144,6 +146,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self.battery_inverter_ids: list[ComponentId] = inverters(BatteryInverter)
         self.pv_inverter_ids: list[ComponentId] = inverters(SolarInverter)
+        self.steam_boiler_ids: list[ComponentId] = filter_comp(SteamBoiler)
 
         self.bat_inv_map: dict[ComponentId, ComponentId] = (
             {}
@@ -350,6 +353,11 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             )
         )
 
+    def _start_steam_boiler_streaming(self, steam_boiler_id: ComponentId) -> None:
+        if not self._api_client_streaming:
+            return
+        # TODO
+
     def add_consumer_meters(self, count: int = 1) -> None:
         """Add consumer meters to the mock microgrid.
 
@@ -493,6 +501,27 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_ev_charger_streaming(evc_id)
             self._connections.add(
                 ComponentConnection(source=self._connect_to, destination=evc_id)
+            )
+
+    def add_steam_boilers(self, count: int) -> None:
+        """Add steam boilers to the microgrid.
+
+        Args:
+            count: Number of steam boilers to add to the microgrid.
+        """
+        for _ in range(count):
+            component_id = ComponentId(
+                self._id_increment * 10 + self.steam_boiler_id_suffix
+            )
+            self._id_increment += 1
+            self.steam_boiler_ids.append(component_id)
+
+            self._components.add(
+                SteamBoiler(id=component_id, microgrid_id=_MICROGRID_ID)
+            )
+            self._start_steam_boiler_streaming(component_id)
+            self._connections.add(
+                ComponentConnection(source=self._connect_to, destination=component_id)
             )
 
     async def send_meter_data(self, values: list[float]) -> None:
