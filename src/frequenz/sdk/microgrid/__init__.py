@@ -380,6 +380,7 @@ from ._data_pipeline import (
     new_battery_pool,
     new_ev_charger_pool,
     new_pv_pool,
+    new_steam_boiler_pool,
     producer,
     voltage_per_phase,
 )
@@ -428,6 +429,7 @@ __all__ = [
     "new_battery_pool",
     "new_ev_charger_pool",
     "new_pv_pool",
+    "new_steam_boiler_pool",
     "producer",
     "voltage_per_phase",
 ]

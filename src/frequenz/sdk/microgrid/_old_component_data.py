@@ -1102,6 +1102,28 @@ class ChpData(ComponentData):  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass(kw_only=True)
+class SteamBoilerData(ChpData):
+    """A wrapper class for holding steam boiler data."""
+
+    active_power: float = 0.0
+    """The total active 3-phase AC power, in Watts (W).
+
+    Represented in the passive sign convention.
+
+    * Positive means consumption from the grid.
+    * Negative means supply into the grid.
+    """
+
+    power_upper_bound: float = 0.0
+    """Upper bound for steam boiler power draw in watts."""
+
+    power_lower_bound: float = 0.0
+    """Lower bound for steam boiler power draw in watts."""
+
+    CATEGORY: ClassVar[ComponentCategory] = ComponentCategory.STEAM_BOILER
+
+
+@dataclass(kw_only=True)
 class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attributes
     """A wrapper class for holding ev_charger data."""
 

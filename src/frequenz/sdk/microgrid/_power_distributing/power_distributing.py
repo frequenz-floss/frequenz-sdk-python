@@ -16,7 +16,12 @@ from typing import assert_never
 
 from frequenz.channels import Receiver, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
+from frequenz.client.microgrid.component import (
+    Battery,
+    EvCharger,
+    SolarInverter,
+    SteamBoiler,
+)
 from typing_extensions import override
 
 from ...actor._actor import Actor
@@ -25,6 +30,9 @@ from ._component_managers import (
     ComponentManager,
     EVChargerManager,
     PVManager,
+)
+from ._component_managers._steam_boiler_manager._steam_boiler_manager import (
+    SteamBoilerManager,
 )
 from ._component_status import ComponentPoolStatus
 from .request import Request
@@ -60,7 +68,7 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        component_type: type[Battery | EvCharger | SolarInverter],
+        component_type: type[Battery | EvCharger | SolarInverter | SteamBoiler],
         requests_receiver: Receiver[Request],
         results_sender: Sender[Result],
         component_pool_status_sender: Sender[ComponentPoolStatus],
@@ -112,6 +120,10 @@ class PowerDistributingActor(Actor):  # pylint: disable=too-many-instance-attrib
             )
         elif issubclass(component_type, SolarInverter):
             self._component_manager = PVManager(
+                component_pool_status_sender, results_sender, api_power_request_timeout
+            )
+        elif issubclass(component_type, SteamBoiler):
+            self._component_manager = SteamBoilerManager(
                 component_pool_status_sender, results_sender, api_power_request_timeout
             )
         else:
