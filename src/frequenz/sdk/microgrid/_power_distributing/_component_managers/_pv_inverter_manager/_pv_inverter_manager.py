@@ -6,11 +6,10 @@
 import asyncio
 import collections.abc
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from frequenz.channels import LatestValueCache, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ApiClientError
 from frequenz.client.microgrid.component import SolarInverter
 from frequenz.quantities import Power
 from typing_extensions import override
@@ -21,8 +20,9 @@ from ...._old_component_data import InverterData
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, PVInverterStatusTracker
 from ...request import Request
-from ...result import PartialFailure, Result, Success
+from ...result import Result, Success
 from .._component_manager import ComponentManager
+from .._utils import _set_component_power
 
 _logger = logging.getLogger(__name__)
 
@@ -176,79 +176,15 @@ class PVManager(ComponentManager):
             request.power,
             allocations,
         )
-        await self._set_api_power(request, allocations, remaining_power)
-
-    async def _set_api_power(  # pylint: disable=too-many-locals
-        self,
-        request: Request,
-        allocations: dict[ComponentId, Power],
-        remaining_power: Power,
-    ) -> None:
-        api_client = connection_manager.get().api_client
-        tasks: dict[ComponentId, asyncio.Task[datetime | None]] = {}
-        for component_id, power in allocations.items():
-            tasks[component_id] = asyncio.create_task(
-                api_client.set_component_power_active(component_id, power.as_watts())
-            )
-        _, pending = await asyncio.wait(
-            tasks.values(),
-            timeout=self._api_power_request_timeout.total_seconds(),
-            return_when=asyncio.ALL_COMPLETED,
+        result = await _set_component_power(
+            request=request,
+            target_power=request.power,
+            allocations=allocations,
+            api_request_timeout=self._api_power_request_timeout,
+            remaining_power=remaining_power,
+            component_category="PV inverter",
         )
-        # collect the timed out tasks and cancel them while keeping the
-        # exceptions, so that they can be processed later.
-        for task in pending:
-            task.cancel()
-        await asyncio.gather(*pending, return_exceptions=True)
-
-        failed_components: set[ComponentId] = set()
-        succeeded_components: set[ComponentId] = set()
-        failed_power = Power.zero()
-        for component_id, task in tasks.items():
-            try:
-                task.result()
-            except asyncio.CancelledError:
-                _logger.warning(
-                    "Timeout while setting power to PV inverter %s", component_id
-                )
-            except ApiClientError as exc:
-                _logger.warning(
-                    "Got a client error while setting power to PV inverter %s: %s",
-                    component_id,
-                    exc,
-                )
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Unknown error while setting power to PV inverter: %s",
-                    component_id,
-                )
-            else:
-                succeeded_components.add(component_id)
-                continue
-
-            failed_components.add(component_id)
-            failed_power += allocations[component_id]
-
-        if failed_components:
-            await self._results_sender.send(
-                PartialFailure(
-                    failed_components=failed_components,
-                    succeeded_components=succeeded_components,
-                    failed_power=failed_power,
-                    succeeded_power=request.power - failed_power - remaining_power,
-                    excess_power=remaining_power,
-                    request=request,
-                )
-            )
-            return
-        await self._results_sender.send(
-            Success(
-                succeeded_components=succeeded_components,
-                succeeded_power=request.power - remaining_power,
-                excess_power=remaining_power,
-                request=request,
-            )
-        )
+        await self._results_sender.send(result)
 
     def _get_pv_inverter_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all PV inverters present in the component graph."""

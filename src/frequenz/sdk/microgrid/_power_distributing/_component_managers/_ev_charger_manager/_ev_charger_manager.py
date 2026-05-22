@@ -17,7 +17,6 @@ from frequenz.channels import (
     selected_from,
 )
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid import ApiClientError, MicrogridApiClient
 from frequenz.client.microgrid.component import EvCharger
 from frequenz.quantities import Power, Voltage
 from typing_extensions import override
@@ -30,8 +29,9 @@ from ...._old_component_data import EVChargerData
 from ..._component_pool_status_tracker import ComponentPoolStatusTracker
 from ..._component_status import ComponentPoolStatus, EVChargerStatusTracker
 from ...request import Request
-from ...result import PartialFailure, Result, Success
+from ...result import Result
 from .._component_manager import ComponentManager
+from .._utils import _set_component_power
 from ._config import EVDistributionConfig
 from ._states import EvcState, EvcStates
 
@@ -283,85 +283,15 @@ class EVChargerManager(ComponentManager):
                 self._evc_states.get(component_id).update_last_allocation(power, now)
 
             latest_target_powers.update(target_power_changes)
-            result = await self._set_api_power(
-                api, target_power_changes, self._api_power_request_timeout
+            result = await _set_component_power(
+                request=self._latest_request,
+                target_power=self._target_power,
+                allocations=target_power_changes,
+                api_request_timeout=self._api_power_request_timeout,
+                remaining_power=Power.zero(),
+                component_category="EV charger",
             )
             await self._results_sender.send(result)
-
-    async def _set_api_power(
-        self,
-        api: MicrogridApiClient,
-        target_power_changes: dict[ComponentId, Power],
-        api_request_timeout: timedelta,
-    ) -> Result:
-        """Send the EV charger power changes to the microgrid API.
-
-        Args:
-            api: The microgrid API client to use for setting the power.
-            target_power_changes: A dictionary containing the new power allocations for
-                the EV chargers.
-            api_request_timeout: The timeout for the API request.
-
-        Returns:
-            Power distribution result, corresponding to the result of the API
-                request.
-        """
-        tasks: dict[ComponentId, asyncio.Task[datetime | None]] = {}
-        for component_id, power in target_power_changes.items():
-            tasks[component_id] = asyncio.create_task(
-                api.set_component_power_active(component_id, power.as_watts())
-            )
-        _, pending = await asyncio.wait(
-            tasks.values(),
-            timeout=api_request_timeout.total_seconds(),
-            return_when=asyncio.ALL_COMPLETED,
-        )
-        for task in pending:
-            task.cancel()
-        await asyncio.gather(*pending, return_exceptions=True)
-
-        failed_components: set[ComponentId] = set()
-        succeeded_components: set[ComponentId] = set()
-        failed_power = Power.zero()
-        for component_id, task in tasks.items():
-            try:
-                task.result()
-            except asyncio.CancelledError:
-                _logger.warning(
-                    "Timeout while setting power to EV charger %s", component_id
-                )
-            except ApiClientError as exc:
-                _logger.warning(
-                    "Got a client error while setting power to EV charger %s: %s",
-                    component_id,
-                    exc,
-                )
-            except Exception:  # pylint: disable=broad-except
-                _logger.exception(
-                    "Unknown error while setting power to EV charger: %s", component_id
-                )
-            else:
-                succeeded_components.add(component_id)
-                continue
-
-            failed_components.add(component_id)
-            failed_power += target_power_changes[component_id]
-
-        if failed_components:
-            return PartialFailure(
-                failed_components=failed_components,
-                succeeded_components=succeeded_components,
-                failed_power=failed_power,
-                succeeded_power=self._target_power - failed_power,
-                excess_power=Power.zero(),
-                request=self._latest_request,
-            )
-        return Success(
-            succeeded_components=succeeded_components,
-            succeeded_power=self._target_power,
-            excess_power=Power.zero(),
-            request=self._latest_request,
-        )
 
     def _deallocate_unused_power(
         self, to_deallocate: Power
