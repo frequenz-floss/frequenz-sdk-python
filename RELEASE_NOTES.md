@@ -14,4 +14,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* Accept `ComponentDataSamples` that only carry state changes (the state changes were dropped before).
