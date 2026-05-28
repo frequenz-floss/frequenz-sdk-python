@@ -104,19 +104,26 @@ class ComponentData(ABC):
     @staticmethod
     def _from_samples(class_: type[T], /, samples: ComponentDataSamples) -> T:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
+        if not samples.metric_samples and not samples.states:
+            raise ValueError("No metrics and no states in the samples.")
 
         # FIXME: This might not be true forever, but the service sends all metrics with
         # the same timestamp for now, and it is very convenient to map the received data
         # to the old component data metrics packets, which had only one timestamp.
         # When we move away frome these old_component_data wrappers, we should not
         # assume only one metric sample can come per telemetry message anymore.
-        timestamp = samples.metric_samples[-1].sampled_at
-        for sample in samples.metric_samples[:-1]:
-            if sample.sampled_at != timestamp:
+        # When there are no metric samples, fall back to the last state sample's
+        # timestamp so that state-only messages (for example, a component error
+        # state without any metric values) are still propagated downstream.
+        source = samples.metric_samples or samples.states
+        kind = "metric" if samples.metric_samples else "state"
+        timestamp = source[-1].sampled_at
+        for item in source[:-1]:
+            if item.sampled_at != timestamp:
                 _logger.warning(
-                    "ComponentData has multiple timestamps. Using the last one. Samples: %r",
+                    "ComponentData has multiple %s sample timestamps. Using the last"
+                    " one. Samples: %r",
+                    kind,
                     samples,
                 )
                 break
@@ -298,9 +305,6 @@ class MeterData(ComponentData):
     # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
-
         self = cls._from_samples(cls, samples)
 
         active_power_per_phase: list[float] = [0.0, 0.0, 0.0]
@@ -486,9 +490,6 @@ class BatteryData(ComponentData):  # pylint: disable=too-many-instance-attribute
     @classmethod
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
-
         self = cls._from_samples(cls, samples)
 
         for sample in samples.metric_samples:
@@ -704,9 +705,6 @@ class InverterData(ComponentData):  # pylint: disable=too-many-instance-attribut
     # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
-
         self = cls._from_samples(cls, samples)
 
         active_power_per_phase: list[float] = [0.0, 0.0, 0.0]
@@ -966,9 +964,6 @@ class ChpData(ComponentData):  # pylint: disable=too-many-instance-attributes
     # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
-
         self = cls._from_samples(cls, samples)
 
         active_power_per_phase: list[float] = [0.0, 0.0, 0.0]
@@ -1229,9 +1224,6 @@ class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attribu
     # pylint: disable-next=too-many-branches
     def from_samples(cls, samples: ComponentDataSamples) -> Self:
         """Create a new instance from a component data object."""
-        if not samples.metric_samples:
-            raise ValueError("No metrics in the samples.")
-
         self = cls._from_samples(cls, samples)
 
         active_power_per_phase: list[float] = [0.0, 0.0, 0.0]
