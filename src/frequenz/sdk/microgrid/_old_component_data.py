@@ -38,6 +38,40 @@ from typing_extensions import override
 
 _logger = logging.getLogger(__name__)
 
+
+class _M:
+    """Plain holder for the `Metric` members matched in `from_samples`.
+
+    `Metric` is an `Enum`, and `Enum.<MEMBER>` access goes through the slow
+    `EnumType.__getattribute__`/`_name_map` machinery. The `from_samples`
+    `match`/`case` blocks evaluate one such access *per case, per sample, per
+    component, on every resampling tick* — which profiling showed to be a
+    dominant CPU cost when consuming high-rate telemetry. Resolving the
+    members once here, into a plain class, lets the `case _M.<MEMBER>`
+    patterns use ordinary (fast) attribute access instead.
+    """
+
+    AC_ACTIVE_POWER = Metric.AC_ACTIVE_POWER
+    AC_ACTIVE_POWER_PHASE_1 = Metric.AC_ACTIVE_POWER_PHASE_1
+    AC_ACTIVE_POWER_PHASE_2 = Metric.AC_ACTIVE_POWER_PHASE_2
+    AC_ACTIVE_POWER_PHASE_3 = Metric.AC_ACTIVE_POWER_PHASE_3
+    AC_REACTIVE_POWER = Metric.AC_REACTIVE_POWER
+    AC_REACTIVE_POWER_PHASE_1 = Metric.AC_REACTIVE_POWER_PHASE_1
+    AC_REACTIVE_POWER_PHASE_2 = Metric.AC_REACTIVE_POWER_PHASE_2
+    AC_REACTIVE_POWER_PHASE_3 = Metric.AC_REACTIVE_POWER_PHASE_3
+    AC_CURRENT_PHASE_1 = Metric.AC_CURRENT_PHASE_1
+    AC_CURRENT_PHASE_2 = Metric.AC_CURRENT_PHASE_2
+    AC_CURRENT_PHASE_3 = Metric.AC_CURRENT_PHASE_3
+    AC_VOLTAGE_PHASE_1_N = Metric.AC_VOLTAGE_PHASE_1_N
+    AC_VOLTAGE_PHASE_2_N = Metric.AC_VOLTAGE_PHASE_2_N
+    AC_VOLTAGE_PHASE_3_N = Metric.AC_VOLTAGE_PHASE_3_N
+    AC_FREQUENCY = Metric.AC_FREQUENCY
+    DC_POWER = Metric.DC_POWER
+    BATTERY_SOC_PCT = Metric.BATTERY_SOC_PCT
+    BATTERY_CAPACITY = Metric.BATTERY_CAPACITY
+    BATTERY_TEMPERATURE = Metric.BATTERY_TEMPERATURE
+
+
 T = TypeVar("T", bound="ComponentData")
 
 PhaseTuple: TypeAlias = tuple[float, float, float]
@@ -314,35 +348,35 @@ class MeterData(ComponentData):
 
         for sample in samples.metric_samples:
             match sample.metric:
-                case Metric.AC_ACTIVE_POWER:
+                case _M.AC_ACTIVE_POWER:
                     self.active_power = sample.as_single_value() or 0.0
-                case Metric.AC_ACTIVE_POWER_PHASE_1:
+                case _M.AC_ACTIVE_POWER_PHASE_1:
                     active_power_per_phase[0] = sample.as_single_value() or 0.0
-                case Metric.AC_ACTIVE_POWER_PHASE_2:
+                case _M.AC_ACTIVE_POWER_PHASE_2:
                     active_power_per_phase[1] = sample.as_single_value() or 0.0
-                case Metric.AC_ACTIVE_POWER_PHASE_3:
+                case _M.AC_ACTIVE_POWER_PHASE_3:
                     active_power_per_phase[2] = sample.as_single_value() or 0.0
-                case Metric.AC_REACTIVE_POWER_PHASE_1:
+                case _M.AC_REACTIVE_POWER_PHASE_1:
                     reactive_power_per_phase[0] = sample.as_single_value() or 0.0
-                case Metric.AC_REACTIVE_POWER_PHASE_2:
+                case _M.AC_REACTIVE_POWER_PHASE_2:
                     reactive_power_per_phase[1] = sample.as_single_value() or 0.0
-                case Metric.AC_REACTIVE_POWER_PHASE_3:
+                case _M.AC_REACTIVE_POWER_PHASE_3:
                     reactive_power_per_phase[2] = sample.as_single_value() or 0.0
-                case Metric.AC_REACTIVE_POWER:
+                case _M.AC_REACTIVE_POWER:
                     self.reactive_power = sample.as_single_value() or 0.0
-                case Metric.AC_CURRENT_PHASE_1:
+                case _M.AC_CURRENT_PHASE_1:
                     current_per_phase[0] = sample.as_single_value() or 0.0
-                case Metric.AC_CURRENT_PHASE_2:
+                case _M.AC_CURRENT_PHASE_2:
                     current_per_phase[1] = sample.as_single_value() or 0.0
-                case Metric.AC_CURRENT_PHASE_3:
+                case _M.AC_CURRENT_PHASE_3:
                     current_per_phase[2] = sample.as_single_value() or 0.0
-                case Metric.AC_VOLTAGE_PHASE_1_N:
+                case _M.AC_VOLTAGE_PHASE_1_N:
                     voltage_per_phase[0] = sample.as_single_value() or 0.0
-                case Metric.AC_VOLTAGE_PHASE_2_N:
+                case _M.AC_VOLTAGE_PHASE_2_N:
                     voltage_per_phase[1] = sample.as_single_value() or 0.0
-                case Metric.AC_VOLTAGE_PHASE_3_N:
+                case _M.AC_VOLTAGE_PHASE_3_N:
                     voltage_per_phase[2] = sample.as_single_value() or 0.0
-                case Metric.AC_FREQUENCY:
+                case _M.AC_FREQUENCY:
                     self.frequency = sample.as_single_value() or 0.0
                 case unexpected:
                     _logger.warning(
@@ -495,7 +529,7 @@ class BatteryData(ComponentData):  # pylint: disable=too-many-instance-attribute
         for sample in samples.metric_samples:
             value = sample.as_single_value() or 0.0
             match sample.metric:
-                case Metric.BATTERY_SOC_PCT:
+                case _M.BATTERY_SOC_PCT:
                     self.soc = value
                     if sample.bounds:
                         # Update power bounds from the SOC metric bounds,
@@ -514,7 +548,7 @@ class BatteryData(ComponentData):  # pylint: disable=too-many-instance-attribute
                             )
                         self.soc_lower_bound = sample.bounds[0].lower or 0.0
                         self.soc_upper_bound = sample.bounds[0].upper or 0.0
-                case Metric.DC_POWER:
+                case _M.DC_POWER:
                     (
                         self.power_inclusion_lower_bound,
                         self.power_inclusion_upper_bound,
@@ -523,9 +557,9 @@ class BatteryData(ComponentData):  # pylint: disable=too-many-instance-attribute
                     ) = _bound_ranges_to_inclusion_exclusion(
                         sample.bounds, "DC_POWER", sample
                     )
-                case Metric.BATTERY_CAPACITY:
+                case _M.BATTERY_CAPACITY:
                     self.capacity = value
-                case Metric.BATTERY_TEMPERATURE:
+                case _M.BATTERY_TEMPERATURE:
                     self.temperature = value
                 case unexpected:
                     _logger.warning(
@@ -715,7 +749,7 @@ class InverterData(ComponentData):  # pylint: disable=too-many-instance-attribut
         for sample in samples.metric_samples:
             value = sample.as_single_value() or 0.0
             match sample.metric:
-                case Metric.AC_ACTIVE_POWER:
+                case _M.AC_ACTIVE_POWER:
                     self.active_power = value
                     (
                         self.active_power_inclusion_lower_bound,
@@ -725,33 +759,33 @@ class InverterData(ComponentData):  # pylint: disable=too-many-instance-attribut
                     ) = _bound_ranges_to_inclusion_exclusion(
                         sample.bounds, "AC_ACTIVE_POWER", sample
                     )
-                case Metric.AC_ACTIVE_POWER_PHASE_1:
+                case _M.AC_ACTIVE_POWER_PHASE_1:
                     active_power_per_phase[0] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_2:
+                case _M.AC_ACTIVE_POWER_PHASE_2:
                     active_power_per_phase[1] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_3:
+                case _M.AC_ACTIVE_POWER_PHASE_3:
                     active_power_per_phase[2] = value
-                case Metric.AC_REACTIVE_POWER:
+                case _M.AC_REACTIVE_POWER:
                     self.reactive_power = value
-                case Metric.AC_REACTIVE_POWER_PHASE_1:
+                case _M.AC_REACTIVE_POWER_PHASE_1:
                     reactive_power_per_phase[0] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_2:
+                case _M.AC_REACTIVE_POWER_PHASE_2:
                     reactive_power_per_phase[1] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_3:
+                case _M.AC_REACTIVE_POWER_PHASE_3:
                     reactive_power_per_phase[2] = value
-                case Metric.AC_CURRENT_PHASE_1:
+                case _M.AC_CURRENT_PHASE_1:
                     current_per_phase[0] = value
-                case Metric.AC_CURRENT_PHASE_2:
+                case _M.AC_CURRENT_PHASE_2:
                     current_per_phase[1] = value
-                case Metric.AC_CURRENT_PHASE_3:
+                case _M.AC_CURRENT_PHASE_3:
                     current_per_phase[2] = value
-                case Metric.AC_VOLTAGE_PHASE_1_N:
+                case _M.AC_VOLTAGE_PHASE_1_N:
                     voltage_per_phase[0] = value
-                case Metric.AC_VOLTAGE_PHASE_2_N:
+                case _M.AC_VOLTAGE_PHASE_2_N:
                     voltage_per_phase[1] = value
-                case Metric.AC_VOLTAGE_PHASE_3_N:
+                case _M.AC_VOLTAGE_PHASE_3_N:
                     voltage_per_phase[2] = value
-                case Metric.AC_FREQUENCY:
+                case _M.AC_FREQUENCY:
                     self.frequency = value
                 case unexpected:
                     _logger.warning(
@@ -974,7 +1008,7 @@ class ChpData(ComponentData):  # pylint: disable=too-many-instance-attributes
         for sample in samples.metric_samples:
             value = sample.as_single_value() or 0.0
             match sample.metric:
-                case Metric.AC_ACTIVE_POWER:
+                case _M.AC_ACTIVE_POWER:
                     self.active_power = value
                     (
                         self.active_power_inclusion_lower_bound,
@@ -984,33 +1018,33 @@ class ChpData(ComponentData):  # pylint: disable=too-many-instance-attributes
                     ) = _bound_ranges_to_inclusion_exclusion(
                         sample.bounds, "AC_ACTIVE_POWER", sample
                     )
-                case Metric.AC_ACTIVE_POWER_PHASE_1:
+                case _M.AC_ACTIVE_POWER_PHASE_1:
                     active_power_per_phase[0] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_2:
+                case _M.AC_ACTIVE_POWER_PHASE_2:
                     active_power_per_phase[1] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_3:
+                case _M.AC_ACTIVE_POWER_PHASE_3:
                     active_power_per_phase[2] = value
-                case Metric.AC_REACTIVE_POWER:
+                case _M.AC_REACTIVE_POWER:
                     self.reactive_power = value
-                case Metric.AC_REACTIVE_POWER_PHASE_1:
+                case _M.AC_REACTIVE_POWER_PHASE_1:
                     reactive_power_per_phase[0] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_2:
+                case _M.AC_REACTIVE_POWER_PHASE_2:
                     reactive_power_per_phase[1] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_3:
+                case _M.AC_REACTIVE_POWER_PHASE_3:
                     reactive_power_per_phase[2] = value
-                case Metric.AC_CURRENT_PHASE_1:
+                case _M.AC_CURRENT_PHASE_1:
                     current_per_phase[0] = value
-                case Metric.AC_CURRENT_PHASE_2:
+                case _M.AC_CURRENT_PHASE_2:
                     current_per_phase[1] = value
-                case Metric.AC_CURRENT_PHASE_3:
+                case _M.AC_CURRENT_PHASE_3:
                     current_per_phase[2] = value
-                case Metric.AC_VOLTAGE_PHASE_1_N:
+                case _M.AC_VOLTAGE_PHASE_1_N:
                     voltage_per_phase[0] = value
-                case Metric.AC_VOLTAGE_PHASE_2_N:
+                case _M.AC_VOLTAGE_PHASE_2_N:
                     voltage_per_phase[1] = value
-                case Metric.AC_VOLTAGE_PHASE_3_N:
+                case _M.AC_VOLTAGE_PHASE_3_N:
                     voltage_per_phase[2] = value
-                case Metric.AC_FREQUENCY:
+                case _M.AC_FREQUENCY:
                     self.frequency = value
                 case unexpected:
                     _logger.warning(
@@ -1234,7 +1268,7 @@ class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attribu
         for sample in samples.metric_samples:
             value = sample.as_single_value() or 0.0
             match sample.metric:
-                case Metric.AC_ACTIVE_POWER:
+                case _M.AC_ACTIVE_POWER:
                     self.active_power = value
                     (
                         self.active_power_inclusion_lower_bound,
@@ -1244,33 +1278,33 @@ class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attribu
                     ) = _bound_ranges_to_inclusion_exclusion(
                         sample.bounds, "AC_ACTIVE_POWER", sample
                     )
-                case Metric.AC_ACTIVE_POWER_PHASE_1:
+                case _M.AC_ACTIVE_POWER_PHASE_1:
                     active_power_per_phase[0] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_2:
+                case _M.AC_ACTIVE_POWER_PHASE_2:
                     active_power_per_phase[1] = value
-                case Metric.AC_ACTIVE_POWER_PHASE_3:
+                case _M.AC_ACTIVE_POWER_PHASE_3:
                     active_power_per_phase[2] = value
-                case Metric.AC_REACTIVE_POWER:
+                case _M.AC_REACTIVE_POWER:
                     self.reactive_power = value
-                case Metric.AC_REACTIVE_POWER_PHASE_1:
+                case _M.AC_REACTIVE_POWER_PHASE_1:
                     reactive_power_per_phase[0] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_2:
+                case _M.AC_REACTIVE_POWER_PHASE_2:
                     reactive_power_per_phase[1] = value
-                case Metric.AC_REACTIVE_POWER_PHASE_3:
+                case _M.AC_REACTIVE_POWER_PHASE_3:
                     reactive_power_per_phase[2] = value
-                case Metric.AC_CURRENT_PHASE_1:
+                case _M.AC_CURRENT_PHASE_1:
                     current_per_phase[0] = value
-                case Metric.AC_CURRENT_PHASE_2:
+                case _M.AC_CURRENT_PHASE_2:
                     current_per_phase[1] = value
-                case Metric.AC_CURRENT_PHASE_3:
+                case _M.AC_CURRENT_PHASE_3:
                     current_per_phase[2] = value
-                case Metric.AC_VOLTAGE_PHASE_1_N:
+                case _M.AC_VOLTAGE_PHASE_1_N:
                     voltage_per_phase[0] = value
-                case Metric.AC_VOLTAGE_PHASE_2_N:
+                case _M.AC_VOLTAGE_PHASE_2_N:
                     voltage_per_phase[1] = value
-                case Metric.AC_VOLTAGE_PHASE_3_N:
+                case _M.AC_VOLTAGE_PHASE_3_N:
                     voltage_per_phase[2] = value
-                case Metric.AC_FREQUENCY:
+                case _M.AC_FREQUENCY:
                     self.frequency = value
                 case unexpected:
                     _logger.warning(
