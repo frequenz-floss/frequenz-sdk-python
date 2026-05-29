@@ -2,11 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
-
-## Upgrading
-
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+Along with the new `tick_delay` resampler config option, this release also includes some performance improvements in the data pipeline.
 
 ## New Features
 
