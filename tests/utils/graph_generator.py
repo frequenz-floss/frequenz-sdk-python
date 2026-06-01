@@ -25,6 +25,7 @@ from frequenz.client.microgrid.component import (
     LiIonBattery,
     Meter,
     SolarInverter,
+    SteamBoiler,
     UnspecifiedInverter,
 )
 from frequenz.microgrid_component_graph import ComponentGraph
@@ -36,6 +37,7 @@ class GraphGenerator:
     """Utilities to generate graphs from component data structures."""
 
     SUFFIXES: dict[ComponentCategory, int] = {
+        ComponentCategory.STEAM_BOILER: 3,
         ComponentCategory.CHP: 5,
         ComponentCategory.EV_CHARGER: 6,
         ComponentCategory.METER: 7,
@@ -201,6 +203,11 @@ class GraphGenerator:
                         assert False, "Unsupported InverterType"
             case ComponentCategory.BATTERY:
                 return LiIonBattery(
+                    id=self.new_id()[other],
+                    microgrid_id=_MICROGRID_ID,
+                )
+            case ComponentCategory.STEAM_BOILER:
+                return SteamBoiler(
                     id=self.new_id()[other],
                     microgrid_id=_MICROGRID_ID,
                 )

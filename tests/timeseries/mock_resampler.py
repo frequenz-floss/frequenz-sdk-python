@@ -35,6 +35,7 @@ class MockResampler:
         pv_inverter_ids: list[ComponentId],
         evc_ids: list[ComponentId],
         chp_ids: list[ComponentId],
+        steam_boiler_ids: list[ComponentId],
         meter_ids: list[ComponentId],
         namespaces: int,
     ) -> None:
@@ -80,6 +81,9 @@ class MockResampler:
         self._ev_power_senders = metric_senders(evc_ids, Metric.AC_ACTIVE_POWER)
 
         self._chp_power_senders = metric_senders(chp_ids, Metric.AC_ACTIVE_POWER)
+        self._steam_boiler_power_senders = metric_senders(
+            steam_boiler_ids, Metric.AC_ACTIVE_POWER
+        )
         self._meter_power_senders = metric_senders(meter_ids, Metric.AC_ACTIVE_POWER)
         self._non_existing_component_sender = metric_senders(
             [ComponentId(NON_EXISTING_COMPONENT_ID)], Metric.AC_ACTIVE_POWER
@@ -279,6 +283,13 @@ class MockResampler:
         """Send the given values as resampler output for CHP power."""
         assert len(values) == len(self._chp_power_senders)
         for chan, value in zip(self._chp_power_senders, values):
+            sample = self.make_sample(value)
+            await chan.send(sample)
+
+    async def send_steam_boiler_power(self, values: list[float | None]) -> None:
+        """Send the given values as resampler output for steam boiler power."""
+        assert len(values) == len(self._steam_boiler_power_senders)
+        for chan, value in zip(self._steam_boiler_power_senders, values):
             sample = self.make_sample(value)
             await chan.send(sample)
 

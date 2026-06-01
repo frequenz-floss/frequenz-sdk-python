@@ -26,6 +26,7 @@ from frequenz.sdk.microgrid._old_component_data import (
     EVChargerData,
     InverterData,
     MeterData,
+    SteamBoilerData,
 )
 
 # Disable these checks for the file as we need to pass a lot of data
@@ -215,6 +216,78 @@ class EvChargerDataWrapper(EVChargerData):
         )
 
     def copy_with_new_timestamp(self, new_timestamp: datetime) -> EvChargerDataWrapper:
+        """Copy the component data but insert new timestamp.
+
+        Because the dataclass is frozen, we can't just replace the timestamp.
+        We have to copy it.
+
+        Args:
+            new_timestamp: New timestamp.
+
+        Returns:
+            Copied component data.
+        """
+        return replace(self, timestamp=new_timestamp)
+
+
+@dataclass
+class SteamBoilerDataWrapper(SteamBoilerData):
+    """Wrapper for the SteamBoilerData with default arguments."""
+
+    def __init__(  # pylint: disable=too-many-locals
+        self,
+        component_id: ComponentId,
+        timestamp: datetime,
+        active_power: float = math.nan,
+        active_power_per_phase: tuple[float, float, float] = (
+            math.nan,
+            math.nan,
+            math.nan,
+        ),
+        current_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
+        voltage_per_phase: tuple[float, float, float] = (math.nan, math.nan, math.nan),
+        active_power_inclusion_lower_bound: float = math.nan,
+        active_power_exclusion_lower_bound: float = math.nan,
+        active_power_inclusion_upper_bound: float = math.nan,
+        active_power_exclusion_upper_bound: float = math.nan,
+        reactive_power: float = math.nan,
+        reactive_power_per_phase: tuple[float, float, float] = (
+            math.nan,
+            math.nan,
+            math.nan,
+        ),
+        frequency: float = 50.0,
+        states: Set[ComponentStateCode] = frozenset(),
+        warnings: Set[ComponentErrorCode] = frozenset(),
+        errors: Set[ComponentErrorCode] = frozenset(),
+    ) -> None:
+        """Initialize the SteamBoilerDataWrapper.
+
+        This is a wrapper for the SteamBoilerData with default arguments. The
+        parameters are documented in the SteamBoilerData class.
+        """
+        super().__init__(
+            component_id=component_id,
+            timestamp=timestamp,
+            active_power=active_power,
+            active_power_per_phase=active_power_per_phase,
+            current_per_phase=current_per_phase,
+            voltage_per_phase=voltage_per_phase,
+            active_power_inclusion_lower_bound=active_power_inclusion_lower_bound,
+            active_power_exclusion_lower_bound=active_power_exclusion_lower_bound,
+            active_power_inclusion_upper_bound=active_power_inclusion_upper_bound,
+            active_power_exclusion_upper_bound=active_power_exclusion_upper_bound,
+            reactive_power=reactive_power,
+            reactive_power_per_phase=reactive_power_per_phase,
+            frequency=frequency,
+            states=states,
+            warnings=warnings,
+            errors=errors,
+        )
+
+    def copy_with_new_timestamp(
+        self, new_timestamp: datetime
+    ) -> SteamBoilerDataWrapper:
         """Copy the component data but insert new timestamp.
 
         Because the dataclass is frozen, we can't just replace the timestamp.
