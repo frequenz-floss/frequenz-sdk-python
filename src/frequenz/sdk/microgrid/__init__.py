@@ -138,14 +138,30 @@ The `ev_charger_pool` also provides a control method
 which accepts values in the {{glossary("psc", "Passive Sign Convention")}} and supports
 only charging.
 
+## Steam Boilers
+
+The [`steam_boiler_pool`][frequenz.sdk.microgrid.new_steam_boiler_pool] offers a
+[`power`][frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.power] method that
+streams the total power measured for all the steam boilers at a site.
+
+The `steam_boiler_pool` also provides available power bounds through the
+[`power_status`][frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.power_status]
+method.
+
+The `steam_boiler_pool` also provides a control method
+[`propose_power`][frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.propose_power],
+which accepts values in the {{glossary("psc", "Passive Sign Convention")}} and supports
+only consumption.
+
 # Component pools
 
 The SDK provides a unified interface for interacting with sets of Batteries, EV
-chargers and PV arrays, through their corresponding `Pool`s.
+chargers, PV arrays and steam boilers, through their corresponding `Pool`s.
 
 * [Battery pool][frequenz.sdk.microgrid.new_battery_pool]
 * [EV charger pool][frequenz.sdk.microgrid.new_ev_charger_pool]
 * [PV pool][frequenz.sdk.microgrid.new_pv_pool]
+* [Steam boiler pool][frequenz.sdk.microgrid.new_steam_boiler_pool]
 
 All of them provide support for streaming aggregated data and for setting the
 power values of the components.
@@ -366,6 +382,7 @@ default powers immediately.  These are:
 | Batteries          | Zero                                                 |
 | PV                 | Max production (Min power according to PSC)          |
 | EV Chargers        | Max consumption (Max power according to PSC)         |
+| Steam Boilers      | Zero                                                 |
 """  # noqa: D205, D400, E501
 
 from datetime import timedelta
@@ -382,6 +399,7 @@ from ._data_pipeline import (
     new_battery_pool,
     new_ev_charger_pool,
     new_pv_pool,
+    new_steam_boiler_pool,
     producer,
     voltage_per_phase,
 )
@@ -442,6 +460,7 @@ __all__ = [
     "new_battery_pool",
     "new_ev_charger_pool",
     "new_pv_pool",
+    "new_steam_boiler_pool",
     "producer",
     "voltage_per_phase",
 ]
