@@ -57,6 +57,7 @@ class EVChargerManager(ComponentManager):
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
         """
+        super().__init__()
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._ev_charger_ids = self._get_ev_charger_ids()
