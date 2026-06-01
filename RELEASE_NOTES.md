@@ -10,8 +10,9 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* The PV inverter manager now accounts for the power measured on unreachable PV inverters when distributing power, so the reachable inverters compensate for it (matching the battery manager's behavior).
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* Fixed a resource leak in the power distributor: the formulas created for unreachable batteries were never stopped, so CPU usage slowly climbed over time until the application was restarted.
+* Fixed the grid reactive-power formula being recreated and leaked on every access instead of being reused from the cache.
