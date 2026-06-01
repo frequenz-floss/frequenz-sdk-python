@@ -136,7 +136,7 @@ class FormulaPool:
         Returns:
             A formula that evaluates the given formula.
         """
-        if channel_key in self.power_formulas:
+        if channel_key in self._reactive_power_formulas:
             return self._reactive_power_formulas[channel_key]
 
         if formula_str == "0.0":
