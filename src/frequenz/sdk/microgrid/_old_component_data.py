@@ -1131,6 +1131,270 @@ class ChpData(ComponentData):  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass(kw_only=True)
+class SteamBoilerData(ComponentData):  # pylint: disable=too-many-instance-attributes
+    """A wrapper class for holding steam boiler data.
+
+    Steam boilers are controllable electrical loads.  Their active power and its
+    inclusion/exclusion bounds, along with the per-phase power, current, voltage and
+    frequency, are reported through the corresponding `AC_*` metrics.
+    """
+
+    active_power: float = 0.0
+    """The total active 3-phase AC power, in Watts (W).
+
+    Represented in the passive sign convention.
+
+    * Positive means consumption from the grid.
+    * Negative means supply into the grid.
+    """
+
+    active_power_per_phase: PhaseTuple = (0.0, 0.0, 0.0)
+    """The per-phase AC active power for phase 1, 2, and 3 respectively, in Watt (W).
+
+    Represented in the passive sign convention.
+
+    * Positive means consumption from the grid.
+    * Negative means supply into the grid.
+    """
+
+    reactive_power: float = 0.0
+    """The total reactive 3-phase AC power, in Volt-Ampere Reactive (VAr).
+
+    * Positive power means capacitive (current leading w.r.t. voltage).
+    * Negative power means inductive (current lagging w.r.t. voltage).
+    """
+
+    reactive_power_per_phase: PhaseTuple = (0.0, 0.0, 0.0)
+    """The per-phase AC reactive power, in Volt-Ampere Reactive (VAr).
+
+    The provided values are for phase 1, 2, and 3 respectively.
+
+    * Positive power means capacitive (current leading w.r.t. voltage).
+    * Negative power means inductive (current lagging w.r.t. voltage).
+    """
+
+    current_per_phase: PhaseTuple = (0.0, 0.0, 0.0)
+    """AC current in Amperes (A) for phase/line 1, 2 and 3 respectively.
+
+    Represented in the passive sign convention.
+
+    * Positive means consumption from the grid.
+    * Negative means supply into the grid.
+    """
+
+    voltage_per_phase: PhaseTuple = (0.0, 0.0, 0.0)
+    """The AC voltage in Volts (V) between the line and the neutral wire for
+       phase/line 1, 2 and 3 respectively.
+    """
+
+    active_power_inclusion_lower_bound: float = 0.0
+    """Lower inclusion bound for steam boiler power in watts.
+
+    This is the lower limit of the range within which power requests are allowed for the
+    steam boiler.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_exclusion_lower_bound: float = 0.0
+    """Lower exclusion bound for steam boiler power in watts.
+
+    This is the lower limit of the range within which power requests are not allowed for
+    the steam boiler.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_inclusion_upper_bound: float = 0.0
+    """Upper inclusion bound for steam boiler power in watts.
+
+    This is the upper limit of the range within which power requests are allowed for the
+    steam boiler.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    active_power_exclusion_upper_bound: float = 0.0
+    """Upper exclusion bound for steam boiler power in watts.
+
+    This is the upper limit of the range within which power requests are not allowed for
+    the steam boiler.
+
+    See [`frequenz.api.common.metrics_pb2.Metric.system_inclusion_bounds`][] and
+    [`frequenz.api.common.metrics_pb2.Metric.system_exclusion_bounds`][] for more
+    details.
+    """
+
+    frequency: float = 0.0
+    """AC frequency, in Hertz (Hz)."""
+
+    CATEGORY: ClassVar[ComponentCategory] = ComponentCategory.STEAM_BOILER
+
+    METRICS: ClassVar[frozenset[Metric]] = frozenset(
+        [
+            Metric.AC_ACTIVE_POWER,
+            Metric.AC_ACTIVE_POWER_PHASE_1,
+            Metric.AC_ACTIVE_POWER_PHASE_2,
+            Metric.AC_ACTIVE_POWER_PHASE_3,
+            Metric.AC_REACTIVE_POWER,
+            Metric.AC_REACTIVE_POWER_PHASE_1,
+            Metric.AC_REACTIVE_POWER_PHASE_2,
+            Metric.AC_REACTIVE_POWER_PHASE_3,
+            Metric.AC_CURRENT_PHASE_1,
+            Metric.AC_CURRENT_PHASE_2,
+            Metric.AC_CURRENT_PHASE_3,
+            Metric.AC_VOLTAGE_PHASE_1_N,
+            Metric.AC_VOLTAGE_PHASE_2_N,
+            Metric.AC_VOLTAGE_PHASE_3_N,
+            Metric.AC_FREQUENCY,
+        ]
+    )
+    """The metrics of this component."""
+
+    @override
+    @classmethod
+    # pylint: disable-next=too-many-branches
+    def from_samples(cls, samples: ComponentDataSamples) -> Self:
+        """Create a new instance from a component data object."""
+        self = cls._from_samples(cls, samples)
+
+        active_power_per_phase: list[float] = [0.0, 0.0, 0.0]
+        reactive_power_per_phase: list[float] = [0.0, 0.0, 0.0]
+        current_per_phase: list[float] = [0.0, 0.0, 0.0]
+        voltage_per_phase: list[float] = [0.0, 0.0, 0.0]
+
+        for sample in samples.metric_samples:
+            value = sample.as_single_value() or 0.0
+            match sample.metric:
+                case _M.AC_ACTIVE_POWER:
+                    self.active_power = value
+                    (
+                        self.active_power_inclusion_lower_bound,
+                        self.active_power_inclusion_upper_bound,
+                        self.active_power_exclusion_lower_bound,
+                        self.active_power_exclusion_upper_bound,
+                    ) = _bound_ranges_to_inclusion_exclusion(
+                        sample.bounds, "AC_ACTIVE_POWER", sample
+                    )
+                case _M.AC_ACTIVE_POWER_PHASE_1:
+                    active_power_per_phase[0] = value
+                case _M.AC_ACTIVE_POWER_PHASE_2:
+                    active_power_per_phase[1] = value
+                case _M.AC_ACTIVE_POWER_PHASE_3:
+                    active_power_per_phase[2] = value
+                case _M.AC_REACTIVE_POWER:
+                    self.reactive_power = value
+                case _M.AC_REACTIVE_POWER_PHASE_1:
+                    reactive_power_per_phase[0] = value
+                case _M.AC_REACTIVE_POWER_PHASE_2:
+                    reactive_power_per_phase[1] = value
+                case _M.AC_REACTIVE_POWER_PHASE_3:
+                    reactive_power_per_phase[2] = value
+                case _M.AC_CURRENT_PHASE_1:
+                    current_per_phase[0] = value
+                case _M.AC_CURRENT_PHASE_2:
+                    current_per_phase[1] = value
+                case _M.AC_CURRENT_PHASE_3:
+                    current_per_phase[2] = value
+                case _M.AC_VOLTAGE_PHASE_1_N:
+                    voltage_per_phase[0] = value
+                case _M.AC_VOLTAGE_PHASE_2_N:
+                    voltage_per_phase[1] = value
+                case _M.AC_VOLTAGE_PHASE_3_N:
+                    voltage_per_phase[2] = value
+                case _M.AC_FREQUENCY:
+                    self.frequency = value
+                case unexpected:
+                    _logger.warning(
+                        "Unexpected metric %s in steam boiler data sample: %r",
+                        unexpected,
+                        sample,
+                    )
+
+        self.active_power_per_phase = cast(PhaseTuple, tuple(active_power_per_phase))
+        self.reactive_power_per_phase = cast(
+            PhaseTuple, tuple(reactive_power_per_phase)
+        )
+        self.current_per_phase = cast(PhaseTuple, tuple(current_per_phase))
+        self.voltage_per_phase = cast(PhaseTuple, tuple(voltage_per_phase))
+
+        return self
+
+    @override
+    def to_samples(self) -> ComponentDataSamples:
+        """Convert the component data to a component data object."""
+        return ComponentDataSamples(
+            component_id=self.component_id,
+            metric_samples=[
+                MetricSample(
+                    sampled_at=self.timestamp,
+                    metric=Metric.AC_ACTIVE_POWER,
+                    value=self.active_power,
+                    bounds=_inclusion_exclusion_bounds_to_ranges(
+                        self.active_power_inclusion_lower_bound,
+                        self.active_power_inclusion_upper_bound,
+                        self.active_power_exclusion_lower_bound,
+                        self.active_power_exclusion_upper_bound,
+                    ),
+                ),
+                *(
+                    MetricSample(
+                        sampled_at=self.timestamp, metric=metric, value=value, bounds=[]
+                    )
+                    for metric, value in [
+                        (
+                            Metric.AC_ACTIVE_POWER_PHASE_1,
+                            self.active_power_per_phase[0],
+                        ),
+                        (
+                            Metric.AC_ACTIVE_POWER_PHASE_2,
+                            self.active_power_per_phase[1],
+                        ),
+                        (
+                            Metric.AC_ACTIVE_POWER_PHASE_3,
+                            self.active_power_per_phase[2],
+                        ),
+                        (Metric.AC_REACTIVE_POWER, self.reactive_power),
+                        (
+                            Metric.AC_REACTIVE_POWER_PHASE_1,
+                            self.reactive_power_per_phase[0],
+                        ),
+                        (
+                            Metric.AC_REACTIVE_POWER_PHASE_2,
+                            self.reactive_power_per_phase[1],
+                        ),
+                        (
+                            Metric.AC_REACTIVE_POWER_PHASE_3,
+                            self.reactive_power_per_phase[2],
+                        ),
+                        (Metric.AC_CURRENT_PHASE_1, self.current_per_phase[0]),
+                        (Metric.AC_CURRENT_PHASE_2, self.current_per_phase[1]),
+                        (Metric.AC_CURRENT_PHASE_3, self.current_per_phase[2]),
+                        (Metric.AC_VOLTAGE_PHASE_1_N, self.voltage_per_phase[0]),
+                        (Metric.AC_VOLTAGE_PHASE_2_N, self.voltage_per_phase[1]),
+                        (Metric.AC_VOLTAGE_PHASE_3_N, self.voltage_per_phase[2]),
+                        (Metric.AC_FREQUENCY, self.frequency),
+                    ]
+                ),
+            ],
+            states=[
+                ComponentStateSample(
+                    sampled_at=self.timestamp,
+                    states=frozenset(self.states),
+                    warnings=frozenset(self.warnings),
+                    errors=frozenset(self.errors),
+                )
+            ],
+        )
+
+
+@dataclass(kw_only=True)
 class EVChargerData(ComponentData):  # pylint: disable=too-many-instance-attributes
     """A wrapper class for holding ev_charger data."""
 
