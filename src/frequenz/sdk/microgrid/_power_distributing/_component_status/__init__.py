@@ -13,6 +13,7 @@ from ._component_status import (
 )
 from ._ev_charger_status_tracker import EVChargerStatusTracker
 from ._pv_inverter_status_tracker import PVInverterStatusTracker
+from ._steam_boiler_status_tracker import SteamBoilerStatusTracker
 
 __all__ = [
     "BatteryStatusTracker",
@@ -23,4 +24,5 @@ __all__ = [
     "EVChargerStatusTracker",
     "PVInverterStatusTracker",
     "SetPowerResult",
+    "SteamBoilerStatusTracker",
 ]
