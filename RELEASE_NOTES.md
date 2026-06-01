@@ -10,7 +10,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* Added `SteamBoilerPool` for monitoring and controlling pools of steam boilers, available via `microgrid.new_steam_boiler_pool()`.
 
 ## Bug Fixes
 
