@@ -2,13 +2,16 @@
 
 ## Summary
 
-Along with the new `tick_delay` resampler config option, this release also includes some performance improvements in the data pipeline.
+<!-- Here goes a general summary of what this release is about -->
+
+## Upgrading
+
+* Update microgrid client to v0.18.3+, which fixes a problem with missing steam boilers on formula generation.
 
 ## New Features
 
-* A new `tick_delay` option was added to `ResamplerConfig` and `ResamplerConfig2` to delay resampling execution after each timer tick. The delay was designed to postpone processing while keeping window boundaries aligned to the original tick times, which can be used for cascaded resampling pipelines. This option is experimental and may be changed or deprecated in a future release.
+<!-- Here goes the main new features and examples or instructions on how to use them -->
 
 ## Bug Fixes
 
-* Accept `ComponentDataSamples` that only carry state changes (the state changes were dropped before).
-* Update microgrid client to v0.18.3+, which fixes a problem with missing steam boilers on formula generation.
+<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
