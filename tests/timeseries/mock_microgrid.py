@@ -27,6 +27,7 @@ from frequenz.client.microgrid.component import (
     LiIonBattery,
     Meter,
     SolarInverter,
+    SteamBoiler,
 )
 from frequenz.microgrid_component_graph import ComponentGraph
 from pytest_mock import MockerFixture
@@ -43,6 +44,7 @@ from ..utils.component_data_wrapper import (
     EvChargerDataWrapper,
     InverterDataWrapper,
     MeterDataWrapper,
+    SteamBoilerDataWrapper,
 )
 from .mock_resampler import MockResampler
 
@@ -55,6 +57,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
     grid_id = ComponentId(1)
     _grid_meter_id = ComponentId(4)
 
+    steam_boiler_id_suffix = 3
     chp_id_suffix = 5
     evc_id_suffix = 6
     meter_id_suffix = 7
@@ -144,6 +147,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
 
         self.battery_inverter_ids: list[ComponentId] = inverters(BatteryInverter)
         self.pv_inverter_ids: list[ComponentId] = inverters(SolarInverter)
+        self.steam_boiler_ids: list[ComponentId] = filter_comp(SteamBoiler)
 
         self.bat_inv_map: dict[ComponentId, ComponentId] = (
             {}
@@ -156,6 +160,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         )
 
         self.evc_states: dict[ComponentId, set[ComponentStateCode]] = {}
+        self.steam_boiler_states: dict[ComponentId, set[ComponentStateCode]] = {}
 
         self._streaming_coros: list[tuple[ComponentId, Coroutine[None, None, None]]] = (
             []
@@ -212,6 +217,7 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             evc_ids=self.evc_ids,
             meter_ids=self.meter_ids,
             chp_ids=self.chp_ids,
+            steam_boiler_ids=self.steam_boiler_ids,
             namespaces=self._namespaces,
         )
 
@@ -345,6 +351,24 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
                         reactive_power=2 * value,
                         current_per_phase=(value + 10.0, value + 11.0, value + 12.0),
                         states=self.evc_states[evc_id],
+                    ),
+                ),
+            )
+        )
+
+    def _start_steam_boiler_streaming(self, steam_boiler_id: ComponentId) -> None:
+        if not self._api_client_streaming:
+            return
+        self._streaming_coros.append(
+            (
+                steam_boiler_id,
+                self._comp_data_send_task(
+                    steam_boiler_id,
+                    lambda value, ts: SteamBoilerDataWrapper(
+                        component_id=steam_boiler_id,
+                        timestamp=ts,
+                        active_power=value,
+                        states=self.steam_boiler_states[steam_boiler_id],
                     ),
                 ),
             )
@@ -493,6 +517,28 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
             self._start_ev_charger_streaming(evc_id)
             self._connections.add(
                 ComponentConnection(source=self._connect_to, destination=evc_id)
+            )
+
+    def add_steam_boilers(self, count: int) -> None:
+        """Add steam boilers to the microgrid.
+
+        Args:
+            count: Number of steam boilers to add to the microgrid.
+        """
+        for _ in range(count):
+            component_id = ComponentId(
+                self._id_increment * 10 + self.steam_boiler_id_suffix
+            )
+            self._id_increment += 1
+            self.steam_boiler_ids.append(component_id)
+
+            self._components.add(
+                SteamBoiler(id=component_id, microgrid_id=_MICROGRID_ID)
+            )
+            self.steam_boiler_states[component_id] = {ComponentStateCode.READY}
+            self._start_steam_boiler_streaming(component_id)
+            self._connections.add(
+                ComponentConnection(source=self._connect_to, destination=component_id)
             )
 
     async def send_meter_data(self, values: list[float]) -> None:
