@@ -246,6 +246,23 @@ class FormulaPool:
 
         return formula
 
+    async def stop_string_formula(self, formula_str: str, metric: Metric) -> None:
+        """Stop and evict a formula previously created with `from_string`.
+
+        Callers that create short-lived formulas (e.g. one per changing set of
+        components) must call this when the formula is no longer needed —
+        otherwise the underlying formula-evaluating actor keeps running and the
+        pool's cache grows without bound.
+
+        Args:
+            formula_str: The formula string passed to `from_string`.
+            metric: The metric passed to `from_string`.
+        """
+        channel_key = formula_str + str(metric.value)
+        formula = self._string_formulas.pop(channel_key, None)
+        if formula is not None:
+            await formula.stop()
+
     async def stop(self) -> None:
         """Stop all formulas."""
         # Snapshot with list(): `await sf.stop()` yields, and a concurrent
