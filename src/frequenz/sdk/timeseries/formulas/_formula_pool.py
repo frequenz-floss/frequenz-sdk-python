@@ -248,6 +248,12 @@ class FormulaPool:
 
     async def stop(self) -> None:
         """Stop all formulas."""
+        # Snapshot with list(): `await sf.stop()` yields, and a concurrent
+        # `from_string` could otherwise mutate the dict mid-iteration.
+        for sf in list(self._string_formulas.values()):
+            await sf.stop()
+        self._string_formulas.clear()
+
         for pf in self.power_formulas.values():
             await pf.stop()
         self.power_formulas.clear()
