@@ -7,6 +7,7 @@
 ## Upgrading
 
 * Update microgrid client to v0.18.3+, which fixes a problem with missing steam boilers on formula generation.
+* The PV inverter manager now subtracts the power measured on unreachable PV inverters from the distribution target, so the power sent to the reachable inverters can change when some requested PV inverters are unreachable.
 
 ## New Features
 
