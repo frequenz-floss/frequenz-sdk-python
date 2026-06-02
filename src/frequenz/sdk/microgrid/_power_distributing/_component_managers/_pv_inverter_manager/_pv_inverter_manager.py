@@ -46,6 +46,7 @@ class PVManager(ComponentManager):
             api_power_request_timeout: Timeout to use when making power requests to
                 the microgrid API.
         """
+        super().__init__()
         self._results_sender = results_sender
         self._api_power_request_timeout = api_power_request_timeout
         self._pv_inverter_ids = self._get_pv_inverter_ids()
@@ -90,6 +91,7 @@ class PVManager(ComponentManager):
         )
         if self._component_pool_status_tracker:
             await self._component_pool_status_tracker.stop()
+        await self._stop_all_unreachable_power_subscriptions()
 
     @override
     async def distribute_power(self, request: Request) -> None:
@@ -119,10 +121,21 @@ class PVManager(ComponentManager):
                 "Cannot distribute power to PV inverters without any inverters"
             )
 
-        working_components: list[ComponentId] = []
-        for inv_id in self._component_pool_status_tracker.get_working_components(
+        working = self._component_pool_status_tracker.get_working_components(
             request.component_ids
-        ):
+        )
+        await self._subscribe_to_unreachable_power(request.component_ids, working)
+        unreachable_power = self._unreachable_power(request.component_ids)
+        if unreachable_power is not None:
+            remaining_power -= unreachable_power
+            _logger.debug(
+                "Excluding %s measured on unreachable PV inverters from the power to "
+                "distribute on working PV inverters.",
+                unreachable_power,
+            )
+
+        working_components: list[ComponentId] = []
+        for inv_id in working:
             if self._component_data_caches[inv_id].has_value():
                 working_components.append(inv_id)
             else:
@@ -185,6 +198,13 @@ class PVManager(ComponentManager):
             component_category="PV inverter",
         )
         await self._results_sender.send(result)
+
+    @override
+    def _unreachable_power_formula(
+        self, component_ids: collections.abc.Set[ComponentId]
+    ) -> str:
+        """Return the formula for the active power of the given PV inverters."""
+        return connection_manager.get().component_graph.pv_formula(component_ids)
 
     def _get_pv_inverter_ids(self) -> collections.abc.Set[ComponentId]:
         """Return the IDs of all PV inverters present in the component graph."""

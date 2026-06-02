@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import typing
+import uuid
 from collections import abc
 from dataclasses import dataclass
 from datetime import timedelta
@@ -27,6 +28,9 @@ from ..timeseries._voltage_streamer import VoltageStreamer
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._power_managing._base_classes import DefaultPower, PowerManagerAlgorithm
 from ._power_wrapper import PowerWrapper
+
+if typing.TYPE_CHECKING:
+    from ..timeseries.formulas._formula_pool import FormulaPool
 
 # A number of imports had to be done inside functions where they are used, to break
 # import cycles.
@@ -183,6 +187,31 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 resampler_subscription_sender=self._resampling_request_sender(),
             )
         return self._logical_meter
+
+    def new_formula_pool(self, namespace: str) -> FormulaPool:
+        """Create a new, empty formula pool.
+
+        The caller owns the returned pool and is responsible for stopping it.
+
+        Args:
+            namespace: A label describing what the pool is for; a unique suffix is
+                appended so its resampler subscriptions don't collide with other
+                pools that share the channel registry.
+
+        Returns:
+            A new, empty formula pool.
+        """
+        # Imported here (not at module level) to avoid an import cycle, mirroring
+        # `logical_meter()` above.
+        from ..timeseries.formulas._formula_pool import (  # pylint: disable=import-outside-toplevel
+            FormulaPool,
+        )
+
+        return FormulaPool(
+            f"{namespace}-{uuid.uuid4()}",
+            self._channel_registry,
+            self._resampling_request_sender(),
+        )
 
     def consumer(self) -> Consumer:
         """Return the consumption measuring point of the microgrid."""
@@ -555,6 +584,19 @@ def voltage_per_phase() -> VoltageStreamer:
 def logical_meter() -> LogicalMeter:
     """Return the logical meter of the microgrid."""
     return _get().logical_meter()
+
+
+def _new_formula_pool(namespace: str) -> FormulaPool:
+    """Create a new, empty formula pool owned by the caller.
+
+    Args:
+        namespace: A label describing what the pool is for (a unique suffix is
+            appended).
+
+    Returns:
+        A new, empty formula pool.
+    """
+    return _get().new_formula_pool(namespace)
 
 
 def consumer() -> Consumer:
