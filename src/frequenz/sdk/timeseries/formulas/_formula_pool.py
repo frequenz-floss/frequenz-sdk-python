@@ -61,7 +61,7 @@ class FormulaPool:
             resampler_subscription_sender
         )
 
-        self._string_formulas: dict[str, Formula[Quantity]] = {}
+        self._string_formulas: dict[tuple[str, Metric], Formula[Quantity]] = {}
         self.power_formulas: dict[str, Formula[Power]] = {}
         self._reactive_power_formulas: dict[str, Formula[ReactivePower]] = {}
         self._current_formulas: dict[str, Formula3Phase[Current]] = {}
@@ -84,16 +84,16 @@ class FormulaPool:
         Returns:
             A Formula that streams values with the formulas applied.
         """
-        channel_key = formula_str + str(metric.value)
-        if channel_key in self._string_formulas:
-            return self._string_formulas[channel_key]
+        key = (formula_str, metric)
+        if key in self._string_formulas:
+            return self._string_formulas[key]
         formula = parse(
-            name=channel_key,
+            name=f"{formula_str}:{metric.name}",
             formula=formula_str,
             telemetry_fetcher=self._telemetry_fetcher(metric),
             create_method=Quantity,
         )
-        self._string_formulas[channel_key] = formula
+        self._string_formulas[key] = formula
         return formula
 
     def from_power_formula(self, channel_key: str, formula_str: str) -> Formula[Power]:
@@ -258,8 +258,8 @@ class FormulaPool:
             formula_str: The formula string passed to `from_string`.
             metric: The metric passed to `from_string`.
         """
-        channel_key = formula_str + str(metric.value)
-        formula = self._string_formulas.pop(channel_key, None)
+        key = (formula_str, metric)
+        formula = self._string_formulas.pop(key, None)
         if formula is not None:
             await formula.stop()
 
