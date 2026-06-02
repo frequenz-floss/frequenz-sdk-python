@@ -5,6 +5,7 @@
 
 import logging
 import sys
+from typing import TypeVar
 
 from frequenz.channels import Sender
 from frequenz.client.microgrid.metrics import Metric
@@ -15,12 +16,16 @@ from frequenz.sdk.timeseries.formulas._resampled_stream_fetcher import (
 )
 
 from ..._internal._channels import ChannelRegistry
+from ...actor import BackgroundService
 from ...microgrid._data_sourcing import ComponentMetricRequest
 from ._formula import Formula
 from ._formula_3_phase import Formula3Phase
 from ._parser import parse
 
 _logger = logging.getLogger(__name__)
+
+_KeyT = TypeVar("_KeyT")
+_FormulaT = TypeVar("_FormulaT", bound=BackgroundService)
 
 
 NON_EXISTING_COMPONENT_ID = sys.maxsize
@@ -259,33 +264,45 @@ class FormulaPool:
             metric: The metric passed to `from_string`.
         """
         key = (formula_str, metric)
-        formula = self._string_formulas.pop(key, None)
-        if formula is not None:
-            await formula.stop()
+        formula = self._string_formulas.get(key)
+        if formula is None:
+            return
+        # Stop before evicting: if stop() is cancelled or raises, the handle stays
+        # in the pool so cleanup can be retried instead of the evaluating actor
+        # leaking with no way to reach it.
+        await formula.stop()
+        # Evict only the formula we actually stopped, in case a concurrent
+        # from_string() replaced the entry while stop() was awaiting.
+        if self._string_formulas.get(key) is formula:
+            del self._string_formulas[key]
 
     async def stop(self) -> None:
         """Stop all formulas."""
-        # Snapshot with list(): `await sf.stop()` yields, and a concurrent
-        # `from_string` could otherwise mutate the dict mid-iteration.
-        for sf in list(self._string_formulas.values()):
-            await sf.stop()
-        self._string_formulas.clear()
+        await self._stop_all(self._string_formulas)
+        await self._stop_all(self.power_formulas)
+        await self._stop_all(self._reactive_power_formulas)
+        await self._stop_all(self._power_3_phase_formulas)
+        await self._stop_all(self._current_3_phase_formulas)
 
-        for pf in self.power_formulas.values():
-            await pf.stop()
-        self.power_formulas.clear()
+    @staticmethod
+    async def _stop_all(formulas: dict[_KeyT, _FormulaT]) -> None:
+        """Stop and evict every formula in a cache.
 
-        for rpf in self._reactive_power_formulas.values():
-            await rpf.stop()
-        self._reactive_power_formulas.clear()
+        Iterates a snapshot of the keys and removes each entry only after its
+        `stop()` completes. A formula added concurrently (e.g. by `from_string`
+        while this awaits) is not in the snapshot, so it is left in the cache
+        rather than being dropped without being stopped.
 
-        for p3pf in self._power_3_phase_formulas.values():
-            await p3pf.stop()
-        self._power_3_phase_formulas.clear()
-
-        for c3pf in self._current_3_phase_formulas.values():
-            await c3pf.stop()
-        self._current_3_phase_formulas.clear()
+        Args:
+            formulas: The formula cache to drain.
+        """
+        for key in list(formulas):
+            formula = formulas.get(key)
+            if formula is None:
+                continue  # already evicted by a concurrent teardown
+            await formula.stop()
+            if formulas.get(key) is formula:
+                del formulas[key]
 
     def _telemetry_fetcher(self, metric: Metric) -> ResampledStreamFetcher:
         """Create a ResampledStreamFetcher for the given metric.
