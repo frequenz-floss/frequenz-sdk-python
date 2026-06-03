@@ -29,6 +29,7 @@ updates:
         exclude-patterns:
           # pydoclint has shipped breaking changes in patch updates often
           - "pydoclint"
+          - "isort"
       minor:
         update-types:
           - "minor"
@@ -45,6 +46,7 @@ updates:
           - "mkdocstrings[python]"
           - "pydoclint"
           - "pytest-asyncio"
+          - "isort"
       # We group repo-config updates as it uses optional dependencies that are
       # considered different dependencies otherwise, and will create one PR for
       # each if we don't group them.

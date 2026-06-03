@@ -8,6 +8,7 @@
     "keywords": "microgrid,actor,ml,machine-learning,ai",
     "github_org": "frequenz-floss",
     "license": "MIT",
+    "private_repo": "no",
     "author_name": "Frequenz Energy-as-a-Service GmbH",
     "author_email": "floss@frequenz.com",
     "python_package": "frequenz.sdk",
