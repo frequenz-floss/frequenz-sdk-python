@@ -89,7 +89,7 @@ jobs:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@e4d0b2ef8f5a1612d7827f3abaef17c931d2b946 # v1.0.2
+        uses: frequenz-floss/gh-action-setup-python-with-deps@b5707ffcd43ec4b24f2b24df712b43148cfa887f # v1.0.4
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: build
@@ -147,7 +147,7 @@ jobs:
             > pyproject.toml
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@e4d0b2ef8f5a1612d7827f3abaef17c931d2b946 # v1.0.2
+        uses: frequenz-floss/gh-action-setup-python-with-deps@b5707ffcd43ec4b24f2b24df712b43148cfa887f # v1.0.4
         with:
           python-version: ${{ matrix.python }}
           dependencies: dist/*.whl
@@ -188,7 +188,7 @@ jobs:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@e4d0b2ef8f5a1612d7827f3abaef17c931d2b946 # v1.0.2
+        uses: frequenz-floss/gh-action-setup-python-with-deps@b5707ffcd43ec4b24f2b24df712b43148cfa887f # v1.0.4
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]
@@ -228,7 +228,7 @@ jobs:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@e4d0b2ef8f5a1612d7827f3abaef17c931d2b946 # v1.0.2
+        uses: frequenz-floss/gh-action-setup-python-with-deps@b5707ffcd43ec4b24f2b24df712b43148cfa887f # v1.0.4
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]

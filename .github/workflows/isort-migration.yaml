@@ -58,7 +58,7 @@ jobs:
     steps:
       - name: Generate token
         id: create-app-token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
           private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
@@ -69,7 +69,7 @@ jobs:
           # Read/update pull request metadata and labels.
           permission-pull-requests: write
       - name: Migrate
-        uses: frequenz-floss/gh-action-dependabot-migrate@27763fb5eb56476d91abe00132e8a0614171f92f # v1.2.0
+        uses: frequenz-floss/gh-action-dependabot-migrate@eb100d3cf732b4808a7776eee8f303521efd494b # v1.2.1
         with:
           migration-script: |
             import os
