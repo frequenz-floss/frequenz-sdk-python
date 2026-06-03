@@ -1,16 +1,19 @@
-# Automatic black formatting migration for Dependabot PRs
+# Automatic isort migration for Dependabot PRs
 #
-# When Dependabot upgrades black, this workflow installs the new version
-# and runs `black .` so the PR already contains any formatting changes
+# When Dependabot upgrades isort, this workflow installs the new version and
+# runs `isort .` so the PR already contains any import-ordering changes
 # introduced by the upgrade, while leaving the PR open for review.
 #
-# Black uses calendar versioning.  Only the first release of a new calendar
-# year may introduce formatting changes (major bump in Dependabot's terms).
-# Minor and patch updates within a year keep formatting stable, so they stay
-# in the regular Dependabot groups and are auto-merged normally.
+# isort follows SemVer but its release policy
+# (https://github.com/PyCQA/isort/blob/main/docs/major_releases/release_policy.md)
+# explicitly allows intentional formatting changes in minor releases, and
+# patch releases may also adjust output in smaller bug-fix ways.  Because of
+# that, isort is excluded from the regular `patch` and `minor` Dependabot
+# groups: every isort bump produces an individual `Bump isort from …` PR and
+# is routed through this migration workflow.
 #
-# The companion auto-dependabot workflow skips major black PRs so they're
-# handled exclusively by this migration workflow.
+# The companion auto-dependabot workflow skips those PRs so they're handled
+# exclusively by this migration workflow.
 #
 # XXX: !!! SECURITY WARNING !!!
 # pull_request_target has write access to the repo, and can read secrets.
@@ -25,7 +28,7 @@
 # For more details read:
 # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
 
-name: Black Migration
+name: isort Migration
 
 on:
   merge_group:  # To allow using this as a required check for merging
@@ -41,8 +44,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  black-migration:
-    name: Migrate Black
+  isort-migration:
+    name: Migrate isort
     # Skip if it was triggered by the merge queue. We only need the workflow to
     # be executed to meet the "Required check" condition for merging, but we
     # don't need to actually run the job, having the job present as Skipped is
@@ -50,12 +53,12 @@ jobs:
     if: |
       github.event_name == 'pull_request_target' &&
       github.actor == 'dependabot[bot]' &&
-      contains(github.event.pull_request.title, 'Bump black from ')
+      contains(github.event.pull_request.title, 'Bump isort from ')
     runs-on: ubuntu-24.04
     steps:
       - name: Generate token
         id: create-app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         with:
           app-id: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_ID }}
           private-key: ${{ secrets.FREQUENZ_AUTO_DEPENDABOT_APP_PRIVATE_KEY }}
@@ -75,15 +78,15 @@ jobs:
 
             version = os.environ["MIGRATION_VERSION"].lstrip("v")
             subprocess.run(
-                [sys.executable, "-Im", "pip", "install", f"black=={version}"],
+                [sys.executable, "-Im", "pip", "install", f"isort=={version}"],
                 check=True,
             )
-            subprocess.run([sys.executable, "-Im", "black", "."], check=True)
+            subprocess.run([sys.executable, "-Im", "isort", "."], check=True)
           token: ${{ steps.create-app-token.outputs.token }}
           auto-merge-on-changes: "false"
           version-iteration: "false"
           sign-commits: "true"
           auto-merged-label: "tool:auto-merged"
-          migrated-label: "tool:black:migration:executed"
-          intervention-pending-label: "tool:black:migration:intervention-pending"
-          intervention-done-label: "tool:black:migration:intervention-done"
+          migrated-label: "tool:isort:migration:executed"
+          intervention-pending-label: "tool:isort:migration:intervention-pending"
+          intervention-done-label: "tool:isort:migration:intervention-done"

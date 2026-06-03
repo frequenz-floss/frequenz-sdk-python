@@ -58,12 +58,14 @@ jobs:
           # Allow pushes when migration changes workflow files.
           permission-workflows: write
       - name: Migrate
-        uses: frequenz-floss/gh-action-dependabot-migrate@eb100d3cf732b4808a7776eee8f303521efd494b # v1.2.1
+        uses: frequenz-floss/gh-action-dependabot-migrate@27763fb5eb56476d91abe00132e8a0614171f92f # v1.2.0
         with:
           script-url-template: >-
             https://raw.githubusercontent.com/frequenz-floss/frequenz-repo-config-python/{version}/cookiecutter/migrate.py
           token: ${{ steps.create-app-token.outputs.token }}
           migration-token: ${{ secrets.REPO_CONFIG_MIGRATION_TOKEN }}
+          version-iteration: "minor"
+          if-no-iterations: "pass"
           sign-commits: "true"
           auto-merged-label: "tool:auto-merged"
           migrated-label: "tool:repo-config:migration:executed"
