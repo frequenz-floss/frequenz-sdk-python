@@ -66,7 +66,7 @@ jobs:
           # Read/update pull request metadata and labels.
           permission-pull-requests: write
       - name: Migrate
-        uses: frequenz-floss/gh-action-dependabot-migrate@b389f72f9282346920150a67495efbae450ac07b  # v1.1.0
+        uses: frequenz-floss/gh-action-dependabot-migrate@eb100d3cf732b4808a7776eee8f303521efd494b  # v1.2.1
         with:
           migration-script: |
             import os
