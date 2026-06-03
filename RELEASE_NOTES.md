@@ -1,9 +1,5 @@
 # Frequenz Python SDK Release Notes
 
-## Summary
-
-<!-- Here goes a general summary of what this release is about -->
-
 ## Upgrading
 
 * Update microgrid client to v0.18.3+, which fixes a problem with missing steam boilers on formula generation.
