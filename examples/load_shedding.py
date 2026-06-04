@@ -22,7 +22,7 @@ from frequenz.sdk.actor import Actor, run
 from frequenz.sdk.timeseries import Sample
 
 # Mock configuration
-CONF_STATE = {}
+CONF_STATE: dict[str, float] = {}
 
 
 def mock_set_consumer(name: str, power: float) -> None:
