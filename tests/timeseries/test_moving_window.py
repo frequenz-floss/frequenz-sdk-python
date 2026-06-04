@@ -212,7 +212,7 @@ async def test_access_window_by_ts_slice() -> None:
         await push_logical_meter_data(sender, range(0, 5))
         time_start = UNIX_EPOCH + timedelta(seconds=3)
         time_end = time_start + timedelta(seconds=2)
-        assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))  # type: ignore
+        assert np.array_equal(window[time_start:time_end], np.array([3.0, 4.0]))
         assert np.array_equal(window.window(dt(3), dt(5)), np.array([3.0, 4.0]))
         assert np.array_equal(window.window(dt(3), dt(3)), np.array([]))
         # Window also supports slicing with indices outside allowed range
