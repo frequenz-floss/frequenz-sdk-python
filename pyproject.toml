@@ -4,7 +4,7 @@
 [build-system]
 requires = [
   "setuptools == 82.0.1",
-  "setuptools_scm[toml] == 10.0.5",
+  "setuptools_scm[toml] == 10.2.0",
   "frequenz-repo-config[lib] == 0.18.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -83,7 +83,7 @@ dev-pylint = [
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
-  "pytest == 9.0.3",
+  "pytest == 9.1.1",
   "frequenz-repo-config[extra-lint-examples] == 0.18.0",
   "pytest-mock == 3.15.1",
   "pytest-asyncio == 1.4.0",
