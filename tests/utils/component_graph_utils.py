@@ -21,7 +21,7 @@ from frequenz.microgrid_component_graph import ComponentGraph
 
 
 @dataclass
-class ComponentGraphConfig:
+class ComponentGraphSpec:
     """Config with information how the component graph should be created."""
 
     grid_side_meter: bool = True
@@ -44,12 +44,12 @@ class ComponentGraphConfig:
 
 
 def create_component_graph_structure(
-    component_graph_config: ComponentGraphConfig,
+    component_graph_spec: ComponentGraphSpec,
 ) -> tuple[set[Component], set[ComponentConnection]]:
     """Create structure of components graph.
 
     Args:
-        component_graph_config: config that tells what graph should have.
+        component_graph_spec: spec that tells what the graph should have.
 
     Returns:
         Create set of components and set of connections between them.
@@ -72,11 +72,11 @@ def create_component_graph_structure(
     connections = {ComponentConnection(source=grid_id, destination=main_meter_id)}
 
     junction_id = grid_id
-    if component_graph_config.grid_side_meter:
+    if component_graph_spec.grid_side_meter:
         junction_id = main_meter_id
 
     start_idx = 3
-    for _ in range(component_graph_config.batteries_num):
+    for _ in range(component_graph_spec.batteries_num):
         meter_id = ComponentId(start_idx)
         inv_id = ComponentId(int(start_idx) + 1)
         battery_id = ComponentId(start_idx + 2)
@@ -90,7 +90,7 @@ def create_component_graph_structure(
         connections.add(ComponentConnection(source=meter_id, destination=inv_id))
         connections.add(ComponentConnection(source=inv_id, destination=battery_id))
 
-    for _ in range(component_graph_config.solar_inverters_num):
+    for _ in range(component_graph_spec.solar_inverters_num):
         meter_id = ComponentId(start_idx)
         inv_id = ComponentId(start_idx + 1)
         start_idx += 2
@@ -100,7 +100,7 @@ def create_component_graph_structure(
         connections.add(ComponentConnection(source=junction_id, destination=meter_id))
         connections.add(ComponentConnection(source=meter_id, destination=inv_id))
 
-    for _ in range(component_graph_config.ev_chargers):
+    for _ in range(component_graph_spec.ev_chargers):
         ev_id = ComponentId(start_idx)
         start_idx += 1
 
