@@ -46,8 +46,11 @@ class TestEVChargerPool:
             ev_pool = microgrid.new_ev_charger_pool(priority=5)
             power_receiver = ev_pool.power.new_receiver()
 
+            # The charger values sum to 15 W, not the 16 W on the meter, to
+            # check that the chargers are the primary source.
             await mockgrid.mock_resampler.send_meter_power([16.0])
-            assert (await power_receiver.receive()).value == Power.from_watts(16.0)
+            await mockgrid.mock_resampler.send_evc_power([2.0, 6.0, 7.0])
+            assert (await power_receiver.receive()).value == Power.from_watts(15.0)
 
 
 async def test_power_status_same_instance_subscriptions_work(

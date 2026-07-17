@@ -49,5 +49,8 @@ class TestLogicalMeter:  # pylint: disable=too-many-public-methods
             stack.push_async_callback(pv_pool.stop)
             pv_power_receiver = pv_pool.power.new_receiver()
 
+            # The inverter values differ from the meter values, to check
+            # that the inverters are the primary source.
             await mockgrid.mock_resampler.send_meter_power([-10.0, -20.0])
-            assert (await pv_power_receiver.receive()).value == Power.from_watts(-30.0)
+            await mockgrid.mock_resampler.send_pv_inverter_power([-9.0, -19.0])
+            assert (await pv_power_receiver.receive()).value == Power.from_watts(-28.0)

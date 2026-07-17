@@ -516,7 +516,21 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
         power_receiver = battery_pool.power.new_receiver()
 
         # send meter power [grid_meter, battery1_meter, battery2_meter]
+        # and battery inverter power [battery1_inverter, battery2_inverter].
+        # The inverter values differ from the meter values, to check that
+        # the inverters are the primary source.
         await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([21.0, 31.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(52.0)
+
+        # When the inverters have no value, the formula falls back to the
+        # meters.  The fallback subscription starts after the first `None`,
+        # so send twice and skip one output.
+        await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([None, None])
+        await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([None, None])
+        await power_receiver.receive()
         assert (await power_receiver.receive()).value == Power.from_watts(50.0)
 
 
