@@ -370,6 +370,8 @@ default powers immediately.  These are:
 
 from datetime import timedelta
 
+from frequenz.microgrid_component_graph import ComponentGraphConfig, FormulaOverrides
+
 from ..timeseries._resampling._config import ResamplerConfig
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
@@ -393,6 +395,7 @@ async def initialize(
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     # pylint: disable-next: line-too-long
     battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
+    component_graph_config: ComponentGraphConfig | None = None,
 ) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
 
@@ -409,8 +412,17 @@ async def initialize(
             will be unavailable from the corresponding component pools.
         battery_power_manager_algorithm: The power manager algorithm to use for
             batteries.
+        component_graph_config: The configuration for building the component
+            graph.  Use it, for example, to make the per-category formulas
+            (like the battery or PV formulas) read from the meter first
+            (`prefer_meters_in_component_formulas`), or to set per-formula
+            overrides through `FormulaOverrides`.  When `None`, the library's
+            default configuration is used.
     """
-    await connection_manager.initialize(server_url)
+    await connection_manager.initialize(
+        server_url,
+        component_graph_config=component_graph_config,
+    )
     await _data_pipeline.initialize(
         resampler_config,
         api_power_request_timeout=api_power_request_timeout,
@@ -419,6 +431,8 @@ async def initialize(
 
 
 __all__ = [
+    "ComponentGraphConfig",
+    "FormulaOverrides",
     "PowerManagerAlgorithm",
     "initialize",
     "consumer",

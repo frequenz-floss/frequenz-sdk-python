@@ -12,7 +12,7 @@
 
 ## New Features
 
-<!-- Here goes the main new features and examples or instructions on how to use them -->
+* `microgrid.initialize()` has a new keyword argument `component_graph_config`.  It takes a `ComponentGraphConfig` and gives full control over how the component graph is built.  For example, pass `ComponentGraphConfig(prefer_meters_in_component_formulas=True)` to make the per-category formulas read from the meter first, as in previous releases.  `ComponentGraphConfig` and `FormulaOverrides` are re-exported from `frequenz.sdk.microgrid`.
 
 ## Bug Fixes
 

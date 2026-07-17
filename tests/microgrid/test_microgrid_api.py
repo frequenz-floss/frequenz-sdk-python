@@ -28,7 +28,7 @@ from frequenz.client.microgrid.component import (
     Meter,
 )
 
-from frequenz.sdk.microgrid import connection_manager
+from frequenz.sdk.microgrid import ComponentGraphConfig, connection_manager
 
 _MICROGRID_ID = MicrogridId(1)
 
@@ -135,6 +135,28 @@ class TestMicrogridApi:
             ),
         )
 
+    @staticmethod
+    def _mock_microgrid_client(
+        components: list[list[Component]],
+        connections: list[list[ComponentConnection]],
+        microgrid: MicrogridInfo,
+    ) -> MagicMock:
+        """Create a mock microgrid API client.
+
+        Args:
+            components: components to return, one list per call.
+            connections: connections to return, one list per call.
+            microgrid: the information about the microgrid.
+
+        Returns:
+            the mock client.
+        """
+        client = MagicMock()
+        client.list_components = AsyncMock(side_effect=components)
+        client.list_connections = AsyncMock(side_effect=connections)
+        client.get_microgrid_info = AsyncMock(return_value=microgrid)
+        return client
+
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager(
         self,
@@ -151,10 +173,9 @@ class TestMicrogridApi:
             connections: connections
             microgrid: the information about the microgrid
         """
-        microgrid_client = MagicMock()
-        microgrid_client.list_components = AsyncMock(side_effect=components)
-        microgrid_client.list_connections = AsyncMock(side_effect=connections)
-        microgrid_client.get_microgrid_info = AsyncMock(return_value=microgrid)
+        microgrid_client = self._mock_microgrid_client(
+            components, connections, microgrid
+        )
 
         with mock.patch(
             "frequenz.sdk.microgrid.connection_manager.MicrogridApiClient",
@@ -213,6 +234,57 @@ class TestMicrogridApi:
 
             assert api.microgrid_id == microgrid.id
             assert api.location == microgrid.location
+
+    @mock.patch("grpc.aio.insecure_channel")
+    async def test_component_graph_config(
+        self,
+        _insecure_channel_mock: MagicMock,
+        components: list[list[Component]],
+        connections: list[list[ComponentConnection]],
+        microgrid: MicrogridInfo,
+    ) -> None:
+        """Test that the component graph config is used to build the graph.
+
+        Args:
+            _insecure_channel_mock: insecure channel mock from `mock.patch`
+            components: components
+            connections: connections
+            microgrid: the information about the microgrid
+        """
+        microgrid_client = self._mock_microgrid_client(
+            [components[0]] * 2, [connections[0]] * 2, microgrid
+        )
+
+        with mock.patch(
+            "frequenz.sdk.microgrid.connection_manager.MicrogridApiClient",
+            return_value=microgrid_client,
+        ):
+            # pylint: disable=protected-access
+            default_manager = connection_manager._InsecureConnectionManager(
+                "grpc://127.0.0.1:10001"
+            )
+            await default_manager._initialize()
+
+            meters_first_manager = connection_manager._InsecureConnectionManager(
+                "grpc://127.0.0.1:10001",
+                component_graph_config=ComponentGraphConfig(
+                    prefer_meters_in_component_formulas=True
+                ),
+            )
+            await meters_first_manager._initialize()
+
+        batteries = {ComponentId(9), ComponentId(12)}
+        # By default the battery inverters are the primary source and the
+        # meters are the fallback.
+        assert (
+            default_manager.component_graph.battery_formula(batteries)
+            == "COALESCE(#8, #7, 0.0) + COALESCE(#11, #10, 0.0)"
+        )
+        # With `prefer_meters_in_component_formulas` the meters come first.
+        assert (
+            meters_first_manager.component_graph.battery_formula(batteries)
+            == "COALESCE(#7, #8, 0.0) + COALESCE(#10, #11, 0.0)"
+        )
 
     @mock.patch("grpc.aio.insecure_channel")
     async def test_connection_manager_another_method(
