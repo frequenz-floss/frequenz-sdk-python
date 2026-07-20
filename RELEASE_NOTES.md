@@ -2,7 +2,7 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release updates the microgrid component graph library to v0.5.0.  Formulas now fall back to more sources: a component that shares a meter with other components can be measured as that meter minus its siblings, so a formula can still return a value where it used to return nothing.
 
 ## Upgrading
 
@@ -12,8 +12,6 @@
 
 ## New Features
 
-* `microgrid.initialize()` has a new keyword argument `component_graph_config`.  It takes a `ComponentGraphConfig` and gives full control over how the component graph is built.  For example, pass `ComponentGraphConfig(prefer_meters_in_component_formulas=True)` to make the per-category formulas read from the meter first, as in previous releases.  `ComponentGraphConfig` and `FormulaOverrides` are re-exported from `frequenz.sdk.microgrid`.
+* Formulas now fall back to more sources.  A component that shares a meter with other components can be measured as that meter minus its siblings, which also covers diamond topologies, and a meter can fall back to the components under it.  So a formula can still return a value when some readings are missing.
 
-## Bug Fixes
-
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* `microgrid.initialize()` has a new keyword argument `component_graph_config`.  It takes a `ComponentGraphConfig` and gives full control over how the component graph is built.  `ComponentGraphConfig` and `FormulaOverrides` are re-exported from `frequenz.sdk.microgrid`.
