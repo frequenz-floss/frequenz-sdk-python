@@ -1712,17 +1712,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#cross-arch-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cross-Arch Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1818,17 +1807,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#cross-arch-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cross-Arch Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1880,11 +1858,11 @@ dependencies and run <code>pytest</code> manually.</p>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pytest<span class="w"> </span>tests/test_*.py
 </span></code></pre></div>
 <p>Or you can use <code>nox</code>:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
 </span></code></pre></div>
 <p>The same appliest to <code>pylint</code> or <code>mypy</code> for example:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>test/test_*.py
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>test/test_*.py
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
 </span></code></pre></div>
 <h3 id="building-the-documentation">Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permanent link">¤</a></h3>
 <p>To build the documentation, first install the dependencies (if you didn't
@@ -1969,24 +1947,6 @@ GitHub pages produced for your fork.</p>
 <ol>
 <li>Celebrate!</li>
 </ol>
-<h2 id="cross-arch-testing">Cross-Arch Testing<a class="headerlink" href="#cross-arch-testing" title="Permanent link">¤</a></h2>
-<p>This project has built-in support for testing across multiple architectures.
-Currently, our CI conducts tests on <code>arm64</code> machines using QEMU emulation. We
-also have the flexibility to expand this support to include additional
-architectures in the future.</p>
-<p>This project contains Dockerfiles that can be used in the CI to test the
-python package in non-native machine architectures, e.g., <code>arm64</code>. The
-Dockerfiles exist in the directory <code>.github/containers/nox-cross-arch</code>, and
-follow a naming scheme so that they can be easily used in build matrices in the
-CI, in <code>nox-cross-arch</code> job. The naming scheme is:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>&lt;arch&gt;-&lt;os&gt;-python-&lt;python-version&gt;.Dockerfile
-</span></code></pre></div>
-<p>E.g.,</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>arm64-ubuntu-20.04-python-3.11.Dockerfile
-</span></code></pre></div>
-<p>If a Dockerfile for your desired target architecture, OS, and python version
-does not exist here, please add one before proceeding to add your options to
-the test matrix.</p>
 
 
 
