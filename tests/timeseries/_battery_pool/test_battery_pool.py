@@ -48,7 +48,7 @@ from ...timeseries.mock_microgrid import MockMicrogrid
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
 from ...utils.component_graph_utils import (
-    ComponentGraphConfig,
+    ComponentGraphSpec,
     create_component_graph_structure,
 )
 from ...utils.mock_microgrid_client import MockMicrogridClient
@@ -113,7 +113,7 @@ class SetupArgs:
 
 
 def create_mock_microgrid(
-    mocker: MockerFixture, config: ComponentGraphConfig
+    mocker: MockerFixture, config: ComponentGraphSpec
 ) -> MockMicrogridClient:
     """Create mock microgrid and initialize it.
 
@@ -143,9 +143,7 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     Yields:
         Arguments that are needed in test.
     """
-    mock_microgrid = create_mock_microgrid(
-        mocker, ComponentGraphConfig(batteries_num=2)
-    )
+    mock_microgrid = create_mock_microgrid(mocker, ComponentGraphSpec(batteries_num=2))
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
@@ -195,9 +193,7 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     Yields:
         Arguments that are needed in test.
     """
-    mock_microgrid = create_mock_microgrid(
-        mocker, ComponentGraphConfig(batteries_num=4)
-    )
+    mock_microgrid = create_mock_microgrid(mocker, ComponentGraphSpec(batteries_num=4))
     streamer = MockComponentDataStreamer(mock_microgrid)
     min_update_interval: float = 0.2
     # pylint: disable=protected-access
@@ -520,7 +516,21 @@ async def test_battery_pool_power(mocker: MockerFixture) -> None:
         power_receiver = battery_pool.power.new_receiver()
 
         # send meter power [grid_meter, battery1_meter, battery2_meter]
+        # and battery inverter power [battery1_inverter, battery2_inverter].
+        # The inverter values differ from the meter values, to check that
+        # the inverters are the primary source.
         await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([21.0, 31.0])
+        assert (await power_receiver.receive()).value == Power.from_watts(52.0)
+
+        # When the inverters have no value, the formula falls back to the
+        # meters.  The fallback subscription starts after the first `None`,
+        # so send twice and skip one output.
+        await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([None, None])
+        await mockgrid.mock_resampler.send_meter_power([100.0, 20.0, 30.0])
+        await mockgrid.mock_resampler.send_bat_inverter_power([None, None])
+        await power_receiver.receive()
         assert (await power_receiver.receive()).value == Power.from_watts(50.0)
 
 

@@ -1,15 +1,19 @@
 # Frequenz Python SDK Release Notes
 
+## Summary
+
+<!-- Here goes a general summary of what this release is about -->
+
 ## Upgrading
 
-* Update microgrid client to v0.18.3+, which fixes a problem with missing steam boilers on formula generation.
-* The PV inverter manager now subtracts the power measured on unreachable PV inverters from the distribution target, so the power sent to the reachable inverters can change when some requested PV inverters are unreachable.
+* Update the microgrid component graph library to v0.5.0.  The per-category formulas (battery, PV, CHP, EV charger, ...) now read the component first and use the meter as the fallback.  This is the opposite of the old order, so generated formula strings and power values can change.  To keep the old order, pass `ComponentGraphConfig(prefer_meters_in_component_formulas=True)` to `microgrid.initialize()`.
+
+* Graph validation errors now use a new message format.
 
 ## New Features
 
-* The PV inverter manager now accounts for the power measured on unreachable PV inverters when distributing power, so the reachable inverters compensate for it (matching the battery manager's behavior).
+* `microgrid.initialize()` has a new keyword argument `component_graph_config`.  It takes a `ComponentGraphConfig` and gives full control over how the component graph is built.  For example, pass `ComponentGraphConfig(prefer_meters_in_component_formulas=True)` to make the per-category formulas read from the meter first, as in previous releases.  `ComponentGraphConfig` and `FormulaOverrides` are re-exported from `frequenz.sdk.microgrid`.
 
 ## Bug Fixes
 
-* Fixed a resource leak in the power distributor: the formulas created for unreachable batteries were never stopped, so CPU usage slowly climbed over time until the application was restarted.
-* Fixed the grid reactive-power formula being recreated and leaked on every access instead of being reused from the cache.
+<!-- Here goes notable bug fixes that are worth a special mention or explanation -->

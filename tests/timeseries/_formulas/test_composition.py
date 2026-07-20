@@ -232,13 +232,13 @@ class TestFormulaComposition:
             assert (
                 str(formula_min)
                 == "[grid_power_min]("
-                + "MIN([grid_power](#4), [chp_power](COALESCE(#7, #5, 0.0)))"
+                + "MIN([grid_power](#4), [chp_power](COALESCE(#5, #7, 0.0)))"
                 + ")"
             )
             assert (
                 str(formula_max)
                 == "[grid_power_max]("
-                + "MAX([grid_power](#4), [chp_power](COALESCE(#7, #5, 0.0)))"
+                + "MAX([grid_power](#4), [chp_power](COALESCE(#5, #7, 0.0)))"
                 + ")"
             )
 

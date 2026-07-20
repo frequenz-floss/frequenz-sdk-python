@@ -18,6 +18,7 @@ from frequenz.client.microgrid import (
     MicrogridApiClient,
     MicrogridInfo,
 )
+from frequenz.microgrid_component_graph import ComponentGraphConfig
 
 from .component_graph import ComponentGraph
 
@@ -27,7 +28,12 @@ _logger = logging.getLogger(__name__)
 class ConnectionManager(ABC):
     """Creates and stores core features."""
 
-    def __init__(self, server_url: str) -> None:
+    def __init__(
+        self,
+        server_url: str,
+        *,
+        component_graph_config: ComponentGraphConfig | None = None,
+    ) -> None:
         """Create object instance.
 
         Args:
@@ -36,9 +42,12 @@ class ConnectionManager(ABC):
                 where the port should be an int between `0` and `65535` (defaulting to
                 `9090`) and ssl should be a boolean (defaulting to false). For example:
                 `grpc://localhost:1090?ssl=true`.
+            component_graph_config: The configuration for building the component
+                graph.  When `None`, the library's default configuration is used.
         """
         super().__init__()
         self._server_url = server_url
+        self._component_graph_config = component_graph_config
 
     @property
     def server_url(self) -> str:
@@ -94,7 +103,12 @@ class ConnectionManager(ABC):
 class _InsecureConnectionManager(ConnectionManager):
     """Microgrid Api with insecure channel implementation."""
 
-    def __init__(self, server_url: str) -> None:
+    def __init__(
+        self,
+        server_url: str,
+        *,
+        component_graph_config: ComponentGraphConfig | None = None,
+    ) -> None:
         """Create and stores core features.
 
         Args:
@@ -103,8 +117,10 @@ class _InsecureConnectionManager(ConnectionManager):
                 where the port should be an int between `0` and `65535` (defaulting to
                 `9090`) and ssl should be a boolean (defaulting to false). For example:
                 `grpc://localhost:1090?ssl=true`.
+            component_graph_config: The configuration for building the component
+                graph.  When `None`, the library's default configuration is used.
         """
-        super().__init__(server_url)
+        super().__init__(server_url, component_graph_config=component_graph_config)
         self._client = MicrogridApiClient(server_url)
         # To create graph from the API client we need await.
         # So create empty graph here, and update it in `run` method.
@@ -172,14 +188,23 @@ class _InsecureConnectionManager(ConnectionManager):
             self._client.list_components(),
             self._client.list_connections(),
         )
-        self._graph = ComponentGraph(set(components), set(connections))
+        if self._component_graph_config is None:
+            self._graph = ComponentGraph(set(components), set(connections))
+        else:
+            self._graph = ComponentGraph(
+                set(components), set(connections), self._component_graph_config
+            )
 
 
 _CONNECTION_MANAGER: ConnectionManager | None = None
 """The ConnectionManager singleton instance."""
 
 
-async def initialize(server_url: str) -> None:
+async def initialize(
+    server_url: str,
+    *,
+    component_graph_config: ComponentGraphConfig | None = None,
+) -> None:
     """Initialize the MicrogridApi. This function should be called only once.
 
     Args:
@@ -188,6 +213,8 @@ async def initialize(server_url: str) -> None:
             where the port should be an int between `0` and `65535` (defaulting to
             `9090`) and ssl should be a boolean (defaulting to false). For example:
             `grpc://localhost:1090?ssl=true`.
+        component_graph_config: The configuration for building the component
+            graph.  When `None`, the library's default configuration is used.
     """
     # From Doc: pylint just try to discourage this usage.
     # That doesn't mean you cannot use it.
@@ -197,7 +224,10 @@ async def initialize(server_url: str) -> None:
 
     _logger.info("Connecting to microgrid at %s", server_url)
 
-    connection_manager = _InsecureConnectionManager(server_url)
+    connection_manager = _InsecureConnectionManager(
+        server_url,
+        component_graph_config=component_graph_config,
+    )
     await connection_manager._initialize()  # pylint: disable=protected-access
 
     # Check again that _MICROGRID_API is None in case somebody had the great idea of
