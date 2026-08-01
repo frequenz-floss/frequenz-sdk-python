@@ -64,7 +64,7 @@ dev-mkdocs = [
   "mkdocs-literate-nav == 0.6.3",
   "mkdocs-macros-plugin == 1.5.0",
   "mkdocs-material == 9.7.6",
-  "mkdocstrings[python] == 1.0.4",
+  "mkdocstrings[python] == 1.0.6",
   "mkdocstrings-python == 2.0.5",
   "frequenz-repo-config[lib] == 0.18.0",
 ]
