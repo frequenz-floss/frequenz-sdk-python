@@ -52,7 +52,7 @@ dev-flake8 = [
   "flake8-datetimez == 20.10.0",
   "flake8-docstrings == 1.7.0",
   "flake8-pyproject == 1.2.4", # For reading the flake8 config from pyproject.toml
-  "pydoclint == 0.9.0",
+  "pydoclint == 0.9.1",
   "pydocstyle == 6.3.0",
 ]
 dev-formatting = ["black == 26.5.1", "isort == 8.0.1"]
