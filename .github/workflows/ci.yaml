@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Run nox
-        uses: frequenz-floss/gh-action-nox@80a9845a59ffc71d27b9c41099eb6cb55bc7b671 # v1.1.1
+        uses: frequenz-floss/gh-action-nox@dff549a59033ed078a375a32b1f8f17beb7df690 # v1.1.2
         with:
           python-version: ${{ matrix.python }}
           nox-session: ${{ matrix.nox-session }}
@@ -84,12 +84,12 @@ jobs:
         uses: frequenz-floss/gh-action-setup-git@f9d86a01228ee1cadaac5224d4d7626f1eb23f90 # v1.0.0
 
       - name: Fetch sources
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@dca2997db8e2eb8e9f09c96bfcf9157ae5a6ff1f # v1.0.5
+        uses: frequenz-floss/gh-action-setup-python-with-deps@29d63cb1d7ce634b2f4b925044b1b193e1d5bddc # v1.0.6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: build
@@ -147,7 +147,7 @@ jobs:
             > pyproject.toml
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@dca2997db8e2eb8e9f09c96bfcf9157ae5a6ff1f # v1.0.5
+        uses: frequenz-floss/gh-action-setup-python-with-deps@29d63cb1d7ce634b2f4b925044b1b193e1d5bddc # v1.0.6
         with:
           python-version: ${{ matrix.python }}
           dependencies: dist/*.whl
@@ -183,12 +183,12 @@ jobs:
         uses: frequenz-floss/gh-action-setup-git@f9d86a01228ee1cadaac5224d4d7626f1eb23f90 # v1.0.0
 
       - name: Fetch sources
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@dca2997db8e2eb8e9f09c96bfcf9157ae5a6ff1f # v1.0.5
+        uses: frequenz-floss/gh-action-setup-python-with-deps@29d63cb1d7ce634b2f4b925044b1b193e1d5bddc # v1.0.6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]
@@ -223,12 +223,12 @@ jobs:
         uses: frequenz-floss/gh-action-setup-git@f9d86a01228ee1cadaac5224d4d7626f1eb23f90 # v1.0.0
 
       - name: Fetch sources
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
       - name: Setup Python
-        uses: frequenz-floss/gh-action-setup-python-with-deps@dca2997db8e2eb8e9f09c96bfcf9157ae5a6ff1f # v1.0.5
+        uses: frequenz-floss/gh-action-setup-python-with-deps@29d63cb1d7ce634b2f4b925044b1b193e1d5bddc # v1.0.6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           dependencies: .[dev-mkdocs]
@@ -349,4 +349,4 @@ jobs:
           path: dist
 
       - name: Publish the Python distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
