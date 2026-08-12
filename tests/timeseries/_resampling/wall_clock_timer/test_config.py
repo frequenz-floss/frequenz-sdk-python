@@ -12,15 +12,17 @@ from frequenz.core.datetime import UNIX_EPOCH
 
 from frequenz.sdk.timeseries._resampling._wall_clock_timer import WallClockTimerConfig
 
+from .util import approx_time
+
 
 def test_from_interval_defaults() -> None:
     """Test WallClockTimerConfig.from_interval() with only interval (all defaults)."""
     interval = timedelta(seconds=10)
     config = WallClockTimerConfig.from_interval(interval)
     assert config.align_to == UNIX_EPOCH
-    assert config.async_drift_tolerance == pytest.approx(timedelta(seconds=1.0))
+    assert config.async_drift_tolerance == approx_time(timedelta(seconds=1.0))
     assert config.wall_clock_drift_tolerance_factor == pytest.approx(0.1)
-    assert config.wall_clock_jump_threshold == pytest.approx(timedelta(seconds=10.0))
+    assert config.wall_clock_jump_threshold == approx_time(timedelta(seconds=10.0))
 
 
 def test_from_interval_all_args() -> None:
@@ -38,9 +40,9 @@ def test_from_interval_all_args() -> None:
         wall_clock_jump_threshold_factor=jump_factor,
     )
     assert config.align_to == align_to
-    assert config.async_drift_tolerance == pytest.approx(timedelta(seconds=1.0))
+    assert config.async_drift_tolerance == approx_time(timedelta(seconds=1.0))
     assert config.wall_clock_drift_tolerance_factor == pytest.approx(0.3)
-    assert config.wall_clock_jump_threshold == pytest.approx(timedelta(seconds=2.0))
+    assert config.wall_clock_jump_threshold == approx_time(timedelta(seconds=2.0))
 
 
 @pytest.mark.parametrize(

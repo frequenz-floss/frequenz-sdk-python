@@ -12,6 +12,8 @@ import pytest
 
 from frequenz.sdk.timeseries._resampling._wall_clock_timer import ClocksInfo
 
+from .util import approx_time
+
 _DEFAULT_MONOTONIC_REQUESTED_SLEEP = timedelta(seconds=1.0)
 _DEFAULT_MONOTONIC_TIME = 1234.5
 _DEFAULT_WALL_CLOCK_TIME = datetime(2023, 1, 1, tzinfo=timezone.utc)
@@ -141,7 +143,7 @@ def test_monotonic_drift(
         monotonic_elapsed=monotonic_elapsed,
         wall_clock_elapsed=_DEFAULT_WALL_CLOCK_ELAPSED,
     )
-    assert info.monotonic_drift == pytest.approx(expected_drift)
+    assert info.monotonic_drift == approx_time(expected_drift)
 
 
 @pytest.mark.parametrize(
@@ -166,7 +168,7 @@ def test_wall_clock_jump(
         monotonic_elapsed=monotonic_elapsed,
         wall_clock_elapsed=wall_clock_elapsed,
     )
-    assert info.wall_clock_jump == pytest.approx(expected_jump)
+    assert info.wall_clock_jump == approx_time(expected_jump)
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -219,7 +221,7 @@ def test_wall_clock_factor(case: _TestCaseWallClockFactor) -> None:
         wall_clock_elapsed=case.wall_clock_elapsed,
     )
     assert info.wall_clock_factor == pytest.approx(case.expected_factor)
-    assert info.wall_clock_to_monotonic(case.wall_clock_elapsed) == pytest.approx(
+    assert info.wall_clock_to_monotonic(case.wall_clock_elapsed) == approx_time(
         case.monotonic_elapsed
     )
 
