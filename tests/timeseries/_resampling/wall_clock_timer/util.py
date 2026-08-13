@@ -9,18 +9,10 @@ import re
 from collections.abc import Coroutine, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import NamedTuple, TypeVar, assert_never, overload
+from typing import Any, NamedTuple, TypeVar, assert_never, overload
 from unittest.mock import MagicMock
 
 import pytest
-
-# This is not great, we are depending on an internal pytest API, but it is
-# the most convenient way to provide a custom approx() comparison for datetime
-# and timedelta.
-# Other alternatives proven to be even more complex and hacky.
-# It also looks like we are not the only ones doing this, see:
-# https://github.com/pytest-dev/pytest/issues/8395
-from _pytest.python_api import ApproxBase
 from typing_extensions import override
 
 from frequenz.sdk.timeseries import ClocksInfo, TickInfo
@@ -86,49 +78,24 @@ def mono_now() -> float:
     return asyncio.get_running_loop().time()
 
 
-# Pylint complains about abstract-method because _yield_comparisons is not implemented
-# but it is used only in the default __eq__ method, which we are re-defining, so we can
-# ignore it.
-class approx_time(ApproxBase):  # pylint: disable=invalid-name, abstract-method
+def approx_time(
+    expected: datetime | timedelta,
+    *,
+    abs: timedelta = timedelta(milliseconds=1),  # pylint: disable=redefined-builtin
+) -> Any:
     """Perform approximate comparisons for datetime or timedelta objects.
 
-    Inherits from `ApproxBase` to provide a rich comparison output in pytest.
+    This is only a thin wrapper around `pytest.approx()` to default the tolerance to
+    1ms, as `pytest.approx()` requires an explicit tolerance for these types.
+
+    Args:
+        expected: The expected `datetime` or `timedelta` to compare against.
+        abs: The absolute tolerance as a `timedelta`. Defaults to 1ms.
+
+    Returns:
+        An object comparing equal to any value within `abs` of `expected`.
     """
-
-    expected: datetime | timedelta
-    abs: timedelta
-
-    def __init__(
-        self,
-        expected: datetime | timedelta,
-        *,
-        abs: timedelta = timedelta(milliseconds=1),  # pylint: disable=redefined-builtin
-    ) -> None:
-        """Initialize this instance."""
-        if abs < timedelta():
-            raise ValueError(
-                f"absolute tolerance must be a non-negative timedelta, not {abs}"
-            )
-        super().__init__(expected, abs=abs)
-
-    def __repr__(self) -> str:
-        """Return a string representation of this instance."""
-        return f"{self.expected} ± {self.abs}"
-
-    def __eq__(self, actual: object) -> bool:
-        """Compare this instance with another object."""
-        # We need to split the cases for datetime and timedelta for type checking
-        # reasons.
-        diff: timedelta
-        match (self.expected, actual):
-            case (datetime(), datetime()):
-                diff = self.expected - actual
-            case (timedelta(), timedelta()):
-                diff = self.expected - actual
-            case _:
-                return NotImplemented
-
-        return abs(diff) <= self.abs
+    return pytest.approx(expected, abs=abs)
 
 
 # We need to rewrite most of the attributes in these classes to use approximate
