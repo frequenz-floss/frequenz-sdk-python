@@ -4,7 +4,7 @@
 [build-system]
 requires = [
   "setuptools == 82.0.1",
-  "setuptools_scm[toml] == 10.2.0",
+  "setuptools_scm[toml] == 10.2.1",
   "frequenz-repo-config[lib] == 0.18.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -58,18 +58,18 @@ dev-flake8 = [
 dev-formatting = ["black == 26.5.1", "isort == 8.0.1"]
 dev-mkdocs = [
   "black == 26.5.1",
-  "Markdown==3.10.2",
+  "Markdown==3.10.3",
   "mike == 2.2.0",
   "mkdocs-gen-files == 0.6.1",
   "mkdocs-literate-nav == 0.6.3",
   "mkdocs-macros-plugin == 1.5.0",
-  "mkdocs-material == 9.7.6",
+  "mkdocs-material == 9.7.7",
   "mkdocstrings[python] == 1.0.6",
-  "mkdocstrings-python == 2.0.5",
+  "mkdocstrings-python == 2.0.7",
   "frequenz-repo-config[lib] == 0.18.0",
 ]
 dev-mypy = [
-  "mypy == 2.3.0",
+  "mypy == 2.3.1",
   "types-Markdown == 3.10.2.20260518",
   "types-protobuf == 7.34.1.20260518",
   "types-setuptools == 82.0.0.20260518",
@@ -78,7 +78,7 @@ dev-mypy = [
 ]
 dev-noxfile = ["nox == 2026.7.11", "frequenz-repo-config[lib] == 0.18.0"]
 dev-pylint = [
-  "pylint == 4.0.6",
+  "pylint == 4.0.8",
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
