@@ -14,7 +14,12 @@ from typing import assert_never
 from frequenz.channels import Receiver, Sender, select, selected_from
 from frequenz.channels.timer import SkipMissedAndDrift, Timer
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
+from frequenz.client.microgrid.component import (
+    Battery,
+    EvCharger,
+    SolarInverter,
+    SteamBoiler,
+)
 from typing_extensions import override
 
 from ..._internal._asyncio import run_forever
@@ -49,7 +54,7 @@ class PowerManagingActor(Actor):
         channel_registry: ChannelRegistry,
         algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
-        component_class: type[Battery | EvCharger | SolarInverter],
+        component_class: type[Battery | EvCharger | SolarInverter | SteamBoiler],
     ):
         """Create a new instance of the power manager.
 
@@ -160,6 +165,11 @@ class PowerManagingActor(Actor):
                 priority=-sys.maxsize - 1, component_ids=component_ids
             )
             bounds_receiver = pv_pool.system_power_bounds.new_receiver()
+        elif issubclass(self._component_class, SteamBoiler):
+            steam_boiler_pool = _data_pipeline.new_steam_boiler_pool(
+                priority=-sys.maxsize - 1, component_ids=component_ids
+            )
+            bounds_receiver = steam_boiler_pool.system_power_bounds.new_receiver()
         else:
             _logger.error(
                 "PowerManagingActor: Unsupported component class: %s",

@@ -19,7 +19,12 @@ from datetime import timedelta
 
 from frequenz.channels import Broadcast, Sender
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
+from frequenz.client.microgrid.component import (
+    Battery,
+    EvCharger,
+    SolarInverter,
+    SteamBoiler,
+)
 
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
@@ -52,6 +57,10 @@ if typing.TYPE_CHECKING:
     from ..timeseries.producer import Producer
     from ..timeseries.pv_pool import PVPool
     from ..timeseries.pv_pool._pv_pool_reference_store import PVPoolReferenceStore
+    from ..timeseries.steam_boiler_pool import SteamBoilerPool
+    from ..timeseries.steam_boiler_pool._steam_boiler_pool_reference_store import (
+        SteamBoilerPoolReferenceStore,
+    )
 
 _logger = logging.getLogger(__name__)
 
@@ -131,6 +140,13 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             # https://github.com/frequenz-floss/frequenz-sdk-python/issues/1285
             component_class=SolarInverter,
         )
+        self._steam_boiler_power_wrapper = PowerWrapper(
+            self._channel_registry,
+            api_power_request_timeout=api_power_request_timeout,
+            power_manager_algorithm=PowerManagerAlgorithm.MATRYOSHKA,
+            default_power=DefaultPower.ZERO,
+            component_class=SteamBoiler,
+        )
 
         self._logical_meter: LogicalMeter | None = None
         self._consumer: Consumer | None = None
@@ -144,6 +160,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         ] = {}
         self._pv_pool_reference_stores: dict[
             frozenset[ComponentId], PVPoolReferenceStore
+        ] = {}
+        self._steam_boiler_pool_reference_stores: dict[
+            frozenset[ComponentId], SteamBoilerPoolReferenceStore
         ] = {}
         self._frequency_instance: GridFrequency | None = None
         self._voltage_instance: VoltageStreamer | None = None
@@ -476,6 +495,83 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             priority=priority,
         )
 
+    def new_steam_boiler_pool(
+        self,
+        *,
+        priority: int,
+        component_ids: abc.Set[ComponentId] | None = None,
+        name: str | None = None,
+    ) -> SteamBoilerPool:
+        """Return a new `SteamBoilerPool` instance for the given ids.
+
+        If a `SteamBoilerPoolReferenceStore` instance for the given steam boiler ids
+        doesn't exist, a new one is created and used for creating the
+        `SteamBoilerPool`.
+
+        Args:
+            priority: The priority of the actor making the call.
+            component_ids: Optional set of IDs of steam boilers to be managed by the
+                SteamBoilerPool.
+            name: An optional name used to identify this instance of the pool or a
+                corresponding actor in the logs.
+
+        Returns:
+            A SteamBoilerPool instance.
+        """
+        from ..timeseries.steam_boiler_pool import SteamBoilerPool
+        from ..timeseries.steam_boiler_pool._steam_boiler_pool_reference_store import (
+            SteamBoilerPoolReferenceStore,
+        )
+
+        if not self._steam_boiler_power_wrapper.started:
+            self._steam_boiler_power_wrapper.start()
+
+        # We use frozenset to make a hashable key from the input set.
+        ref_store_key: frozenset[ComponentId] = frozenset()
+        if component_ids is not None:
+            ref_store_key = frozenset(component_ids)
+
+        pool_key = f"{ref_store_key}-{priority}"
+        if pool_key in self._known_pool_keys:
+            _logger.warning(
+                "A SteamBoilerPool instance was already created for steam_boiler_ids=%s "
+                "and priority=%s using `microgrid.steam_boiler_pool(...)`."
+                "\n  Hint: If the multiple instances are created from the same actor, "
+                "consider reusing the same instance."
+                "\n  Hint: If the instances are created from different actors, "
+                "consider using different priorities to distinguish them.",
+                component_ids,
+                priority,
+            )
+        else:
+            self._known_pool_keys.add(pool_key)
+
+        if ref_store_key not in self._steam_boiler_pool_reference_stores:
+            self._steam_boiler_pool_reference_stores[ref_store_key] = (
+                SteamBoilerPoolReferenceStore(
+                    channel_registry=self._channel_registry,
+                    resampler_subscription_sender=self._resampling_request_sender(),
+                    status_receiver=self._steam_boiler_power_wrapper.status_channel.new_receiver(
+                        limit=1
+                    ),
+                    power_manager_requests_sender=(
+                        self._steam_boiler_power_wrapper.proposal_channel.new_sender()
+                    ),
+                    power_manager_bounds_subs_sender=(
+                        self._steam_boiler_power_wrapper.bounds_subscription_channel.new_sender()
+                    ),
+                    power_distribution_results_fetcher=(
+                        self._steam_boiler_power_wrapper.distribution_results_fetcher()
+                    ),
+                    component_ids=component_ids,
+                )
+            )
+        return SteamBoilerPool(
+            pool_ref_store=self._steam_boiler_pool_reference_stores[ref_store_key],
+            name=name,
+            priority=priority,
+        )
+
     def _data_sourcing_request_sender(self) -> Sender[ComponentMetricRequest]:
         """Return a Sender for sending requests to the data sourcing actor.
 
@@ -532,12 +628,15 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         await self._battery_power_wrapper.stop()
         await self._ev_power_wrapper.stop()
         await self._pv_power_wrapper.stop()
+        await self._steam_boiler_power_wrapper.stop()
         for pool in self._battery_pool_reference_stores.values():
             await pool.stop()
         for evpool in self._ev_charger_pool_reference_stores.values():
             await evpool.stop()
         for pvpool in self._pv_pool_reference_stores.values():
             await pvpool.stop()
+        for steam_boiler_pool in self._steam_boiler_pool_reference_stores.values():
+            await steam_boiler_pool.stop()
 
 
 _DATA_PIPELINE: _DataPipeline | None = None
@@ -722,6 +821,45 @@ def new_pv_pool(
         A `PVPool` instance.
     """
     return _get().new_pv_pool(priority=priority, component_ids=component_ids, name=name)
+
+
+def new_steam_boiler_pool(
+    *,
+    priority: int,
+    component_ids: abc.Set[ComponentId] | None = None,
+    name: str | None = None,
+) -> SteamBoilerPool:
+    """Return a new `SteamBoilerPool` instance for the given parameters.
+
+    The priority value is used to resolve conflicts when multiple actors are trying to
+    propose different power values for the same set of steam boilers.
+
+    !!! note
+        When specifying priority, bigger values indicate higher priority.
+
+        It is recommended to reuse the same instance of the `SteamBoilerPool` within the same
+        actor, unless they are managing different sets of steam boilers.
+
+        In deployments with multiple actors managing the same set of steam boilers, it is
+        recommended to use different priorities to distinguish between them.  If not,
+        a random prioritization will be imposed on them to resolve conflicts, which may
+        lead to unexpected behavior like longer duration to converge on the desired
+        power.
+
+    Args:
+        priority: The priority of the actor making the call.
+        component_ids: Optional set of IDs of steam boilers to be managed by the
+            `SteamBoilerPool`. If not specified, all steam boilers available in the component
+            graph are used.
+        name: An optional name used to identify this instance of the pool or a
+            corresponding actor in the logs.
+
+    Returns:
+        A `SteamBoilerPool` instance.
+    """
+    return _get().new_steam_boiler_pool(
+        priority=priority, component_ids=component_ids, name=name
+    )
 
 
 def grid() -> Grid:

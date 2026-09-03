@@ -9,7 +9,12 @@ import logging
 from datetime import timedelta
 
 from frequenz.channels import Broadcast
-from frequenz.client.microgrid.component import Battery, EvCharger, SolarInverter
+from frequenz.client.microgrid.component import (
+    Battery,
+    EvCharger,
+    SolarInverter,
+    SteamBoiler,
+)
 
 from .._internal._channels import ChannelRegistry, ReceiverFetcher
 
@@ -40,7 +45,7 @@ class PowerWrapper:  # pylint: disable=too-many-instance-attributes
         api_power_request_timeout: timedelta,
         power_manager_algorithm: PowerManagerAlgorithm,
         default_power: DefaultPower,
-        component_class: type[Battery | EvCharger | SolarInverter],
+        component_class: type[Battery | EvCharger | SolarInverter | SteamBoiler],
     ):
         """Initialize the power control.
 
