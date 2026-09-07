@@ -10,6 +10,8 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
+- The minimum versions are now `frequenz-quantities` 1.0.3 and `marshmallow` 4.0.0, enabling marshmallow 4 support without breaking strict documentation builds.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
