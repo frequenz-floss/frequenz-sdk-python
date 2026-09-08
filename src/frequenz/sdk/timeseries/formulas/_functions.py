@@ -10,7 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Generic
+from typing import Generic, assert_never
 
 from frequenz.quantities import Quantity
 from typing_extensions import override
@@ -117,7 +117,7 @@ class Coalesce(Function[QuantityT]):
         """Return the name of the function."""
         return "COALESCE"
 
-    @override
+    @override  # pylint: disable-next=too-many-branches
     async def __call__(self) -> Sample[QuantityT] | QuantityT | None:
         """Return the first non-None argument."""
         ts: datetime | None = None
@@ -132,16 +132,29 @@ class Coalesce(Function[QuantityT]):
             match arg:
                 case Sample(timestamp, value):
                     if value is not None:
-                        # Keep track of which parameter we are getting samples from.
-                        # this slightly convoluted check ensures that we unsubscribe
-                        # from the last parameter if any earlier one produces at least
-                        # REQUIRED_CONSECUTIVE_STABLE_SAMPLES samples, regardless of
-                        # intermittent non-None values received from other params.
-                        match self.used_param > 0 and args[self.used_param - 1]:
-                            case False | Sample(value=None):
+                        # Keeps track of which parameter we are getting samples
+                        # from. This slightly convoluted check ensures that we
+                        # unsubscribe from the last parameter if any earlier
+                        # one produces at least
+                        # `REQUIRED_CONSECUTIVE_STABLE_SAMPLES` samples,
+                        # regardless of intermittent non-None values received
+                        # from other params.
+                        used_arg = (
+                            args[self.used_param - 1] if self.used_param > 0 else None
+                        )
+                        match used_arg:
+                            case None | Sample(value=None):
+                                # We are not tracking a parameter yet, or the
+                                # one we track stopped producing values, so
+                                # track this one instead.
                                 self.used_param = param
                                 self.num_samples = 0
-
+                            case Sample() | Quantity():
+                                # The tracked parameter is still producing
+                                # values, so keep counting samples for it.
+                                pass
+                            case unexpected:
+                                assert_never(unexpected)
                         self.num_samples += 1
 
                         if (

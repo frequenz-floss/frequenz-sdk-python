@@ -197,7 +197,7 @@ class PowerManagingActor(Actor):
                 )
             )
 
-    @override
+    @override  # pylint: disable-next=too-many-branches
     async def _run(self) -> None:
         """Run the power managing actor."""
         last_result_partial_failure = False
@@ -261,6 +261,14 @@ class PowerManagingActor(Actor):
                             )
                     case _power_distributing.Success():
                         last_result_partial_failure = False
+                    case (
+                        _power_distributing.Error() | _power_distributing.OutOfBounds()
+                    ):
+                        # No power was set at all, so there is nothing to correct here.
+                        # Only a successful request clears the partial failure state.
+                        pass
+                    case unexpected:
+                        assert_never(unexpected)
                 await self._send_reports(frozenset(result.request.component_ids))
 
             elif selected_from(selected, drop_old_proposals_timer):

@@ -16,4 +16,4 @@
 
 ## Bug Fixes
 
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
+* `COALESCE()` no longer unsubscribes from the parameter that is producing values when the parameter it was tracking evaluates to nothing at all.  This could only happen when a parameter is an expression that has no value yet, like a nested function call, in which case the samples of the producing parameter were counted against the tracked one.
