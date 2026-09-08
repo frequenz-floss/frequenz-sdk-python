@@ -14,11 +14,24 @@ from pytest_mock import MockerFixture
 from frequenz.sdk.config._util import load_config
 
 
+def _validate_name(value: str) -> None:
+    """Validate that a name starts with `test`.
+
+    Args:
+        value: The name to validate.
+
+    Raises:
+        marshmallow.ValidationError: If the name doesn't start with `test`.
+    """
+    if not value.startswith("test"):
+        raise marshmallow.ValidationError("Invalid value.")
+
+
 @dataclasses.dataclass
 class SimpleConfig:
     """A simple configuration class for testing."""
 
-    name: str = dataclasses.field(metadata={"validate": lambda s: s.startswith("test")})
+    name: str = dataclasses.field(metadata={"validate": _validate_name})
     value: int
 
 
@@ -26,7 +39,7 @@ class SimpleConfig:
 class MmSimpleConfig:
     """A simple marshmallow_dataclass configuration class for testing."""
 
-    name: str = dataclasses.field(metadata={"validate": lambda s: s.startswith("test")})
+    name: str = dataclasses.field(metadata={"validate": _validate_name})
     value: int
 
 
