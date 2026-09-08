@@ -122,25 +122,24 @@ class ShiftingMatryoshka(BaseAlgorithm):
             if upper_bound < lower_bound:
                 break
 
-            match (next_proposal.bounds.lower, next_proposal.bounds.upper):
-                case (None, None):
+            # Bounds the proposal leaves open are taken from the currently available
+            # bounds, unless the bound the proposal does set is already past them, in
+            # which case the proposal collapses to that single value.
+            proposal_lower = next_proposal.bounds.lower
+            proposal_upper = next_proposal.bounds.upper
+            if proposal_lower is None:
+                if proposal_upper is None:
                     proposal_lower = lower_bound
                     proposal_upper = upper_bound
-                case (Power(), None):
-                    proposal_lower = next_proposal.bounds.lower
-                    if proposal_lower > upper_bound:
-                        proposal_upper = proposal_lower
-                    else:
-                        proposal_upper = upper_bound
-                case (None, Power()):
-                    proposal_upper = next_proposal.bounds.upper
-                    if proposal_upper < lower_bound:
-                        proposal_lower = proposal_upper
-                    else:
-                        proposal_lower = lower_bound
-                case (Power(), Power()):
-                    proposal_lower = next_proposal.bounds.lower
-                    proposal_upper = next_proposal.bounds.upper
+                elif proposal_upper < lower_bound:
+                    proposal_lower = proposal_upper
+                else:
+                    proposal_lower = lower_bound
+            elif proposal_upper is None:
+                if proposal_lower > upper_bound:
+                    proposal_upper = proposal_lower
+                else:
+                    proposal_upper = upper_bound
 
             proposal_power = next_proposal.preferred_power
 
