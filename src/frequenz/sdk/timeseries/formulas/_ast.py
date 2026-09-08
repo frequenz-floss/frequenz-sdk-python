@@ -177,7 +177,11 @@ class Add(AstNode[QuantityT]):
                 )
             case (None, _) | (_, None):
                 return None
-        return None
+            case unexpected:
+                # The cases above are exhaustive, but mypy can't narrow tuple patterns
+                # (see python/mypy#12364), so it neither sees that nor accepts
+                # assert_never() here.
+                raise AssertionError(f"Unexpected operands: {unexpected!r}")
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -254,7 +258,11 @@ class Sub(AstNode[QuantityT]):
                 )
             case (None, _) | (_, None):
                 return None
-        return None
+            case unexpected:
+                # The cases above are exhaustive, but mypy can't narrow tuple patterns
+                # (see python/mypy#12364), so it neither sees that nor accepts
+                # assert_never() here.
+                raise AssertionError(f"Unexpected operands: {unexpected!r}")
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -331,7 +339,11 @@ class Mul(AstNode[QuantityT]):
                 )
             case (None, _) | (_, None):
                 return None
-        return None
+            case unexpected:
+                # The cases above are exhaustive, but mypy can't narrow tuple patterns
+                # (see python/mypy#12364), so it neither sees that nor accepts
+                # assert_never() here.
+                raise AssertionError(f"Unexpected operands: {unexpected!r}")
 
     @override
     def format(self, wrap: bool = False) -> str:
@@ -406,7 +418,11 @@ class Div(AstNode[QuantityT]):
                 )
             case (None, _) | (_, None):
                 return None
-        return None
+            case unexpected:
+                # The cases above are exhaustive, but mypy can't narrow tuple patterns
+                # (see python/mypy#12364), so it neither sees that nor accepts
+                # assert_never() here.
+                raise AssertionError(f"Unexpected operands: {unexpected!r}")
 
     @override
     def format(self, wrap: bool = False) -> str:
