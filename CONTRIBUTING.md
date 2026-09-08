@@ -53,7 +53,7 @@ Or you can use `nox`:
 nox -R -s pytest -- tests/test_*.py
 ```
 
-The same appliest to `pylint` or `mypy` for example:
+The same applies to `pylint` or `mypy` for example:
 
 ```sh
 nox -R -s pylint -- tests/test_*.py
@@ -121,11 +121,18 @@ These are the steps to create a new release:
 
 1. Get the latest head you want to create a release from.
 
+   If you use milestones, check that the milestone for this release has no open
+   issues left, and move whatever won't make it to a later milestone.
+
 2. Update the `RELEASE_NOTES.md` file if it is not complete, up to date, and
-   remove template comments (`<!-- ... ->`) and empty sections. Submit a pull
+   remove template comments (`<!-- ... -->`) and empty sections. Submit a pull
    request if an update is needed, wait until it is merged, and update the
    latest head you want to create a release from to get the new merged pull
    request.
+
+   This can't be left for later: the notes published with the release are read
+   from the `RELEASE_NOTES.md` committed at the tagged commit, not from the tag
+   message.
 
 3. Create a new signed tag using the release notes and
    a [semver](https://semver.org/) compatible version number with a `v` prefix,
@@ -134,6 +141,10 @@ These are the steps to create a new release:
    ```sh
    git tag -s --cleanup=whitespace -F RELEASE_NOTES.md v0.0.1
    ```
+
+   The signature is not optional: the *Protect released tags* ruleset rejects
+   unsigned tags. It also forbids updating or deleting a released tag, so make
+   sure you are tagging the commit you want.
 
 4. Push the new tag.
 
@@ -153,4 +164,7 @@ These are the steps to create a new release:
    Commit the new release notes and create a PR (this step should be automated
    eventually too).
 
-7. Celebrate!
+7. If you use milestones, close the milestone for this release, and create the
+   next one if it doesn't exist yet.
+
+8. Celebrate!
