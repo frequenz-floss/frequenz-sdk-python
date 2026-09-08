@@ -3,16 +3,40 @@
 
 """Utilities for checking and clamping bounds and power values to exclusion bounds."""
 
+import enum
+from typing import assert_never
+
 from frequenz.quantities import Power
 
 from ...timeseries import Bounds
+
+
+# This used to be a tuple[bool, bool], but mypy can't check that a match over a tuple
+# covers every combination (see python/mypy#12364), so callers could leave a case out
+# without anyone noticing. It also reads better, as (True, False) gives no hint about
+# which of the two bounds it refers to.
+@enum.unique
+class ExclusionOverlap(enum.Enum):
+    """Which bounds of a pair fall inside an exclusion zone."""
+
+    NONE = enum.auto()
+    """Neither bound is inside the exclusion zone."""
+
+    LOWER = enum.auto()
+    """Only the lower bound is inside the exclusion zone."""
+
+    UPPER = enum.auto()
+    """Only the upper bound is inside the exclusion zone."""
+
+    BOTH = enum.auto()
+    """Both bounds are inside the exclusion zone."""
 
 
 def check_exclusion_bounds_overlap(
     lower_bound: Power,
     upper_bound: Power,
     exclusion_bounds: Bounds[Power] | None,
-) -> tuple[bool, bool]:
+) -> ExclusionOverlap:
     """Check if the given bounds overlap with the given exclusion bounds.
 
     Example:
@@ -29,8 +53,8 @@ def check_exclusion_bounds_overlap(
                               (inside the exclusion zone)
         ```
 
-        Resulting in `(False, True)` because only the upper bound is inside the
-        exclusion zone.
+        Resulting in `ExclusionOverlap.UPPER` because only the upper bound is inside
+        the exclusion zone.
 
     Args:
         lower_bound: The lower bound to check.
@@ -38,22 +62,21 @@ def check_exclusion_bounds_overlap(
         exclusion_bounds: The exclusion bounds to check against.
 
     Returns:
-        A tuple containing a boolean indicating if the lower bound is bounded by the
-            exclusion bounds, and a boolean indicating if the upper bound is bounded by
-            the exclusion bounds.
+        Which of the given bounds are inside the exclusion bounds.
     """
     if exclusion_bounds is None:
-        return False, False
+        return ExclusionOverlap.NONE
 
-    bounded_lower = False
-    bounded_upper = False
+    bounded_lower = exclusion_bounds.lower < lower_bound < exclusion_bounds.upper
+    bounded_upper = exclusion_bounds.lower < upper_bound < exclusion_bounds.upper
 
-    if exclusion_bounds.lower < lower_bound < exclusion_bounds.upper:
-        bounded_lower = True
-    if exclusion_bounds.lower < upper_bound < exclusion_bounds.upper:
-        bounded_upper = True
-
-    return bounded_lower, bounded_upper
+    if bounded_lower and bounded_upper:
+        return ExclusionOverlap.BOTH
+    if bounded_lower:
+        return ExclusionOverlap.LOWER
+    if bounded_upper:
+        return ExclusionOverlap.UPPER
+    return ExclusionOverlap.NONE
 
 
 def adjust_exclusion_bounds(
@@ -80,13 +103,16 @@ def adjust_exclusion_bounds(
     # And if the given bounds overlap with the exclusion bounds on one side, then clamp
     # the given bounds on that side.
     match check_exclusion_bounds_overlap(lower_bound, upper_bound, exclusion_bounds):
-        case (True, True):
+        case ExclusionOverlap.BOTH:
             return Power.zero(), Power.zero()
-        case (False, True):
+        case ExclusionOverlap.UPPER:
             return lower_bound, exclusion_bounds.lower
-        case (True, False):
+        case ExclusionOverlap.LOWER:
             return exclusion_bounds.upper, upper_bound
-    return lower_bound, upper_bound
+        case ExclusionOverlap.NONE:
+            return lower_bound, upper_bound
+        case unexpected:
+            assert_never(unexpected)
 
 
 # Just 20 lines of code in this function, but unfortunately 8 of those are return
@@ -123,14 +149,20 @@ def clamp_to_bounds(  # pylint: disable=too-many-return-statements
         match check_exclusion_bounds_overlap(
             lower_bound, upper_bound, exclusion_bounds
         ):
-            case (True, True):
+            case ExclusionOverlap.BOTH:
                 return None, None
-            case (True, False):
+            case ExclusionOverlap.LOWER:
                 if value < exclusion_bounds.upper:
                     return None, exclusion_bounds.upper
-            case (False, True):
+            case ExclusionOverlap.UPPER:
                 if value > exclusion_bounds.lower:
                     return exclusion_bounds.lower, None
+            case ExclusionOverlap.NONE:
+                # The bounds don't overlap the exclusion zone, so the value only needs
+                # the generic clamping done below.
+                pass
+            case unexpected:
+                assert_never(unexpected)
 
     # If the given value is outside the given bounds, clamp it to the closest bound.
     if value < lower_bound:

@@ -111,11 +111,13 @@ class Matryoshka(BaseAlgorithm):
             # If the bounds from the current proposal are fully within the exclusion
             # bounds, then don't use them to narrow the bounds further. This allows
             # subsequent proposals to not be blocked by the current proposal.
-            match _bounds.check_exclusion_bounds_overlap(
-                proposal_lower, proposal_upper, exclusion_bounds
+            if (
+                _bounds.check_exclusion_bounds_overlap(
+                    proposal_lower, proposal_upper, exclusion_bounds
+                )
+                is _bounds.ExclusionOverlap.BOTH
             ):
-                case (True, True):
-                    continue
+                continue
             lower_bound = max(lower_bound, proposal_lower)
             upper_bound = min(upper_bound, proposal_upper)
             lower_bound, upper_bound = _bounds.adjust_exclusion_bounds(
@@ -275,11 +277,13 @@ class Matryoshka(BaseAlgorithm):
                 break
             proposal_lower = next_proposal.bounds.lower or lower_bound
             proposal_upper = next_proposal.bounds.upper or upper_bound
-            match _bounds.check_exclusion_bounds_overlap(
-                proposal_lower, proposal_upper, exclusion_bounds
+            if (
+                _bounds.check_exclusion_bounds_overlap(
+                    proposal_lower, proposal_upper, exclusion_bounds
+                )
+                is _bounds.ExclusionOverlap.BOTH
             ):
-                case (True, True):
-                    continue
+                continue
             calc_lower_bound = max(lower_bound, proposal_lower)
             calc_upper_bound = min(upper_bound, proposal_upper)
             if calc_lower_bound <= calc_upper_bound:
