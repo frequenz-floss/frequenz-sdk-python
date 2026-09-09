@@ -1860,7 +1860,7 @@ dependencies and run <code>pytest</code> manually.</p>
 <p>Or you can use <code>nox</code>:</p>
 <div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pytest<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
 </span></code></pre></div>
-<p>The same appliest to <code>pylint</code> or <code>mypy</code> for example:</p>
+<p>The same applies to <code>pylint</code> or <code>mypy</code> for example:</p>
 <div class="language-sh highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>pylint<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>nox<span class="w"> </span>-R<span class="w"> </span>-s<span class="w"> </span>mypy<span class="w"> </span>--<span class="w"> </span>tests/test_*.py
 </span></code></pre></div>
@@ -1906,24 +1906,30 @@ GitHub pages produced for your fork.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">¤</a></h2>
 <p>These are the steps to create a new release:</p>
 <ol>
-<li>
-<p>Get the latest head you want to create a release from.</p>
-</li>
-<li>
-<p>Update the <code>RELEASE_NOTES.md</code> file if it is not complete, up to date, and
-   remove template comments (<code>&lt;!-- ... -&gt;</code>) and empty sections. Submit a pull
+<li>Get the latest head you want to create a release from.</li>
+</ol>
+<p>If you use milestones, check that the milestone for this release has no open
+   issues left, and move whatever won't make it to a later milestone.</p>
+<ol>
+<li>Update the <code>RELEASE_NOTES.md</code> file if it is not complete, up to date, and
+   remove template comments (<code>&lt;!-- ... --&gt;</code>) and empty sections. Submit a pull
    request if an update is needed, wait until it is merged, and update the
    latest head you want to create a release from to get the new merged pull
-   request.</p>
-</li>
-<li>
-<p>Create a new signed tag using the release notes and
+   request.</li>
+</ol>
+<p>This can't be left for later: the notes published with the release are read
+   from the <code>RELEASE_NOTES.md</code> committed at the tagged commit, not from the tag
+   message.</p>
+<ol>
+<li>Create a new signed tag using the release notes and
    a <a href="https://semver.org/">semver</a> compatible version number with a <code>v</code> prefix,
-   for example:</p>
-</li>
+   for example:</li>
 </ol>
 <div class="language-sh highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>git<span class="w"> </span>tag<span class="w"> </span>-s<span class="w"> </span>--cleanup<span class="o">=</span>whitespace<span class="w"> </span>-F<span class="w"> </span>RELEASE_NOTES.md<span class="w"> </span>v0.0.1
 </span></code></pre></div>
+<p>The signature is not optional: the <em>Protect released tags</em> ruleset rejects
+   unsigned tags. It also forbids updating or deleting a released tag, so make
+   sure you are tagging the commit you want.</p>
 <ol>
 <li>
 <p>Push the new tag.</p>
@@ -1945,7 +1951,13 @@ GitHub pages produced for your fork.</p>
 <p>Commit the new release notes and create a PR (this step should be automated
    eventually too).</p>
 <ol>
-<li>Celebrate!</li>
+<li>
+<p>If you use milestones, close the milestone for this release, and create the
+   next one if it doesn't exist yet.</p>
+</li>
+<li>
+<p>Celebrate!</p>
+</li>
 </ol>
 
 
