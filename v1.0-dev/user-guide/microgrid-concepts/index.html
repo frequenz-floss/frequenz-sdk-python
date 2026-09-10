@@ -771,6 +771,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--steam-boilers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steam Boilers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#frequenz.sdk.microgrid--component-pools" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1406,6 +1417,8 @@
       
         
       
+        
+      
     
     
     
@@ -1813,6 +1826,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/frequenz/sdk/timeseries/steam_boiler_pool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    steam_boiler_pool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1968,6 +2009,17 @@
     <span class="md-ellipsis">
       
         EV Chargers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frequenz.sdk.microgrid--steam-boilers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steam Boilers
       
     </span>
   </a>
@@ -2329,13 +2381,40 @@ method.</p>
   " href="../../reference/frequenz/sdk/timeseries/ev_charger_pool/#frequenz.sdk.timeseries.ev_charger_pool.EVChargerPool.propose_power"><code>propose_power</code></a>,
 which accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports
 only charging.</p>
+<h3 id="frequenz.sdk.microgrid--steam-boilers">Steam Boilers<a class="headerlink" href="#frequenz.sdk.microgrid--steam-boilers" title="Permanent link">¤</a></h3>
+<p>The <a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_steam_boiler_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_steam_boiler_pool"><code>steam_boiler_pool</code></a> offers a
+<a class="autorefs autorefs-internal" title="power
+
+
+  
+      property
+  " href="../../reference/frequenz/sdk/timeseries/steam_boiler_pool/#frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.power"><code>power</code></a> method that
+streams the total power measured for all the steam boilers at a site.</p>
+<p>The <code>steam_boiler_pool</code> also provides available power bounds through the
+<a class="autorefs autorefs-internal" title="power_status
+
+
+  
+      property
+  " href="../../reference/frequenz/sdk/timeseries/steam_boiler_pool/#frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.power_status"><code>power_status</code></a>
+method.</p>
+<p>The <code>steam_boiler_pool</code> also provides a control method
+<a class="autorefs autorefs-internal" title="propose_power
+
+
+  
+      async
+  " href="../../reference/frequenz/sdk/timeseries/steam_boiler_pool/#frequenz.sdk.timeseries.steam_boiler_pool.SteamBoilerPool.propose_power"><code>propose_power</code></a>,
+which accepts values in the <a href="../glossary/#psc">Passive Sign Convention</a> and supports
+only consumption.</p>
 <h2 id="frequenz.sdk.microgrid--component-pools">Component pools<a class="headerlink" href="#frequenz.sdk.microgrid--component-pools" title="Permanent link">¤</a></h2>
 <p>The SDK provides a unified interface for interacting with sets of Batteries, EV
-chargers and PV arrays, through their corresponding <code>Pool</code>s.</p>
+chargers, PV arrays and steam boilers, through their corresponding <code>Pool</code>s.</p>
 <ul>
 <li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_battery_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_battery_pool">Battery pool</a></li>
 <li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_ev_charger_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_ev_charger_pool">EV charger pool</a></li>
 <li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_pv_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_pv_pool">PV pool</a></li>
+<li><a class="autorefs autorefs-internal" title="frequenz.sdk.microgrid.new_steam_boiler_pool" href="../../reference/frequenz/sdk/microgrid/#frequenz.sdk.microgrid.new_steam_boiler_pool">Steam boiler pool</a></li>
 </ul>
 <p>All of them provide support for streaming aggregated data and for setting the
 power values of the components.</p>
@@ -2875,6 +2954,10 @@ default powers immediately.  These are:</p>
 <tr>
 <td>EV Chargers</td>
 <td>Max consumption (Max power according to PSC)</td>
+</tr>
+<tr>
+<td>Steam Boilers</td>
+<td>Zero</td>
 </tr>
 </tbody>
 </table>
