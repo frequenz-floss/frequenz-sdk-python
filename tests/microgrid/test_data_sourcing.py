@@ -20,6 +20,7 @@ from frequenz.client.microgrid.component import (
     DcEvCharger,
     LiIonBattery,
     Meter,
+    SteamBoiler,
 )
 from frequenz.client.microgrid.metrics import Metric
 from frequenz.quantities import Quantity
@@ -35,6 +36,7 @@ from frequenz.sdk.microgrid._old_component_data import (
     EVChargerData,
     InverterData,
     MeterData,
+    SteamBoilerData,
 )
 from frequenz.sdk.timeseries import Sample
 
@@ -56,6 +58,7 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
             BatteryInverter(id=ComponentId(6), microgrid_id=_MICROGRID_ID),
             LiIonBattery(id=ComponentId(9), microgrid_id=_MICROGRID_ID),
             DcEvCharger(id=ComponentId(12), microgrid_id=_MICROGRID_ID),
+            SteamBoiler(id=ComponentId(15), microgrid_id=_MICROGRID_ID),
         ],
     )
 
@@ -74,6 +77,11 @@ def mock_connection_manager(mocker: pytest_mock.MockFixture) -> mock.Mock:
     mocker.patch(
         "frequenz.sdk.microgrid._data_sourcing.microgrid_api_source.EVChargerData.subscribe",
         side_effect=_new_ev_charger_data_mock(ComponentId(12), starting_value=-13.0),
+    )
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_sourcing"
+        ".microgrid_api_source.SteamBoilerData.subscribe",
+        side_effect=_new_steam_boiler_data_mock(ComponentId(15), starting_value=50.0),
     )
 
     mock_conn_manager = mock.MagicMock(name="connection_manager")
@@ -144,6 +152,14 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
         ).new_receiver()
         await req_sender.send(active_power_request_12)
 
+        active_power_request_15 = ComponentMetricRequest(
+            "test-namespace", ComponentId(15), Metric.AC_ACTIVE_POWER, None
+        )
+        active_power_recv_15 = registry.get_or_create(
+            Sample[Quantity], active_power_request_15.get_channel_name()
+        ).new_receiver()
+        await req_sender.send(active_power_request_15)
+
         for i in range(3):
             sample = await active_power_recv_4.receive()
             assert sample.value is not None
@@ -168,6 +184,10 @@ async def test_data_sourcing_actor(  # pylint: disable=too-many-locals
             sample = await active_power_recv_12.receive()
             assert sample.value is not None
             assert -13.0 + i == sample.value.base_value
+
+            sample = await active_power_recv_15.receive()
+            assert sample.value is not None
+            assert 50.0 + i == sample.value.base_value
 
 
 async def test_duplicate_requests_do_not_block_new_receivers(
@@ -359,6 +379,29 @@ def _new_ev_charger_data(
     )
 
 
+def _new_steam_boiler_data(
+    component_id: ComponentId, timestamp: datetime, value: float
+) -> SteamBoilerData:
+    return SteamBoilerData(
+        component_id=component_id,
+        timestamp=timestamp,
+        active_power=value,
+        active_power_per_phase=(value, value, value),
+        current_per_phase=(value, value, value),
+        frequency=value,
+        reactive_power=value,
+        reactive_power_per_phase=(value, value, value),
+        voltage_per_phase=(value, value, value),
+        active_power_exclusion_lower_bound=value,
+        active_power_exclusion_upper_bound=value,
+        active_power_inclusion_lower_bound=value,
+        active_power_inclusion_upper_bound=value,
+        states={ComponentStateCode.UNSPECIFIED},
+        errors=frozenset(),
+        warnings=frozenset(),
+    )
+
+
 def _new_streamer_mock(
     name: str,
     constructor: Callable[[ComponentId, datetime, float], T],
@@ -418,6 +461,18 @@ def _new_ev_charger_data_mock(
     return _new_streamer_mock(
         f"ev_charger_data_mock(id={component_id}, starting_value={starting_value})",
         _new_ev_charger_data,
+        component_id,
+        starting_value,
+    )
+
+
+def _new_steam_boiler_data_mock(
+    component_id: ComponentId, starting_value: float
+) -> mock.Mock:
+    """Get a mock streamer for steam boiler data."""
+    return _new_streamer_mock(
+        f"steam_boiler_data_mock(id={component_id}, starting_value={starting_value})",
+        _new_steam_boiler_data,
         component_id,
         starting_value,
     )
