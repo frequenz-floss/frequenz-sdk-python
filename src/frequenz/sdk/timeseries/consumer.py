@@ -40,7 +40,7 @@ class Consumer:
 
         await microgrid.initialize(
             "grpc://127.0.0.1:50051",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1.0))
+            ResamplerConfig2(resampling_period=timedelta(seconds=1.0), max_data_age_in_periods=3.0)
         )
 
         consumer = microgrid.consumer()

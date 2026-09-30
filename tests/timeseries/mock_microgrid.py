@@ -211,7 +211,10 @@ class MockMicrogrid:  # pylint: disable=too-many-instance-attributes
         self.init_mock_client(lambda mock_client: mock_client.initialize(local_mocker))
         self.mock_resampler = MockResampler(
             mocker,
-            ResamplerConfig2(timedelta(seconds=self._sample_rate_s)),
+            ResamplerConfig2(
+                resampling_period=timedelta(seconds=self._sample_rate_s),
+                max_data_age_in_periods=3.0,
+            ),
             bat_inverter_ids=self.battery_inverter_ids,
             pv_inverter_ids=self.pv_inverter_ids,
             evc_ids=self.evc_ids,

@@ -65,7 +65,9 @@ async def mocks(mocker: MockerFixture) -> AsyncIterator[Mocks]:
     if microgrid._data_pipeline._DATA_PIPELINE is not None:
         microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig2(resampling_period=timedelta(seconds=0.1))
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=0.1), max_data_age_in_periods=3.0
+        )
     )
     streamer = MockComponentDataStreamer(mockgrid.mock_client)
 

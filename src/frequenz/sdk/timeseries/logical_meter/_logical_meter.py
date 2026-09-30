@@ -40,7 +40,7 @@ class LogicalMeter:
 
         await microgrid.initialize(
             "grpc://microgrid.sandbox.api.frequenz.io:62060",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+            ResamplerConfig2(resampling_period=timedelta(seconds=1), max_data_age_in_periods=3.0),
         )
 
         logical_meter = (
