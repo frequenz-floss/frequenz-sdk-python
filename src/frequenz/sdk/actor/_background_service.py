@@ -6,8 +6,11 @@
 import abc
 import asyncio
 import collections.abc
+import logging
 from types import TracebackType
 from typing import Any, Self
+
+_logger = logging.getLogger(__name__)
 
 
 class BackgroundService(abc.ABC):
@@ -167,6 +170,10 @@ class BackgroundService(abc.ABC):
         Args:
             msg: The message to be passed to the tasks being cancelled.
         """
+        _logger.debug(
+            "Service %s cancelled%s", self, f": {msg}" if msg is not None else ""
+        )
+
         for task in self._tasks:
             task.cancel(msg)
 
