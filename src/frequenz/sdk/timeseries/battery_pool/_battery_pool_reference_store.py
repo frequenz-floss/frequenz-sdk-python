@@ -93,15 +93,15 @@ class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
 
         self._batteries = self.component_ids
         self._working_batteries: set[ComponentId] = set()
+        self._min_update_interval: timedelta = min_update_interval
+        self._active_methods: dict[str, MetricAggregator[Any]] = {}
+        self._power_distributing_namespace: str = f"power-distributor-{self.namespace}"
         self._update_battery_status_task: asyncio.Task[None] | None = None
 
         if self._batteries:
             self._update_battery_status_task = asyncio.create_task(
                 self._update_battery_status(self.status_receiver)
             )
-        self._min_update_interval: timedelta = min_update_interval
-        self._active_methods: dict[str, MetricAggregator[Any]] = {}
-        self._power_distributing_namespace: str = f"power-distributor-{self.namespace}"
 
     @staticmethod
     def get_component_class() -> Type[Component]:
