@@ -554,7 +554,7 @@ if __name__ == "__main__":  # (7)!
 10. The [`select()`][frequenz.channels.select] function will get the first message
     available from the two channels. The order in which they will be handled is
     unknown, but in this example we assume that the first message will be from
-    `input_channel_1` (`True`) and the second from `input_channel_1` (`False`).
+    `input_channel_1` (`True`) and the second from `input_channel_2` (`False`).
 
 11. The [`selected_from()`][frequenz.channels.selected_from] function will return
     `True` for the `input_channel_1` receiver. `selected.message` holds the received
@@ -588,6 +588,7 @@ The expected output is:
 ```
 Received from receiver_1: True
 Received from receiver_2: False
+EchoActor finished
 Received message=True
 Received message=False
 ```
