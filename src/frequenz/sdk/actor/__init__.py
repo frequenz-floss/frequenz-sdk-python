@@ -380,9 +380,9 @@ class Actor2(Actor):
 
 async def main() -> None:  # (2)!
     # (4)!
-    input_channel: Broadcast[str] = Broadcast("Input to Actor1")
-    middle_channel: Broadcast[str] = Broadcast("Actor1 -> Actor2 stream")
-    output_channel: Broadcast[str] = Broadcast("Actor2 output")
+    input_channel: Broadcast[str] = Broadcast(name="Input to Actor1")
+    middle_channel: Broadcast[str] = Broadcast(name="Actor1 -> Actor2 stream")
+    output_channel: Broadcast[str] = Broadcast(name="Actor2 output")
 
     input_sender = input_channel.new_sender()
     output_receiver = output_channel.new_receiver()
@@ -497,9 +497,9 @@ class EchoActor(Actor):  # (1)!
 
 
 # (3)!
-input_channel_1 = Broadcast[bool]("input_channel_1")
-input_channel_2 = Broadcast[bool]("input_channel_2")
-echo_channel = Broadcast[bool]("echo_channel")
+input_channel_1 = Broadcast[bool](name="input_channel_1")
+input_channel_2 = Broadcast[bool](name="input_channel_2")
+echo_channel = Broadcast[bool](name="echo_channel")
 
 echo_actor = EchoActor(  # (4)!
     input_channel_1.new_receiver(),
