@@ -38,7 +38,10 @@ from ._states import EvcState, EvcStates
 _logger = logging.getLogger(__name__)
 
 
-class EVChargerManager(ComponentManager):
+# `_unreachable_power_formula()` is an optional hook, only needed by managers that
+# subscribe to unreachable power, which this one doesn't. Pylint considers it abstract
+# because its default implementation raises `NotImplementedError`.
+class EVChargerManager(ComponentManager):  # pylint: disable=abstract-method
     """Manage ev chargers for the power distributor."""
 
     @override
