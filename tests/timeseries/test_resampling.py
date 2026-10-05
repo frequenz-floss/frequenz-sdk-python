@@ -111,6 +111,7 @@ async def test_resampler_config_len_ok(
     """Test checks on the resampling buffer."""
     config = config_class(
         resampling_period=timedelta(seconds=1.0),
+        max_data_age_in_periods=3.0,
         initial_buffer_len=init_len,
     )
     assert config.initial_buffer_len == init_len
@@ -129,6 +130,7 @@ async def test_resampler_config_len_warn(
     """Test checks on the resampling buffer."""
     config = config_class(
         resampling_period=timedelta(seconds=1.0),
+        max_data_age_in_periods=3.0,
         initial_buffer_len=init_len,
     )
     assert config.initial_buffer_len == init_len
@@ -157,6 +159,7 @@ async def test_resampler_config_len_error(
     with pytest.raises(ValueError):
         _ = config_class(
             resampling_period=timedelta(seconds=1.0),
+            max_data_age_in_periods=3.0,
             initial_buffer_len=init_len,
         )
 
@@ -169,6 +172,7 @@ async def test_resampler_config_tick_delay_negative_error(
     with pytest.raises(ValueError, match="tick_delay"):
         _ = config_class(
             resampling_period=timedelta(seconds=1.0),
+            max_data_age_in_periods=3.0,
             tick_delay=timedelta(milliseconds=-1),
         )
 
@@ -182,6 +186,7 @@ async def test_resampler_config_tick_delay_too_big_error(
     with pytest.raises(ValueError, match="smaller than resampling_period"):
         _ = config_class(
             resampling_period=timedelta(seconds=1.0),
+            max_data_age_in_periods=3.0,
             tick_delay=tick_delay,
         )
 
@@ -587,6 +592,7 @@ async def test_calculate_window_end_trivial_cases(
     resampler = Resampler(
         ResamplerConfig(
             resampling_period=resampling_period,
+            max_data_age_in_periods=3.0,
             align_to=align_to,
         )
     )
@@ -599,12 +605,14 @@ async def test_calculate_window_end_trivial_cases(
     resampler_now = Resampler(
         ResamplerConfig(
             resampling_period=resampling_period,
+            max_data_age_in_periods=3.0,
             align_to=now,
         )
     )
     resampler_none = Resampler(
         ResamplerConfig(
             resampling_period=resampling_period,
+            max_data_age_in_periods=3.0,
             align_to=None,
         )
     )

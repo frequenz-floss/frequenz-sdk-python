@@ -148,7 +148,10 @@ async def setup_all_batteries(mocker: MockerFixture) -> AsyncIterator[SetupArgs]
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig2(resampling_period=timedelta(seconds=min_update_interval))
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=min_update_interval),
+            max_data_age_in_periods=3.0,
+        )
     )
     streamer = MockComponentDataStreamer(mock_microgrid)
 
@@ -199,7 +202,10 @@ async def setup_batteries_pool(mocker: MockerFixture) -> AsyncIterator[SetupArgs
     # pylint: disable=protected-access
     microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig2(resampling_period=timedelta(seconds=min_update_interval))
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=min_update_interval),
+            max_data_age_in_periods=3.0,
+        )
     )
 
     # We don't use status channel from the sdk interface to limit

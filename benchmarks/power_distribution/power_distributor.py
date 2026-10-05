@@ -139,7 +139,9 @@ async def run() -> None:
     """Create microgrid api and run tests."""
     await microgrid.initialize(
         "grpc://microgrid.sandbox.api.frequenz.io:62060",
-        ResamplerConfig2(resampling_period=timedelta(seconds=1.0)),
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=1.0), max_data_age_in_periods=3.0
+        ),
     )
 
     all_batteries = connection_manager.get().component_graph.components(

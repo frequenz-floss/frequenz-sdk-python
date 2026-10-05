@@ -463,7 +463,10 @@ async def test_wait_for_samples_with_resampling(
 ) -> None:
     """Test waiting for samples in a moving window with resampling."""
     window, sender = init_moving_window(
-        timedelta(seconds=20), config_class(resampling_period=timedelta(seconds=2))
+        timedelta(seconds=20),
+        config_class(
+            resampling_period=timedelta(seconds=2), max_data_age_in_periods=3.0
+        ),
     )
     async with window:
         task = asyncio.create_task(window.wait_for_samples(3))
@@ -537,7 +540,9 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     window_size = timedelta(seconds=16)
     input_sampling = timedelta(seconds=1)
     output_sampling = timedelta(seconds=2)
-    resampler_config = ResamplerConfig(resampling_period=output_sampling)
+    resampler_config = ResamplerConfig(
+        resampling_period=output_sampling, max_data_age_in_periods=3.0
+    )
 
     async with MovingWindow(
         size=window_size,

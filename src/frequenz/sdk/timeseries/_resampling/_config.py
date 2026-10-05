@@ -105,7 +105,7 @@ class ResamplerConfig:
     It must be a positive time span.
     """
 
-    max_data_age_in_periods: float = 3.0
+    max_data_age_in_periods: float
     """The maximum age a sample can have to be considered *relevant* for resampling.
 
     Expressed in number of periods, where period is the `resampling_period`
@@ -114,6 +114,11 @@ class ResamplerConfig:
     the resampling period).
 
     It must be bigger than 1.0.
+
+    There is no default value, as the right value depends on the data being
+    resampled and on how the resampled data is used: bigger values smooth the
+    output and make it more robust against late or missing samples, but also
+    make it react slower to changes.
 
     Example:
         If `resampling_period` is 3 seconds, the input sampling period is
@@ -323,7 +328,7 @@ class ResamplerConfig2(ResamplerConfig):
     It must be a positive time span.
     """
 
-    max_data_age_in_periods: float = 3.0
+    max_data_age_in_periods: float
     """The maximum age a sample can have to be considered *relevant* for resampling.
 
     Expressed in number of periods, where period is the `resampling_period`
@@ -332,6 +337,11 @@ class ResamplerConfig2(ResamplerConfig):
     the resampling period).
 
     It must be bigger than 1.0.
+
+    There is no default value, as the right value depends on the data being
+    resampled and on how the resampled data is used: bigger values smooth the
+    output and make it more robust against late or missing samples, but also
+    make it react slower to changes.
 
     Example:
         If `resampling_period` is 3 seconds, the input sampling period is

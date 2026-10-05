@@ -49,7 +49,10 @@ async def run() -> None:
     # Initialize the microgrid
     await microgrid.initialize(
         server_url,
-        ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=1),
+            max_data_age_in_periods=3.0,
+        ),
     )
 
     # Define your application logic here
@@ -109,7 +112,10 @@ async def run() -> None:
     # Initialize the microgrid
     await microgrid.initialize(
         server_url,
-        ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+        ResamplerConfig2(
+            resampling_period=timedelta(seconds=1),
+            max_data_age_in_periods=3.0,
+        ),
     )
 
     # Define your application logic here

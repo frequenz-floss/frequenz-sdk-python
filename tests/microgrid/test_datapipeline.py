@@ -44,7 +44,9 @@ async def test_actors_started(
 ) -> None:
     """Test that the datasourcing, resampling and power distributing actors are started."""
     datapipeline = _DataPipeline(
-        resampler_config=ResamplerConfig2(resampling_period=timedelta(seconds=1))
+        resampler_config=ResamplerConfig2(
+            resampling_period=timedelta(seconds=1), max_data_age_in_periods=3.0
+        )
     )
     await asyncio.sleep(1)
 

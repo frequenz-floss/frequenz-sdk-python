@@ -23,7 +23,9 @@ async def main() -> None:
 
     await microgrid.initialize(
         MICROGRID_API_URL,
-        resampler_config=ResamplerConfig2(resampling_period=timedelta(seconds=1.0)),
+        resampler_config=ResamplerConfig2(
+            resampling_period=timedelta(seconds=1.0), max_data_age_in_periods=3.0
+        ),
     )
 
     battery_pool = microgrid.new_battery_pool(priority=5)

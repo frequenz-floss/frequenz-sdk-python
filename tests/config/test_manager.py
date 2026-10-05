@@ -255,7 +255,8 @@ class TestConfigManagerIntegration:
     def config_file(self, tmp_path: pathlib.Path) -> pathlib.Path:
         """Create a temporary config file for testing."""
         config_file = tmp_path / "config.toml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
             [test]
             name = "test1"
             value = 42
@@ -263,7 +264,8 @@ class TestConfigManagerIntegration:
             [logging.loggers.test]
             name = "test"
             level = "DEBUG"
-            """)
+            """
+        )
         return config_file
 
     async def test_full_config_flow(self, config_file: pathlib.Path) -> None:
@@ -280,7 +282,8 @@ class TestConfigManagerIntegration:
             assert logging.getLogger("test").level == logging.DEBUG
 
             # Update config file
-            config_file.write_text("""
+            config_file.write_text(
+                """
                 [test]
                 name = "test2"
                 value = 43
@@ -288,7 +291,8 @@ class TestConfigManagerIntegration:
                 [logging.loggers.test]
                 name = "test"
                 level = "INFO"
-                """)
+                """
+            )
 
             # Check updated config
             config = await receiver.receive()
@@ -316,7 +320,8 @@ class TestConfigManagerIntegration:
             assert logging.getLogger("test").level == logging.WARNING
 
             # Update config file
-            config_file.write_text("""
+            config_file.write_text(
+                """
                 [test]
                 name = "test2"
                 value = 43
@@ -324,7 +329,8 @@ class TestConfigManagerIntegration:
                 [logging.loggers.test]
                 name = "test"
                 level = "DEBUG"
-                """)
+                """
+            )
 
             # Check updated config
             config = await receiver.receive()

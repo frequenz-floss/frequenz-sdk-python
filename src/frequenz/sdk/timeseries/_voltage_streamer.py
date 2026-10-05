@@ -41,7 +41,7 @@ class VoltageStreamer:
 
         await microgrid.initialize(
             "grpc://127.0.0.1:50051",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1))
+            ResamplerConfig2(resampling_period=timedelta(seconds=1), max_data_age_in_periods=3.0)
         )
 
         # Get a receiver for the phase-to-neutral voltage.
