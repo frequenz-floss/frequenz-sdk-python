@@ -78,12 +78,13 @@ dev-mypy = [
 ]
 dev-noxfile = ["nox == 2026.8.17", "frequenz-repo-config[lib] == 0.19.0"]
 dev-pylint = [
-  "pylint == 4.0.9",
+  # dev-pytest already defines a dependency to pylint because of the examples
   # For checking the noxfile, docs/ script, and tests
   "frequenz-sdk[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
   "pytest == 9.1.1",
+  "pylint == 4.0.9", # We need this to check for the examples
   "frequenz-repo-config[extra-lint-examples] == 0.19.0",
   "pytest-mock == 3.15.1",
   "pytest-asyncio == 1.4.0",
