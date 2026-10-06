@@ -182,6 +182,7 @@ composed easily.
 ???+ example "Example echo actor"
 
     ```python
+    # pylint: disable=abstract-method
     from frequenz.channels import Receiver, Sender
     from frequenz.sdk.actor import Actor
 

@@ -3,6 +3,7 @@
 
 """Simple test for the BaseActor."""
 
+import abc
 import asyncio
 from datetime import timedelta
 
@@ -18,7 +19,7 @@ class MyBaseException(BaseException):
     """A base exception for testing purposes."""
 
 
-class BaseTestActor(Actor):
+class BaseTestActor(Actor, abc.ABC):
     """A base actor for testing purposes."""
 
     restart_count: int = -1
