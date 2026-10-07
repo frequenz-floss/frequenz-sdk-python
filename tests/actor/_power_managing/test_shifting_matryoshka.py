@@ -6,6 +6,7 @@
 # pylint: disable=duplicate-code
 
 import asyncio
+import logging
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -395,6 +396,45 @@ async def test_matryoshka_with_excl_3() -> None:
 
     tester.tgt_power(priority=1, power=-40.0, bounds=(-100.0, -35.0), expected=-50.0)
     tester.bounds(priority=0, expected_power=-50.0, expected_bounds=(-60.0, 5.0))
+
+
+@pytest.mark.parametrize(
+    ("requested_power", "exclusion_bounds", "expected_power"),
+    [
+        (-3.0, (-35.0, 7.0), 0.0),
+        (3.0, (-7.0, 35.0), 0.0),
+        (-30.0, (-35.0, 7.0), -35.0),
+    ],
+)
+async def test_matryoshka_avoids_opposite_direction_outside_exclusion_bounds(
+    caplog: pytest.LogCaptureFixture,
+    requested_power: float,
+    exclusion_bounds: tuple[float, float],
+    expected_power: float,
+) -> None:
+    """Avoid targets that would snap to the opposite direction."""
+    batteries = frozenset({ComponentId(2), ComponentId(5)})
+    system_bounds = _base_types.SystemBounds(
+        timestamp=datetime.now(tz=timezone.utc),
+        inclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(-200.0), upper=Power.from_watts(200.0)
+        ),
+        exclusion_bounds=timeseries.Bounds(
+            lower=Power.from_watts(exclusion_bounds[0]),
+            upper=Power.from_watts(exclusion_bounds[1]),
+        ),
+    )
+    tester = StatefulTester(batteries, system_bounds)
+
+    with caplog.at_level(logging.INFO):
+        tester.tgt_power(
+            priority=1,
+            power=requested_power,
+            bounds=(-200.0, 200.0),
+            expected=expected_power,
+        )
+
+    assert f"target power: {expected_power:g} W" in caplog.messages[-1]
 
 
 async def test_matryoshka_drop_old_proposals() -> None:
