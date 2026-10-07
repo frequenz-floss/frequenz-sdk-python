@@ -439,6 +439,78 @@ async def start_streaming_power_bounds(
     return all_batteries, bat_invs_map
 
 
+async def test_power_bounds_when_working_batteries_swap(
+    setup_batteries_pool: SetupArgs,
+) -> None:
+    """Test that batteries rejoining the working set count towards the bounds at once.
+
+    The metric fetchers clear a component's data when none arrives within
+    MAX_BATTERY_DATA_AGE_SEC, and the status trackers stop counting batteries
+    with stale data as working. So a battery that leaves the working set and
+    comes back must not have to wait for its next data sample before its bounds
+    are used again.
+
+    Args:
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
+    """
+    battery_pool = setup_batteries_pool.battery_pool
+    battery_status_sender = setup_batteries_pool.battery_status_sender
+    first, second = sorted(battery_pool.component_ids)
+
+    # Give the second battery different bounds, so that swapping which battery
+    # is working changes the result.
+    all_batteries, _ = await start_streaming_power_bounds(
+        setup_batteries_pool, {second: (-500, 3000)}
+    )
+
+    receiver = battery_pool.system_power_bounds.new_receiver(limit=50)
+    waiting_time_sec = 1.0
+
+    msg = await asyncio.wait_for(
+        receiver.receive(), timeout=WAIT_FOR_COMPONENT_DATA_SEC + waiting_time_sec
+    )
+    now = datetime.now(tz=timezone.utc)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-1400), Power.from_watts(8000)),
+            exclusion_bounds=Bounds(Power.from_watts(-600), Power.from_watts(600)),
+        ),
+    )
+
+    # No new data arrives from here on, so the status changes below land between
+    # two samples. They must happen within MAX_BATTERY_DATA_AGE_SEC, after which
+    # the cached data expires.
+    await setup_batteries_pool.streamer.stop()
+
+    await battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries - {second}, uncertain={second})
+    )
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-900), Power.from_watts(5000)),
+            exclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(300)),
+        ),
+    )
+
+    await battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries - {first}, uncertain={first})
+    )
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-500), Power.from_watts(3000)),
+            exclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(300)),
+        ),
+    )
+
+
 async def test_all_batteries_temperature(setup_all_batteries: SetupArgs) -> None:
     """Test temperature for battery pool with all components in the microgrid.
 

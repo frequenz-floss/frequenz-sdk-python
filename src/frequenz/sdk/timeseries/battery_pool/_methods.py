@@ -14,9 +14,6 @@ from frequenz.client.common.microgrid.components import ComponentId
 
 from ..._internal._asyncio import cancel_and_await, run_forever
 from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
-from ...microgrid._power_distributing._component_managers._battery_manager import (
-    _get_battery_inverter_mappings,
-)
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
@@ -86,13 +83,6 @@ class SendOnUpdate(MetricAggregator[T]):
             min_update_interval: Minimum frequency for sending update about the change.
         """
         self._metric_calculator: MetricCalculator[T] = metric_calculator
-        self._bat_inv_map = _get_battery_inverter_mappings(
-            self._metric_calculator.batteries,
-            inv_bats=False,
-            bat_bats=False,
-            inv_invs=False,
-        )["bat_invs"]
-
         self._working_batteries: set[ComponentId] = working_batteries.intersection(
             metric_calculator.batteries
         )
@@ -148,13 +138,6 @@ class SendOnUpdate(MetricAggregator[T]):
         # For example batteries without adjacent inverter won't be included
         # int he PowerBounds metrics.
         new_set = new_working_batteries.intersection(self._metric_calculator.batteries)
-
-        stopped_working = self._working_batteries - new_set
-        for battery_id in stopped_working:
-            # Removed cached metrics for components that stopped working.
-            self._cached_metrics.pop(battery_id, None)
-            for inv_id in self._bat_inv_map[battery_id]:
-                self._cached_metrics.pop(inv_id, None)
 
         if new_set != self._working_batteries:
             self._working_batteries = new_set
