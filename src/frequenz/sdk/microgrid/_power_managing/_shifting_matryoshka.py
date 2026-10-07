@@ -40,9 +40,14 @@ def _get_nearest_possible_power(
         case (None, p) | (p, None) if p:
             return p
         case (low, high) if low and high:
-            if high - power < power - low:
-                return high
-            return low
+            # The exclusion bounds are a region where the system cannot operate.
+            nearest = high if high - power < power - low else low
+            # Never turn a request into power in the opposite direction.
+            if (power > Power.zero() and nearest < Power.zero()) or (
+                power < Power.zero() and nearest > Power.zero()
+            ):
+                return Power.zero()
+            return nearest
         case _:
             return Power.zero()
 
@@ -197,9 +202,10 @@ class ShiftingMatryoshka(BaseAlgorithm):
 
         if allocations:
             _logger.info(
-                "PowerManager allocations for component IDs: %s: %s",
+                "PowerManager allocations for component IDs: %s: %s, target power: %s",
                 sorted(component_ids),
                 allocations,
+                target_power,
             )
 
         return target_power, Bounds[Power](lower=lower_bound, upper=upper_bound)
