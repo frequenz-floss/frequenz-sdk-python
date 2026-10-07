@@ -10,7 +10,7 @@ import asyncio
 import dataclasses
 import logging
 import math
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -380,6 +380,63 @@ async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> Non
         setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_power_bounds_test(setup_batteries_pool)
+
+
+async def start_streaming_power_bounds(
+    setup_args: SetupArgs,
+    inverter_bounds: Mapping[ComponentId, tuple[float, float]] | None = None,
+) -> tuple[set[ComponentId], dict[ComponentId, frozenset[ComponentId]]]:
+    """Mark all batteries as working and stream power bounds for them.
+
+    All batteries are working and sending data, not just the ones in the battery
+    pool.
+
+    Args:
+        setup_args: Needed sdk tools and tools for mocking microgrid.
+        inverter_bounds: The inclusion bounds to stream for the inverters of the
+            given batteries. The inverters of other batteries get (-900, 6000).
+
+    Returns:
+        All the batteries in the microgrid, and the inverters of each battery.
+    """
+    all_batteries = get_components(setup_args.mock_microgrid, Battery)
+    await setup_args.battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
+    )
+    bat_invs_map = _get_battery_inverter_mappings(
+        all_batteries,
+        inv_bats=False,
+        bat_bats=False,
+        inv_invs=False,
+    )["bat_invs"]
+
+    for battery_id, inverter_ids in bat_invs_map.items():
+        # Sampling rate choose to reflect real application.
+        setup_args.streamer.start_streaming(
+            BatteryDataWrapper(
+                component_id=battery_id,
+                timestamp=datetime.now(tz=timezone.utc),
+                power_inclusion_lower_bound=-1000,
+                power_inclusion_upper_bound=5000,
+                power_exclusion_lower_bound=-300,
+                power_exclusion_upper_bound=300,
+            ),
+            sampling_rate=0.05,
+        )
+        lower, upper = (inverter_bounds or {}).get(battery_id, (-900, 6000))
+        for inverter_id in inverter_ids:
+            setup_args.streamer.start_streaming(
+                InverterDataWrapper(
+                    component_id=inverter_id,
+                    timestamp=datetime.now(tz=timezone.utc),
+                    active_power_inclusion_lower_bound=lower,
+                    active_power_inclusion_upper_bound=upper,
+                    active_power_exclusion_lower_bound=-200,
+                    active_power_exclusion_upper_bound=200,
+                ),
+                sampling_rate=0.1,
+            )
+    return all_batteries, bat_invs_map
 
 
 async def test_all_batteries_temperature(setup_all_batteries: SetupArgs) -> None:
@@ -860,7 +917,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     compare_messages(msg, Sample(now, Percentage.from_percent(50.0)))
 
 
-async def run_power_bounds_test(  # pylint: disable=too-many-locals
+async def run_power_bounds_test(
     setup_args: SetupArgs,
 ) -> None:
     """Test if power bounds metric is working as expected.
@@ -869,48 +926,10 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         setup_args: Needed sdk tools and tools for mocking microgrid.
     """
     battery_pool = setup_args.battery_pool
-    mock_microgrid = setup_args.mock_microgrid
     streamer = setup_args.streamer
     battery_status_sender = setup_args.battery_status_sender
 
-    # All batteries are working and sending data. Not just the ones in the
-    # battery pool.
-    all_batteries = get_components(mock_microgrid, Battery)
-    await battery_status_sender.send(
-        ComponentPoolStatus(working=all_batteries, uncertain=set())
-    )
-    bat_invs_map = _get_battery_inverter_mappings(
-        all_batteries,
-        inv_bats=False,
-        bat_bats=False,
-        inv_invs=False,
-    )["bat_invs"]
-
-    for battery_id, inverter_ids in bat_invs_map.items():
-        # Sampling rate choose to reflect real application.
-        streamer.start_streaming(
-            BatteryDataWrapper(
-                component_id=battery_id,
-                timestamp=datetime.now(tz=timezone.utc),
-                power_inclusion_lower_bound=-1000,
-                power_inclusion_upper_bound=5000,
-                power_exclusion_lower_bound=-300,
-                power_exclusion_upper_bound=300,
-            ),
-            sampling_rate=0.05,
-        )
-        for inverter_id in inverter_ids:
-            streamer.start_streaming(
-                InverterDataWrapper(
-                    component_id=inverter_id,
-                    timestamp=datetime.now(tz=timezone.utc),
-                    active_power_inclusion_lower_bound=-900,
-                    active_power_inclusion_upper_bound=6000,
-                    active_power_exclusion_lower_bound=-200,
-                    active_power_exclusion_upper_bound=200,
-                ),
-                sampling_rate=0.1,
-            )
+    all_batteries, bat_invs_map = await start_streaming_power_bounds(setup_args)
 
     receiver = battery_pool.system_power_bounds.new_receiver(limit=50)
 
