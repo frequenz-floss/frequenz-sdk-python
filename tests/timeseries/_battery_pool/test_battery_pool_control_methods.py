@@ -618,3 +618,48 @@ class TestBatteryPoolControl:
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 25.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
+
+    async def test_resend_0w_after_failure(
+        self, mocks: Mocks, mocker: MockerFixture
+    ) -> None:
+        """Test that 0W is sent again to an inverter whose last command failed.
+
+        A command that timed out may still have been applied. The battery status
+        is mocked, so the failed battery is not blocked before the next request.
+        """
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
+        )
+        await self._patch_battery_pool_status(mocks, mocker)
+        await self._init_data_for_batteries(mocks)
+        await self._init_data_for_inverters(mocks)
+
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        bounds_rx = battery_pool.power_status.new_receiver()
+        self._assert_report(
+            await bounds_rx.receive(), power=None, lower=-4000.0, upper=4000.0
+        )
+
+        await battery_pool.propose_power(Power.from_watts(0.0))
+        await asyncio.sleep(1.0)  # Wait for the power to be distributed.
+        assert set_power.call_count == 4
+
+        # The command to the first inverter times out.
+        failing_inverter = mocks.microgrid.battery_inverter_ids[0]
+
+        async def side_effect(inv_id: int, _: float) -> None:
+            if inv_id == failing_inverter:
+                await asyncio.sleep(1000.0)
+
+        set_power.side_effect = side_effect
+        await battery_pool.propose_power(Power.from_watts(100.0))
+        await asyncio.sleep(20.0)  # Wait for the requests to time out.
+
+        set_power.side_effect = None
+        set_power.reset_mock()
+        await battery_pool.propose_power(Power.from_watts(0.0))
+        await asyncio.sleep(1.0)
+        assert sorted(set_power.call_args_list) == [
+            mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
+        ]

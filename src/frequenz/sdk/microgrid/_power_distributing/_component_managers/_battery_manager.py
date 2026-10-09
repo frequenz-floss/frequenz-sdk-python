@@ -184,7 +184,12 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
         """The distribution algorithm used to distribute power between batteries."""
 
         self._last_set_powers: dict[ComponentId, Power] = {}
-        """The last power value set to each battery's inverter."""
+        """The last power value set to each battery's inverter.
+
+        An inverter is missing if it was never sent a request, or if its last
+        request failed. A failed request may still have been applied, so the
+        next request to that inverter is always sent.
+        """
 
     @override
     def component_ids(self) -> collections.abc.Set[ComponentId]:
@@ -772,6 +777,9 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             if failed:
                 failed_power += distribution[inverter_id]
                 failed_batteries.update(battery_ids)
+                # The command may still have been applied, so the next one must
+                # be sent even if it is 0 W.
+                self._last_set_powers.pop(inverter_id, None)
             else:
                 self._last_set_powers[inverter_id] = distribution[inverter_id]
 

@@ -10,7 +10,7 @@ import asyncio
 import dataclasses
 import logging
 import math
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, is_dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -380,6 +380,135 @@ async def test_battery_pool_power_bounds(setup_batteries_pool: SetupArgs) -> Non
         setup_batteries_pool: Fixture that creates needed microgrid tools.
     """
     await run_power_bounds_test(setup_batteries_pool)
+
+
+async def start_streaming_power_bounds(
+    setup_args: SetupArgs,
+    inverter_bounds: Mapping[ComponentId, tuple[float, float]] | None = None,
+) -> tuple[set[ComponentId], dict[ComponentId, frozenset[ComponentId]]]:
+    """Mark all batteries as working and stream power bounds for them.
+
+    All batteries are working and sending data, not just the ones in the battery
+    pool.
+
+    Args:
+        setup_args: Needed sdk tools and tools for mocking microgrid.
+        inverter_bounds: The inclusion bounds to stream for the inverters of the
+            given batteries. The inverters of other batteries get (-900, 6000).
+
+    Returns:
+        All the batteries in the microgrid, and the inverters of each battery.
+    """
+    all_batteries = get_components(setup_args.mock_microgrid, Battery)
+    await setup_args.battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries, uncertain=set())
+    )
+    bat_invs_map = _get_battery_inverter_mappings(
+        all_batteries,
+        inv_bats=False,
+        bat_bats=False,
+        inv_invs=False,
+    )["bat_invs"]
+
+    for battery_id, inverter_ids in bat_invs_map.items():
+        # Sampling rate choose to reflect real application.
+        setup_args.streamer.start_streaming(
+            BatteryDataWrapper(
+                component_id=battery_id,
+                timestamp=datetime.now(tz=timezone.utc),
+                power_inclusion_lower_bound=-1000,
+                power_inclusion_upper_bound=5000,
+                power_exclusion_lower_bound=-300,
+                power_exclusion_upper_bound=300,
+            ),
+            sampling_rate=0.05,
+        )
+        lower, upper = (inverter_bounds or {}).get(battery_id, (-900, 6000))
+        for inverter_id in inverter_ids:
+            setup_args.streamer.start_streaming(
+                InverterDataWrapper(
+                    component_id=inverter_id,
+                    timestamp=datetime.now(tz=timezone.utc),
+                    active_power_inclusion_lower_bound=lower,
+                    active_power_inclusion_upper_bound=upper,
+                    active_power_exclusion_lower_bound=-200,
+                    active_power_exclusion_upper_bound=200,
+                ),
+                sampling_rate=0.1,
+            )
+    return all_batteries, bat_invs_map
+
+
+async def test_power_bounds_when_working_batteries_swap(
+    setup_batteries_pool: SetupArgs,
+) -> None:
+    """Test that batteries rejoining the working set count towards the bounds at once.
+
+    The metric fetchers clear a component's data when none arrives within
+    MAX_BATTERY_DATA_AGE_SEC, and the status trackers stop counting batteries
+    with stale data as working. So a battery that leaves the working set and
+    comes back must not have to wait for its next data sample before its bounds
+    are used again.
+
+    Args:
+        setup_batteries_pool: Fixture that creates needed microgrid tools.
+    """
+    battery_pool = setup_batteries_pool.battery_pool
+    battery_status_sender = setup_batteries_pool.battery_status_sender
+    first, second = sorted(battery_pool.component_ids)
+
+    # Give the second battery different bounds, so that swapping which battery
+    # is working changes the result.
+    all_batteries, _ = await start_streaming_power_bounds(
+        setup_batteries_pool, {second: (-500, 3000)}
+    )
+
+    receiver = battery_pool.system_power_bounds.new_receiver(limit=50)
+    waiting_time_sec = 1.0
+
+    msg = await asyncio.wait_for(
+        receiver.receive(), timeout=WAIT_FOR_COMPONENT_DATA_SEC + waiting_time_sec
+    )
+    now = datetime.now(tz=timezone.utc)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-1400), Power.from_watts(8000)),
+            exclusion_bounds=Bounds(Power.from_watts(-600), Power.from_watts(600)),
+        ),
+    )
+
+    # No new data arrives from here on, so the status changes below land between
+    # two samples. They must happen within MAX_BATTERY_DATA_AGE_SEC, after which
+    # the cached data expires.
+    await setup_batteries_pool.streamer.stop()
+
+    await battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries - {second}, uncertain={second})
+    )
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-900), Power.from_watts(5000)),
+            exclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(300)),
+        ),
+    )
+
+    await battery_status_sender.send(
+        ComponentPoolStatus(working=all_batteries - {first}, uncertain={first})
+    )
+    msg = await asyncio.wait_for(receiver.receive(), timeout=waiting_time_sec)
+    compare_messages(
+        msg,
+        SystemBounds(
+            timestamp=now,
+            inclusion_bounds=Bounds(Power.from_watts(-500), Power.from_watts(3000)),
+            exclusion_bounds=Bounds(Power.from_watts(-300), Power.from_watts(300)),
+        ),
+    )
 
 
 async def test_all_batteries_temperature(setup_all_batteries: SetupArgs) -> None:
@@ -860,7 +989,7 @@ async def run_soc_test(setup_args: SetupArgs) -> None:
     compare_messages(msg, Sample(now, Percentage.from_percent(50.0)))
 
 
-async def run_power_bounds_test(  # pylint: disable=too-many-locals
+async def run_power_bounds_test(
     setup_args: SetupArgs,
 ) -> None:
     """Test if power bounds metric is working as expected.
@@ -869,48 +998,10 @@ async def run_power_bounds_test(  # pylint: disable=too-many-locals
         setup_args: Needed sdk tools and tools for mocking microgrid.
     """
     battery_pool = setup_args.battery_pool
-    mock_microgrid = setup_args.mock_microgrid
     streamer = setup_args.streamer
     battery_status_sender = setup_args.battery_status_sender
 
-    # All batteries are working and sending data. Not just the ones in the
-    # battery pool.
-    all_batteries = get_components(mock_microgrid, Battery)
-    await battery_status_sender.send(
-        ComponentPoolStatus(working=all_batteries, uncertain=set())
-    )
-    bat_invs_map = _get_battery_inverter_mappings(
-        all_batteries,
-        inv_bats=False,
-        bat_bats=False,
-        inv_invs=False,
-    )["bat_invs"]
-
-    for battery_id, inverter_ids in bat_invs_map.items():
-        # Sampling rate choose to reflect real application.
-        streamer.start_streaming(
-            BatteryDataWrapper(
-                component_id=battery_id,
-                timestamp=datetime.now(tz=timezone.utc),
-                power_inclusion_lower_bound=-1000,
-                power_inclusion_upper_bound=5000,
-                power_exclusion_lower_bound=-300,
-                power_exclusion_upper_bound=300,
-            ),
-            sampling_rate=0.05,
-        )
-        for inverter_id in inverter_ids:
-            streamer.start_streaming(
-                InverterDataWrapper(
-                    component_id=inverter_id,
-                    timestamp=datetime.now(tz=timezone.utc),
-                    active_power_inclusion_lower_bound=-900,
-                    active_power_inclusion_upper_bound=6000,
-                    active_power_exclusion_lower_bound=-200,
-                    active_power_exclusion_upper_bound=200,
-                ),
-                sampling_rate=0.1,
-            )
+    all_batteries, bat_invs_map = await start_streaming_power_bounds(setup_args)
 
     receiver = battery_pool.system_power_bounds.new_receiver(limit=50)
 
