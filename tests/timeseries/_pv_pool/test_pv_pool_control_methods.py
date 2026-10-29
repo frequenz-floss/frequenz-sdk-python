@@ -25,6 +25,7 @@ from frequenz.sdk.timeseries.pv_pool import PVPoolReport
 from ...microgrid.fixtures import _Mocks
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import InverterDataWrapper
+from ...utils.unreachable_power import UnreachablePowerFeeder
 from ..mock_microgrid import MockMicrogrid
 
 
@@ -37,7 +38,9 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 @pytest.fixture
 async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
     """Create the mocks."""
-    mockgrid = MockMicrogrid(grid_meter=True)
+    # The components that aren't working are measured by the power distributor,
+    # and by the bounds trackers of both the test's pool and the power manager's.
+    mockgrid = MockMicrogrid(grid_meter=True, num_namespaces=3)
     mockgrid.add_solar_inverters(4)
     await mockgrid.start(mocker)
 
@@ -403,3 +406,57 @@ class TestPVPoolControl:
             ComponentId(28),
             ComponentId(38),
         }
+
+    async def test_unreachable_inverter_power_counts_towards_bounds(
+        self, mocks: _Mocks, mocker: MockerFixture
+    ) -> None:
+        """Test that the bounds include the power of a PV inverter that isn't working.
+
+        A PV inverter that stops working can keep running at its last command, and
+        the power distributor subtracts its measured power from the target power. If
+        the pool bounds leave that power out, it is taken off the target twice and
+        the working PV inverters are left short by it.
+        """
+        set_power = typing.cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
+        )
+        # The one that isn't working is still running at its limit.
+        feeder = UnreachablePowerFeeder(mocker, -20000.0)
+        feeder.start()
+
+        await self._init_pv_inverters(mocks)
+        pv_pool = microgrid.new_pv_pool(priority=5)
+        bounds_rx = pv_pool.power_status.new_receiver()
+        await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.bounds is not None and x.bounds.lower.as_watts() == -100000.0,
+        )
+
+        # The second PV inverter fails, but keeps running at its limit.
+        ids = mocks.microgrid.pv_inverter_ids
+        await self._fail_pv_inverters([ids[1]], mocks)
+        await asyncio.sleep(1.0)
+
+        set_power.reset_mock()
+        await pv_pool.propose_power(Power.from_watts(-100000.0))
+        # Without the power of the one that isn't working in the bounds, the target
+        # gets clamped, and this times out.
+        async with asyncio.timeout(5.0):
+            report = await self._recv_reports_until(
+                bounds_rx,
+                lambda x: x.target_power is not None
+                and x.target_power.as_watts() == -100000.0,
+            )
+        # The working PV inverters can do -80000 W, and the one that isn't working
+        # adds its -20000 W.
+        self._assert_report(report, power=-100000.0, lower=-100000.0, upper=-20000.0)
+        await asyncio.sleep(1.0)
+
+        # The working PV inverters get their full bounds.
+        assert {call.args[0]: call.args[1] for call in set_power.call_args_list} == {
+            ids[0]: -10000.0,
+            ids[2]: -30000.0,
+            ids[3]: -40000.0,
+        }
+        feeder.cancel()
