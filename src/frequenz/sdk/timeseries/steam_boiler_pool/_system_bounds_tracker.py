@@ -96,30 +96,31 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
         finally:
             await self._unreachable_power.stop()
 
+    async def _apply_status(self) -> None:
+        """Track the power of components that aren't usable, and drop their data.
+
+        A component is usable when it is working or uncertain.
+        """
+        status = self._component_pool_status
+        usable = status.working | status.uncertain
+        for comp_id in self._latest_component_data.keys() - usable:
+            del self._latest_component_data[comp_id]
+        await self._unreachable_power.update(usable)
+
     async def _track(
         self,
         steam_boiler_data_rx: Receiver[SteamBoilerData],
         unreachable_power_rx: Receiver[Sample[Power]],
     ) -> None:
+        # The status is kept when the tracker restarts after an error.
+        await self._apply_status()
         status_rx = self._status_receiver
         async for selected in select(
             status_rx, steam_boiler_data_rx, unreachable_power_rx
         ):
             if selected_from(selected, status_rx):
                 self._component_pool_status = selected.message
-                await self._unreachable_power.update(
-                    self._component_pool_status.working
-                    | self._component_pool_status.uncertain
-                )
-                to_remove: list[ComponentId] = []
-                for comp_id in self._latest_component_data:
-                    if (
-                        comp_id not in self._component_pool_status.working
-                        and comp_id not in self._component_pool_status.uncertain
-                    ):
-                        to_remove.append(comp_id)
-                for comp_id in to_remove:
-                    del self._latest_component_data[comp_id]
+                await self._apply_status()
             elif selected_from(selected, steam_boiler_data_rx):
                 data = selected.message
                 comp_id = data.component_id
