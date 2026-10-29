@@ -248,9 +248,12 @@ class ComponentManager(abc.ABC):
 
     async def _stop_all_unreachable_power_subscriptions(self) -> None:
         """Stop every unreachable-power subscription and the owned formula pool."""
-        for subscription in self._unreachable_power_subscriptions.values():
-            await subscription.cache.stop()
+        # Take the subscriptions out before awaiting, because a request being
+        # distributed meanwhile can add or remove subscriptions.
+        subscriptions = list(self._unreachable_power_subscriptions.values())
         self._unreachable_power_subscriptions.clear()
+        for subscription in subscriptions:
+            await subscription.cache.stop()
         if self._unreachable_power_pool is not None:
             await self._unreachable_power_pool.stop()
             self._unreachable_power_pool = None
