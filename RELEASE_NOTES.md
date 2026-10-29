@@ -23,3 +23,4 @@
 * `new_battery_pool()`, `new_pv_pool()`, `new_ev_charger_pool()` and `new_steam_boiler_pool()` now always log the warning that a pool was already created when the same pool is created twice at the same priority. The warning now names the pool's components.
   - Before, the warning was missed when a pool was created without IDs and again for all the IDs of its type, and sometimes for two equal sets of IDs that were built in different ways.
   - Creating pools of different types without IDs at the same priority also no longer logs the warning by mistake.
+* Power requests to batteries no longer fail while a battery that isn't working shares an inverter with a working battery. The power distributor counted that battery as unreachable, and the component graph can't make a power formula for only some of the batteries behind an inverter, so no result was sent for the request.

@@ -6,11 +6,13 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 from collections import abc
 from typing import TypeVar
 from unittest.mock import MagicMock
 
+import pytest
 from frequenz.channels import Broadcast
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import Battery, ComponentCategory
@@ -395,6 +397,66 @@ class TestPowerDistributingActor:
                 assert result.succeeded_power.isclose(Power.from_watts(500.0))
                 assert result.excess_power.isclose(Power.from_watts(700.0))
                 assert result.request == request
+
+    async def test_battery_behind_a_working_inverter_is_not_unreachable(
+        self, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Test a request while one of two batteries on one inverter isn't working.
+
+        The other battery's inverter is still commanded, so the battery that isn't
+        working is not unreachable, and its power must not be measured on its own.
+        """
+        gen = GraphGenerator()
+        bat_components = gen.components(*[ComponentCategory.BATTERY] * 2)
+        graph = gen.to_graph(
+            (
+                ComponentCategory.METER,
+                [
+                    (
+                        ComponentCategory.METER,
+                        (
+                            ComponentCategory.INVERTER,
+                            [bat_components[0], bat_components[1]],
+                        ),
+                    )
+                ],
+            )
+        )
+
+        async with _mocks(mocker, ComponentCategory.BATTERY, graph=graph) as mocks:
+            await self.init_component_data(mocks)
+
+            requests_channel = Broadcast[Request](name="power_distributor")
+            results_channel = Broadcast[Result](name="power_distributor results")
+            request = Request(
+                power=Power.from_watts(1200.0),
+                component_ids={battery.id for battery in bat_components},
+            )
+
+            await self._patch_battery_pool_status(mocks, mocker, {bat_components[1].id})
+            battery_status_channel = Broadcast[ComponentPoolStatus](
+                name="battery_status"
+            )
+
+            with caplog.at_level(logging.ERROR):
+                async with PowerDistributingActor(
+                    Battery,
+                    requests_receiver=requests_channel.new_receiver(),
+                    component_pool_status_sender=battery_status_channel.new_sender(),
+                    results_sender=results_channel.new_sender(),
+                    api_power_request_timeout=SAFETY_TIMEOUT,
+                ):
+                    await asyncio.sleep(0.1)  # wait for actor to collect data
+
+                    await requests_channel.new_sender().send(request)
+                    result_rx = results_channel.new_receiver()
+
+                    async with asyncio.timeout(SAFETY_TIMEOUT.total_seconds()):
+                        result = await result_rx.receive()
+
+            assert isinstance(result, Success)
+            assert result.request == request
+            assert not caplog.records
 
     async def test_two_batteries_one_broken_one_inverters(
         self, mocker: MockerFixture
