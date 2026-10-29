@@ -66,27 +66,17 @@ class ComponentPoolReferenceStore(ABC):
         self.power_manager_bounds_subs_sender = power_manager_bounds_subs_sender
         self.power_distribution_results_fetcher = power_distribution_results_fetcher
 
-        graph = connection_manager.get().component_graph
-        all_components = frozenset(
-            {
-                inv.id
-                for inv in graph.components(matching_types=self.get_component_class())
-            }
+        self.component_ids: frozenset[ComponentId] = self.resolve_component_ids(
+            component_ids
         )
-
-        # A None or empty component_ids means "use all components", matching the
-        # frozenset() key both values map to in `_DataPipeline.new_*_pool()`.
         if component_ids:
-            self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
-            if not self.component_ids.issubset(all_components):
-                unknown_ids = self.component_ids - all_components
+            unknown_ids = self.component_ids - self.all_component_ids()
+            if unknown_ids:
                 raise ValueError(
                     f"Unable to create {self.get_pool_type_name()}. These component IDs "
                     + f"are either not {self.get_component_type_name_plural()} or are unknown: "
                     + f"{unknown_ids}"
                 )
-        else:
-            self.component_ids = all_components
 
         self.power_bounds_subs: dict[str, asyncio.Task[None]] = {}
 
@@ -103,6 +93,33 @@ class ComponentPoolReferenceStore(ABC):
 
         self.bounds_tracker: BackgroundService | None = None
         self.create_bounds_tracker()
+
+    @classmethod
+    def resolve_component_ids(
+        cls, component_ids: abc.Set[ComponentId] | None
+    ) -> frozenset[ComponentId]:
+        """Return the given IDs, or all IDs of this pool's type if none are given.
+
+        The data pipeline keys the reference stores by these IDs, so a pool for all
+        components shares its store with a pool created for their explicit IDs.
+
+        Args:
+            component_ids: The requested IDs, or `None` or an empty set for all
+                components of this pool's type.
+
+        Returns:
+            The requested IDs, or the IDs of all components of this pool's type.
+        """
+        return frozenset(component_ids) if component_ids else cls.all_component_ids()
+
+    @classmethod
+    def all_component_ids(cls) -> frozenset[ComponentId]:
+        """Return the IDs of all components of this pool's type in the microgrid."""
+        graph = connection_manager.get().component_graph
+        return frozenset(
+            component.id
+            for component in graph.components(matching_types=cls.get_component_class())
+        )
 
     @staticmethod
     @abstractmethod

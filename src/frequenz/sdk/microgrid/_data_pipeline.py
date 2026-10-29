@@ -298,10 +298,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if not self._ev_power_wrapper.started:
             self._ev_power_wrapper.start()
 
-        # We use frozenset to make a hashable key from the input set.
-        ref_store_key: frozenset[ComponentId] = frozenset()
-        if component_ids is not None:
-            ref_store_key = frozenset(component_ids)
+        ref_store_key = EVChargerPoolReferenceStore.resolve_component_ids(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -335,7 +332,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                     power_distribution_results_fetcher=(
                         self._ev_power_wrapper.distribution_results_fetcher()
                     ),
-                    component_ids=component_ids,
+                    component_ids=ref_store_key,
                 )
             )
         return EVChargerPool(
@@ -372,10 +369,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if not self._pv_power_wrapper.started:
             self._pv_power_wrapper.start()
 
-        # We use frozenset to make a hashable key from the input set.
-        ref_store_key: frozenset[ComponentId] = frozenset()
-        if component_ids is not None:
-            ref_store_key = frozenset(component_ids)
+        ref_store_key = PVPoolReferenceStore.resolve_component_ids(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -408,7 +402,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                 power_distribution_results_fetcher=(
                     self._pv_power_wrapper.distribution_results_fetcher()
                 ),
-                component_ids=component_ids,
+                component_ids=ref_store_key,
             )
 
         return PVPool(
@@ -447,10 +441,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if not self._battery_power_wrapper.started:
             self._battery_power_wrapper.start()
 
-        # We use frozenset to make a hashable key from the input set.
-        ref_store_key: frozenset[ComponentId] = frozenset()
-        if component_ids is not None:
-            ref_store_key = frozenset(component_ids)
+        ref_store_key = BatteryPoolReferenceStore.resolve_component_ids(component_ids)
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -485,7 +476,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                         self._battery_power_wrapper.distribution_results_fetcher()
                     ),
                     min_update_interval=self._resampler_config.resampling_period,
-                    component_ids=component_ids,
+                    component_ids=ref_store_key,
                 )
             )
 
@@ -526,10 +517,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         if not self._steam_boiler_power_wrapper.started:
             self._steam_boiler_power_wrapper.start()
 
-        # We use frozenset to make a hashable key from the input set.
-        ref_store_key: frozenset[ComponentId] = frozenset()
-        if component_ids is not None:
-            ref_store_key = frozenset(component_ids)
+        ref_store_key = SteamBoilerPoolReferenceStore.resolve_component_ids(
+            component_ids
+        )
 
         pool_key = f"{ref_store_key}-{priority}"
         if pool_key in self._known_pool_keys:
@@ -563,7 +553,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
                     power_distribution_results_fetcher=(
                         self._steam_boiler_power_wrapper.distribution_results_fetcher()
                     ),
-                    component_ids=component_ids,
+                    component_ids=ref_store_key,
                 )
             )
         return SteamBoilerPool(
