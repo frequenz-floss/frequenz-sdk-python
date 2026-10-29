@@ -8,6 +8,8 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
+* The exclusion bounds of a `SystemBounds`, for example from `BatteryPool.system_power_bounds`, are no longer guaranteed to be inside its inclusion bounds. When components of a pool aren't working, only the inclusion bounds shift by the power measured on those components, so the exclusion bounds can be partly or fully outside them. If your code assumes that the exclusion bounds are inside the inclusion bounds, check each of them on its own.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
@@ -24,3 +26,7 @@
   - Before, the warning was missed when a pool was created without IDs and again for all the IDs of its type, and sometimes for two equal sets of IDs that were built in different ways.
   - Creating pools of different types without IDs at the same priority also no longer logs the warning by mistake.
 * Power requests to batteries no longer fail while a battery that isn't working shares an inverter with a working battery. The power distributor counted that battery as unreachable, and the component graph can't make a power formula for only some of the batteries behind an inverter, so no result was sent for the request.
+* The battery pool's power bounds now include the power measured on the batteries that aren't working. Those batteries can still charge or discharge. The power distributor subtracts their measured power from the target power, so leaving it out of the bounds took it off the target twice.
+  - For example, take 4 batteries that can each discharge up to 1000 W, with one of them not working but still discharging at -1000 W. A -4000 W request used to give the other three batteries -667 W each, instead of -1000 W.
+  - When batteries stop working, `system_power_bounds` and the bounds in `power_status` now shift by the batteries' measured power, instead of only leaving those batteries' bounds out. A battery that shares an inverter with a working battery still counts as working. The exclusion bounds are not shifted.
+  - The bounds measure that power with the same component graph formula as the power distributor, so both use the same meter fallback when an inverter stops sending data.

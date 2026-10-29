@@ -262,7 +262,8 @@ class BatteryPool(ComponentPool[BatteryPoolReferenceStore, BatteryPoolReport]):
         """Get receiver to receive new power bounds when they change.
 
         Power bounds refer to the min and max power that a battery can
-        discharge or charge at and is also denoted as SoP.
+        discharge or charge at and is also denoted as SoP.  The inclusion bounds
+        also include the power measured on the batteries that aren't working.
 
         Power bounds formulas are described in the receiver return type.
         None will be sent if there is no component to calculate metrics.
@@ -279,11 +280,15 @@ class BatteryPool(ComponentPool[BatteryPoolReferenceStore, BatteryPoolReport]):
         method_name = SendOnUpdate.name() + "_" + PowerBoundsCalculator.name()
 
         if method_name not in self._pool_ref_store._active_methods:
-            calculator = PowerBoundsCalculator(self._pool_ref_store.component_ids)
+            calculator = PowerBoundsCalculator(
+                self._pool_ref_store.component_ids,
+                connection_manager.get().component_graph.battery_formula,
+            )
             self._pool_ref_store._active_methods[method_name] = SendOnUpdate(
                 metric_calculator=calculator,
                 working_batteries=self._pool_ref_store._working_batteries,
                 min_update_interval=self._pool_ref_store._min_update_interval,
+                unreachable_power=calculator.unreachable_power,
             )
 
         return self._pool_ref_store._active_methods[method_name]

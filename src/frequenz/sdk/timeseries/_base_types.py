@@ -209,16 +209,16 @@ class SystemBounds:
     """Total inclusion power bounds for all components of a pool.
 
     This is the range within which power requests would be allowed by the pool.
-
-    When exclusion bounds are present, they will exclude a subset of the inclusion
-    bounds.
+    It can be shifted by the power measured on the components of the pool that
+    aren't working.
     """
 
     exclusion_bounds: Bounds[Power] | None
     """Total exclusion power bounds for all components of a pool.
 
-    This is the range within which power requests are NOT allowed by the pool.
-    If present, they will be a subset of the inclusion bounds.
+    This is the range within which power requests are NOT allowed by the pool.  It
+    isn't shifted by the power measured on the components that aren't working, so
+    it can be partly or fully outside the inclusion bounds.
     """
 
     def __contains__(self, item: Power) -> bool:

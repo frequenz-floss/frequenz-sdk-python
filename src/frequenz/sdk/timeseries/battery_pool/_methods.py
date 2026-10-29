@@ -14,6 +14,9 @@ from frequenz.client.common.microgrid.components import ComponentId
 
 from ..._internal._asyncio import cancel_and_await, run_forever
 from ..._internal._constants import RECEIVER_MAX_SIZE, WAIT_FOR_COMPONENT_DATA_SEC
+from ...microgrid._power_distributing._unreachable_power import (
+    UnreachablePowerTracker,
+)
 from ._component_metric_fetcher import (
     ComponentMetricFetcher,
     LatestBatteryMetricsFetcher,
@@ -74,6 +77,7 @@ class SendOnUpdate(MetricAggregator[T]):
         working_batteries: set[ComponentId],
         metric_calculator: MetricCalculator[T],
         min_update_interval: timedelta,
+        unreachable_power: UnreachablePowerTracker | None = None,
     ) -> None:
         """Create class instance.
 
@@ -81,6 +85,10 @@ class SendOnUpdate(MetricAggregator[T]):
             working_batteries: Set of the working batteries
             metric_calculator: Module that tells how to aggregate the component metrics.
             min_update_interval: Minimum frequency for sending update about the change.
+            unreachable_power: A tracker of the power of the batteries that aren't
+                working, that the metric calculator uses.  It is kept updated with
+                the working batteries, the metric is recalculated when its value
+                changes, and it is stopped with this instance.
         """
         self._metric_calculator: MetricCalculator[T] = metric_calculator
         self._working_batteries: set[ComponentId] = working_batteries.intersection(
@@ -103,6 +111,15 @@ class SendOnUpdate(MetricAggregator[T]):
         )
 
         self._fetchers: dict[ComponentId, ComponentMetricFetcher] = {}
+
+        self._unreachable_power = unreachable_power
+        self._unreachable_power_task: asyncio.Task[None] | None = None
+        if unreachable_power is not None:
+            self._unreachable_power_task = asyncio.create_task(
+                run_forever(
+                    lambda: self._notify_on_unreachable_power(unreachable_power)
+                )
+            )
 
     @classmethod
     def name(cls) -> str:
@@ -153,6 +170,10 @@ class SendOnUpdate(MetricAggregator[T]):
         )
         for fetcher in self._fetchers.values():
             fetcher.stop()
+        if self._unreachable_power_task is not None:
+            await cancel_and_await(self._unreachable_power_task)
+        if self._unreachable_power is not None:
+            await self._unreachable_power.stop()
 
     async def _create_data_fetchers(self) -> None:
         fetchers: dict[ComponentId, ComponentMetricFetcher] = {
@@ -209,6 +230,13 @@ class SendOnUpdate(MetricAggregator[T]):
                     asyncio.create_task(self._fetchers[cid].fetch_next(), name=str(cid))
                 )
 
+    async def _notify_on_unreachable_power(
+        self, unreachable_power: UnreachablePowerTracker
+    ) -> None:
+        """Recalculate the metric when the power of unreachable batteries changes."""
+        async for _ in unreachable_power.new_receiver():
+            self._update_event.set()
+
     async def _send_on_update(self, min_update_interval: timedelta) -> None:
         """Wait for an update notification, recalculate metric and send.
 
@@ -227,6 +255,8 @@ class SendOnUpdate(MetricAggregator[T]):
             await self._update_event.wait()
             self._update_event.clear()
 
+            if self._unreachable_power is not None:
+                await self._unreachable_power.update(self._working_batteries)
             result: T = self._metric_calculator.calculate(
                 self._cached_metrics, self._working_batteries
             )
