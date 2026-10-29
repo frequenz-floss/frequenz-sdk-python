@@ -28,3 +28,4 @@
   - For example, take 4 batteries that can each discharge up to 1000 W, with one of them not working but still discharging at -1000 W. A -4000 W request used to give the other three batteries -667 W each, instead of -1000 W.
   - When batteries stop working, `system_power_bounds` and the bounds in `power_status` now shift by the batteries' measured power, instead of only leaving those batteries' bounds out. A battery that shares an inverter with a working battery still counts as working. The exclusion bounds are not shifted.
   - The bounds measure that power with the same component graph formula as the power distributor, so both use the same meter fallback when an inverter stops sending data.
+* The PV pool and the steam boiler pool now also include the power measured on their components that aren't working in their power bounds, for the same reason.

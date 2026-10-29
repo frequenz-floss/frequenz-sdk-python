@@ -8,13 +8,17 @@ from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.common.microgrid.components import ComponentId
+from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
 from ...microgrid._old_component_data import SteamBoilerData
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
-from .._base_types import SystemBounds
+from ...microgrid._power_distributing._unreachable_power import (
+    UnreachablePowerTracker,
+)
+from .._base_types import Sample, SystemBounds
 from ..component_pool._system_bounds import aggregate_system_bounds
 
 
@@ -24,6 +28,9 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
     System bounds are the aggregate bounds for the steam boilers in the pool that are
     in a working state.  They are calculated from the individual bounds received from
     the microgrid API.
+
+    The inclusion bounds are shifted by the power measured on the steam boilers that
+    aren't working, because the power distributor subtracts it from the target power.
 
     The system bounds are sent to the `bounds_sender` whenever they change.
     """
@@ -50,6 +57,9 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
         self._latest_component_data: dict[ComponentId, SteamBoilerData] = {}
         self._last_sent_bounds: SystemBounds | None = None
         self._component_pool_status = ComponentPoolStatus(set(), set())
+        self._unreachable_power = UnreachablePowerTracker(
+            component_ids, connection_manager.get().component_graph.steam_boiler_formula
+        )
 
     def start(self) -> None:
         """Start the steam boiler system bounds tracker."""
@@ -57,7 +67,9 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
 
     async def _send_bounds(self) -> None:
         """Calculate and send the aggregate system bounds if they have changed."""
-        bounds = aggregate_system_bounds(list(self._latest_component_data.values()))
+        bounds = aggregate_system_bounds(
+            self._latest_component_data.values(), self._unreachable_power.power
+        )
         if bounds is None:
             return
         if (
@@ -71,7 +83,6 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
     async def _run(self) -> None:
         """Run the system bounds tracker."""
         api_client = connection_manager.get().api_client
-        status_rx = self._status_receiver
         steam_boiler_data_rx = merge(
             *(
                 SteamBoilerData.subscribe(api_client, component_id)
@@ -79,9 +90,27 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
             )
         )
 
-        async for selected in select(status_rx, steam_boiler_data_rx):
+        unreachable_power_rx = self._unreachable_power.new_receiver()
+        try:
+            await self._track(steam_boiler_data_rx, unreachable_power_rx)
+        finally:
+            await self._unreachable_power.stop()
+
+    async def _track(
+        self,
+        steam_boiler_data_rx: Receiver[SteamBoilerData],
+        unreachable_power_rx: Receiver[Sample[Power]],
+    ) -> None:
+        status_rx = self._status_receiver
+        async for selected in select(
+            status_rx, steam_boiler_data_rx, unreachable_power_rx
+        ):
             if selected_from(selected, status_rx):
                 self._component_pool_status = selected.message
+                await self._unreachable_power.update(
+                    self._component_pool_status.working
+                    | self._component_pool_status.uncertain
+                )
                 to_remove: list[ComponentId] = []
                 for comp_id in self._latest_component_data:
                     if (
@@ -100,5 +129,7 @@ class SteamBoilerSystemBoundsTracker(BackgroundService):
                 ):
                     continue
                 self._latest_component_data[data.component_id] = data
+            elif selected_from(selected, unreachable_power_rx):
+                pass  # Only the bounds need to be recalculated.
 
             await self._send_bounds()
