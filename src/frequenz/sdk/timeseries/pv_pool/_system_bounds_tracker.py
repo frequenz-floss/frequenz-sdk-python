@@ -8,14 +8,14 @@ from collections import abc
 
 from frequenz.channels import Receiver, Sender, merge, select, selected_from
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.quantities import Power
 
 from ..._internal._asyncio import run_forever
 from ...actor import BackgroundService
 from ...microgrid import connection_manager
 from ...microgrid._old_component_data import InverterData
 from ...microgrid._power_distributing._component_status import ComponentPoolStatus
-from .._base_types import Bounds, SystemBounds
+from .._base_types import SystemBounds
+from ..component_pool._system_bounds import aggregate_system_bounds
 
 
 class PVSystemBoundsTracker(BackgroundService):
@@ -57,50 +57,16 @@ class PVSystemBoundsTracker(BackgroundService):
 
     async def _send_bounds(self) -> None:
         """Calculate and send the aggregate system bounds if they have changed."""
-        if not self._latest_component_data:
+        bounds = aggregate_system_bounds(list(self._latest_component_data.values()))
+        if bounds is None:
             return
-        inclusion_bounds = Bounds(
-            lower=Power.from_watts(
-                sum(
-                    data.active_power_inclusion_lower_bound
-                    for data in self._latest_component_data.values()
-                )
-            ),
-            upper=Power.from_watts(
-                sum(
-                    data.active_power_inclusion_upper_bound
-                    for data in self._latest_component_data.values()
-                )
-            ),
-        )
-        exclusion_bounds = Bounds(
-            lower=Power.from_watts(
-                sum(
-                    data.active_power_exclusion_lower_bound
-                    for data in self._latest_component_data.values()
-                )
-            ),
-            upper=Power.from_watts(
-                sum(
-                    data.active_power_exclusion_upper_bound
-                    for data in self._latest_component_data.values()
-                )
-            ),
-        )
-
         if (
             self._last_sent_bounds is None
-            or self._last_sent_bounds.inclusion_bounds != inclusion_bounds
-            or self._last_sent_bounds.exclusion_bounds != exclusion_bounds
+            or self._last_sent_bounds.inclusion_bounds != bounds.inclusion_bounds
+            or self._last_sent_bounds.exclusion_bounds != bounds.exclusion_bounds
         ):
-            self._last_sent_bounds = SystemBounds(
-                timestamp=max(
-                    data.timestamp for data in self._latest_component_data.values()
-                ),
-                inclusion_bounds=inclusion_bounds,
-                exclusion_bounds=exclusion_bounds,
-            )
-            await self._bounds_sender.send(self._last_sent_bounds)
+            self._last_sent_bounds = bounds
+            await self._bounds_sender.send(bounds)
 
     async def _run(self) -> None:
         """Run the system bounds tracker."""
