@@ -4,6 +4,7 @@
 """Basic tests for the DataPipeline."""
 
 import asyncio
+import logging
 import re
 from collections.abc import Callable
 from datetime import timedelta
@@ -300,3 +301,55 @@ async def test_pools_for_all_components_share_reference_stores(
         # pylint: disable=protected-access
         assert explicit_pool._pool_ref_store is all_pool._pool_ref_store
         assert empty_set_pool._pool_ref_store is all_pool._pool_ref_store
+
+
+@pytest.mark.parametrize("new_pool, add_components, ids_attr", _POOL_TYPES)
+async def test_pool_for_all_components_warns_like_explicit_ids(
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    new_pool: Callable[..., ComponentPool[Any, Any]],
+    add_components: Callable[[MockMicrogrid, int], None],
+    ids_attr: str,
+) -> None:
+    """Test that pools made without IDs and with all IDs warn as duplicates.
+
+    The pool created without IDs resolves to all the IDs of its type, so at the same
+    priority both pools have the same key.  Each warning names the resolved IDs.
+    """
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+    # With 6 components, the copy made of the set passed in has a smaller table than
+    # the set read from the component graph.  So the two sets print in different
+    # orders, and keys made from their text would not match.
+    add_components(mockgrid, 6)
+    async with mockgrid:
+        component_ids = getattr(mockgrid, ids_attr)
+        new_pool(priority=5)
+        with caplog.at_level(logging.WARNING):
+            new_pool(priority=5, component_ids=set(component_ids))
+            new_pool(priority=5)
+        warnings = [
+            r.getMessage()
+            for r in caplog.records
+            if "already created" in r.getMessage()
+        ]
+        assert len(warnings) == 2
+        for message in warnings:
+            assert str(sorted(component_ids)) in message
+            assert f"microgrid.{new_pool.__name__}(...)" in message
+
+
+async def test_pools_of_different_types_without_components_dont_warn(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that empty pools of different types, made without IDs, don't warn."""
+    mockgrid = MockMicrogrid(grid_meter=True, mocker=mocker)
+    # There are no PV inverters, EV chargers or steam boilers, so all three pools
+    # resolve to the same empty set, and only the pool type tells them apart.
+    mockgrid.add_batteries(1)
+    async with mockgrid:
+        with caplog.at_level(logging.WARNING):
+            microgrid.new_pv_pool(priority=5)
+            microgrid.new_ev_charger_pool(priority=5)
+            microgrid.new_steam_boiler_pool(priority=5)
+        warnings = [r for r in caplog.records if "already created" in r.getMessage()]
+        assert not warnings

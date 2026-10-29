@@ -47,6 +47,9 @@ if typing.TYPE_CHECKING:
     from ..timeseries.battery_pool._battery_pool_reference_store import (
         BatteryPoolReferenceStore,
     )
+    from ..timeseries.component_pool._component_pool_reference_store import (
+        ComponentPoolReferenceStore,
+    )
     from ..timeseries.consumer import Consumer
     from ..timeseries.ev_charger_pool import EVChargerPool
     from ..timeseries.ev_charger_pool._ev_charger_pool_reference_store import (
@@ -167,10 +170,12 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
         self._frequency_instance: GridFrequency | None = None
         self._voltage_instance: VoltageStreamer | None = None
 
-        self._known_pool_keys: set[str] = set()
-        """A set of keys for corresponding to created EVChargerPool instances.
+        self._known_pool_keys: set[
+            tuple[type[ComponentPoolReferenceStore], frozenset[ComponentId], int]
+        ] = set()
+        """The reference store class, component IDs and priority of each pool created.
 
-        This is used to warn the user if they try to create a new EVChargerPool instance
+        This is used to warn the user if they try to create a new pool of the same type
         for the same set of component IDs, and with the same priority.
         """
 
@@ -300,16 +305,16 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         ref_store_key = EVChargerPoolReferenceStore.resolve_component_ids(component_ids)
 
-        pool_key = f"{ref_store_key}-{priority}"
+        pool_key = (EVChargerPoolReferenceStore, ref_store_key, priority)
         if pool_key in self._known_pool_keys:
             _logger.warning(
                 "An EVChargerPool instance was already created for ev_charger_ids=%s "
-                "and priority=%s using `microgrid.ev_charger_pool(...)`."
+                "and priority=%s using `microgrid.new_ev_charger_pool(...)`."
                 "\n  Hint: If the multiple instances are created from the same actor, "
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                component_ids,
+                sorted(ref_store_key),
                 priority,
             )
         else:
@@ -371,16 +376,16 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         ref_store_key = PVPoolReferenceStore.resolve_component_ids(component_ids)
 
-        pool_key = f"{ref_store_key}-{priority}"
+        pool_key = (PVPoolReferenceStore, ref_store_key, priority)
         if pool_key in self._known_pool_keys:
             _logger.warning(
                 "A PVPool instance was already created for pv_inverter_ids=%s and "
-                "priority=%s using `microgrid.pv_pool(...)`."
+                "priority=%s using `microgrid.new_pv_pool(...)`."
                 "\n  Hint: If the multiple instances are created from the same actor, "
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                component_ids,
+                sorted(ref_store_key),
                 priority,
             )
         else:
@@ -443,16 +448,16 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
         ref_store_key = BatteryPoolReferenceStore.resolve_component_ids(component_ids)
 
-        pool_key = f"{ref_store_key}-{priority}"
+        pool_key = (BatteryPoolReferenceStore, ref_store_key, priority)
         if pool_key in self._known_pool_keys:
             _logger.warning(
                 "A BatteryPool instance was already created for battery_ids=%s and "
-                "priority=%s using `microgrid.battery_pool(...)`."
+                "priority=%s using `microgrid.new_battery_pool(...)`."
                 "\n  Hint: If the multiple instances are created from the same actor, "
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                component_ids,
+                sorted(ref_store_key),
                 priority,
             )
         else:
@@ -521,16 +526,16 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             component_ids
         )
 
-        pool_key = f"{ref_store_key}-{priority}"
+        pool_key = (SteamBoilerPoolReferenceStore, ref_store_key, priority)
         if pool_key in self._known_pool_keys:
             _logger.warning(
                 "A SteamBoilerPool instance was already created for steam_boiler_ids=%s "
-                "and priority=%s using `microgrid.steam_boiler_pool(...)`."
+                "and priority=%s using `microgrid.new_steam_boiler_pool(...)`."
                 "\n  Hint: If the multiple instances are created from the same actor, "
                 "consider reusing the same instance."
                 "\n  Hint: If the instances are created from different actors, "
                 "consider using different priorities to distinguish them.",
-                component_ids,
+                sorted(ref_store_key),
                 priority,
             )
         else:
