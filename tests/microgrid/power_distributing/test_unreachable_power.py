@@ -5,8 +5,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from collections import abc
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from typing import cast
 from unittest.mock import AsyncMock
 
@@ -14,6 +16,7 @@ import pytest
 from frequenz.channels import Broadcast, LatestValueCache, Receiver
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.metrics import Metric
+from frequenz.microgrid_component_graph import FormulaGenerationError
 from frequenz.quantities import Power, Quantity
 from pytest_mock import MockerFixture
 
@@ -28,6 +31,9 @@ from frequenz.sdk.microgrid._power_distributing._component_managers._pv_inverter
 )
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
+)
+from frequenz.sdk.microgrid._power_distributing._unreachable_power import (
+    UnreachablePowerTracker,
 )
 from frequenz.sdk.microgrid._power_distributing.request import Request
 from frequenz.sdk.microgrid._power_distributing.result import Result, Success
@@ -55,9 +61,10 @@ class _PoolFormula:
 
     def __init__(self) -> None:
         self._channel = Broadcast[Sample[Quantity]](name="unreachable-stub")
+        self.sender = self._channel.new_sender()
 
     def new_receiver(self) -> Receiver[Sample[Quantity]]:
-        """Return a receiver for the formula's (empty) output stream."""
+        """Return a receiver for the formula's output stream."""
         return self._channel.new_receiver()
 
 
@@ -68,12 +75,15 @@ class _RecordingPool:
         self.created: list[str] = []
         self.stopped: list[str] = []
         self.stop_all_count = 0
+        self.formulas: dict[str, _PoolFormula] = {}
 
     def from_string(self, formula_str: str, metric: Metric) -> _PoolFormula:
         """Record the creation and return a feedable stub formula."""
         # pylint: disable=unused-argument
         self.created.append(formula_str)
-        return _PoolFormula()
+        formula = _PoolFormula()
+        self.formulas[formula_str] = formula
+        return formula
 
     async def stop_string_formula(self, formula_str: str, metric: Metric) -> None:
         """Record that a single string formula was stopped."""
@@ -106,6 +116,159 @@ class _MechanismManager(ComponentManager):
     def _unreachable_power_formula(self, component_ids: abc.Set[ComponentId]) -> str:
         """Return a deterministic formula string for the given components."""
         return _formula_for(component_ids)
+
+
+@pytest.fixture
+def pool(mocker: MockerFixture) -> _RecordingPool:
+    """Make new unreachable-power trackers use a recording pool."""
+    recording_pool = _RecordingPool()
+    mocker.patch(
+        "frequenz.sdk.microgrid._data_pipeline._new_formula_pool",
+        return_value=recording_pool,
+    )
+    return recording_pool
+
+
+class TestUnreachablePowerTracker:
+    """Tests for the `UnreachablePowerTracker`."""
+
+    async def test_formula_restarts_when_unreachable_set_changes(
+        self, pool: _RecordingPool
+    ) -> None:
+        """The formula restarts when the unreachable set changes, and stops if empty."""
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2), ComponentId(3)}, _formula_for
+        )
+
+        # Only component 3 is unreachable.
+        await tracker.update({ComponentId(1), ComponentId(2)})
+        assert pool.created == [_formula_for({ComponentId(3)})]
+        assert not pool.stopped
+
+        # Updating with the same unreachable subset is a no-op.
+        await tracker.update({ComponentId(1), ComponentId(2)})
+        assert pool.created == [_formula_for({ComponentId(3)})]
+
+        # The unreachable subset grows to {2, 3}: the old formula is stopped and a
+        # new one is created.
+        await tracker.update({ComponentId(1)})
+        assert pool.stopped == [_formula_for({ComponentId(3)})]
+        assert pool.created == [
+            _formula_for({ComponentId(3)}),
+            _formula_for({ComponentId(2), ComponentId(3)}),
+        ]
+
+        # Everything is reachable again: the formula is stopped.
+        await tracker.update({ComponentId(1), ComponentId(2), ComponentId(3)})
+        assert pool.stopped == [
+            _formula_for({ComponentId(3)}),
+            _formula_for({ComponentId(2), ComponentId(3)}),
+        ]
+
+        # Stopping the tracker stops the owned formula pool.
+        await tracker.stop()
+        assert pool.stop_all_count == 1
+
+    async def test_power_follows_the_formula(self, pool: _RecordingPool) -> None:
+        """Values are sent and stored in `power`; a set change makes it None."""
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2)}, _formula_for
+        )
+        receiver = tracker.new_receiver()
+        await tracker.update({ComponentId(1)})
+        assert tracker.power is None
+
+        sample = Sample(datetime.now(tz=timezone.utc), Quantity(-300.0))
+        await pool.formulas[_formula_for({ComponentId(2)})].sender.send(sample)
+        received = await receiver.receive()
+        assert received.value == Power.from_watts(-300.0)
+        assert tracker.power == Power.from_watts(-300.0)
+
+        # A value from the old formula must not be used for the new subset.
+        await tracker.update({ComponentId(1), ComponentId(2)})
+        assert tracker.power is None
+        await tracker.stop()
+
+    async def test_siblings_of_working_components_are_reachable(
+        self, pool: _RecordingPool
+    ) -> None:
+        """A component whose sibling is working isn't tracked."""
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2), ComponentId(3)},
+            _formula_for,
+            {
+                ComponentId(1): frozenset({ComponentId(1), ComponentId(2)}),
+                ComponentId(2): frozenset({ComponentId(1), ComponentId(2)}),
+                ComponentId(3): frozenset({ComponentId(3)}),
+            },
+        )
+        await tracker.update({ComponentId(1)})
+        assert pool.created == [_formula_for({ComponentId(3)})]
+        await tracker.stop()
+
+    async def test_nothing_is_tracked_while_no_component_works(
+        self, pool: _RecordingPool
+    ) -> None:
+        """Nothing is tracked while none of the components is working."""
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2)}, _formula_for
+        )
+        await tracker.update(set())
+        assert not pool.created
+        assert tracker.power is None
+        await tracker.stop()
+
+    async def test_formula_error_is_logged_once(
+        self, pool: _RecordingPool, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """A formula that can't be generated is logged once per unreachable set."""
+        calls: list[abc.Set[ComponentId]] = []
+
+        def failing_formula(component_ids: abc.Set[ComponentId]) -> str:
+            calls.append(component_ids)
+            raise FormulaGenerationError("no formula")
+
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2)}, failing_formula
+        )
+        with caplog.at_level(logging.ERROR):
+            await tracker.update({ComponentId(1)})
+            await tracker.update({ComponentId(1)})
+        assert calls == [{ComponentId(2)}]
+        assert len(caplog.records) == 1
+        assert tracker.power is None
+        assert not pool.created
+
+        # It is tried again once the unreachable set changes.
+        await tracker.update({ComponentId(1), ComponentId(2)})
+        await tracker.update({ComponentId(1)})
+        assert len(calls) == 2
+        await tracker.stop()
+
+    async def test_formula_is_stopped_when_stopping_its_task_fails(
+        self, pool: _RecordingPool, mocker: MockerFixture
+    ) -> None:
+        """A failing task teardown must not leave the formula running."""
+        tracker = UnreachablePowerTracker(
+            {ComponentId(1), ComponentId(2)}, _formula_for
+        )
+        await tracker.update({ComponentId(1)})
+
+        async def failing_cancel(task: asyncio.Task[None]) -> None:
+            task.cancel()
+            raise RuntimeError("task boom")
+
+        mocker.patch(
+            "frequenz.sdk.microgrid._power_distributing._unreachable_power"
+            ".cancel_and_await",
+            side_effect=failing_cancel,
+        )
+
+        with pytest.raises(RuntimeError, match="task boom"):
+            await tracker.update({ComponentId(1), ComponentId(2)})
+
+        # Despite the task failure, the formula was stopped via the finally block.
+        assert pool.stopped == [_formula_for({ComponentId(2)})]
 
 
 class TestUnreachablePowerMechanism:
