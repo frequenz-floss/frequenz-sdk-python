@@ -6,57 +6,14 @@
 import abc
 import collections.abc
 import logging
-import typing
 
-from frequenz.channels import LatestValueCache
 from frequenz.client.common.microgrid.components import ComponentId
-from frequenz.client.microgrid.metrics import Metric
-from frequenz.quantities import Power, Quantity
+from frequenz.quantities import Power
 
-from ....timeseries import Sample
+from .._unreachable_power import UnreachablePowerTracker
 from ..request import Request
 
-if typing.TYPE_CHECKING:
-    from ....timeseries.formulas._formula_pool import FormulaPool
-
 _logger = logging.getLogger(__name__)
-
-
-def _quantity_sample_to_power(sample: Sample[Quantity]) -> Sample[Power]:
-    """Convert a generic quantity sample from a formula into a power sample.
-
-    Args:
-        sample: The sample produced by an unreachable-power formula.
-
-    Returns:
-        The same sample with its value expressed as `Power`.
-    """
-    return Sample[Power](
-        sample.timestamp,
-        (
-            Power.from_watts(sample.value.base_value)
-            if sample.value is not None
-            else None
-        ),
-    )
-
-
-class _UnreachablePower(typing.NamedTuple):
-    """A live subscription to the power of an unreachable subset of components."""
-
-    component_ids: collections.abc.Set[ComponentId]
-    """The inaccessible components whose power this subscription tracks."""
-
-    formula: str
-    """The formula string the pooled formula was created from.
-
-    Stored so teardown can stop and evict exactly that formula from the owned pool
-    by its string, instead of recomputing it (which would couple correct eviction
-    to the formula generator staying deterministic).
-    """
-
-    cache: LatestValueCache[Sample[Power]]
-    """A latest-value cache of the formula's result."""
 
 
 class ComponentManager(abc.ABC):
@@ -67,26 +24,15 @@ class ComponentManager(abc.ABC):
 
         Subclasses must call `super().__init__()`.
         """
-        self._unreachable_power_subscriptions: dict[
-            frozenset[ComponentId], _UnreachablePower
+        self._unreachable_power_trackers: dict[
+            frozenset[ComponentId], UnreachablePowerTracker
         ] = {}
-        """Maps a requested component set to its unreachable subset's power.
+        """Maps a requested component set to the power of its unreachable subset.
 
         When components are inaccessible, for example due to network issues, they
         can't be controlled but might still be producing or consuming power.  That
         power is measured by a formula and subtracted from the distribution target
-        so the reachable components compensate for it.  So for each requested set we
-        track the inaccessible subset, the formula string, and a latest-value cache
-        of the formula's result for that subset.
-        """
-
-        self._unreachable_power_pool: "FormulaPool | None" = None
-        """A formula pool owned by this manager for the unreachable-power formulas.
-
-        Created lazily on the first subscription (so managers that never subscribe
-        pay nothing).  Owning the pool keeps these formulas isolated from the shared
-        logical meter and lets the manager stop all of them together, bounding the
-        leak to the manager's own lifetime.
+        so the reachable components compensate for it.
         """
 
     @abc.abstractmethod
@@ -141,63 +87,22 @@ class ComponentManager(abc.ABC):
         """Track the power of the unreachable subset of the requested components.
 
         Idempotent per requested set: re-subscribes only when the unreachable subset
-        changes, and tears the subscription down once nothing is unreachable anymore.
+        changes, and stops the formula once nothing is unreachable anymore.
 
         Args:
             requested_ids: The components the current request targets.
             working_ids: The subset of `requested_ids` that is currently reachable.
         """
         requested = frozenset(requested_ids)
-        unreachable = requested - working_ids
-
-        existing = self._unreachable_power_subscriptions.get(requested)
-        if not unreachable:
-            if existing is not None:
-                _logger.debug(
-                    "All requested components are reachable again; stopping the "
-                    "unreachable-power subscription for %s.",
-                    sorted(requested),
-                )
-                del self._unreachable_power_subscriptions[requested]
-                await self._stop_unreachable_power_subscription(existing)
-            return
-        if existing is not None:
-            if existing.component_ids == unreachable:
+        tracker = self._unreachable_power_trackers.get(requested)
+        if tracker is None:
+            if not requested - working_ids:
                 return
-            _logger.debug(
-                "Unreachable subset of %s changed to %s; restarting its power "
-                "subscription.",
-                sorted(requested),
-                sorted(unreachable),
+            tracker = UnreachablePowerTracker(
+                requested, self._unreachable_power_formula
             )
-            del self._unreachable_power_subscriptions[requested]
-            await self._stop_unreachable_power_subscription(existing)
-
-        if self._unreachable_power_pool is None:
-            # Imported here, and the pool created lazily, to avoid an import cycle
-            # with the data pipeline (which imports the power distributor).
-            #
-            # pylint: disable-next=import-outside-toplevel,cyclic-import
-            from ..._data_pipeline import _new_formula_pool
-
-            self._unreachable_power_pool = _new_formula_pool(
-                "unreachable-component-power"
-            )
-
-        formula = self._unreachable_power_formula(unreachable)
-        _logger.debug(
-            "Subscribing to the power of unreachable components %s with formula: %s",
-            sorted(unreachable),
-            formula,
-        )
-        cache = LatestValueCache(
-            self._unreachable_power_pool.from_string(formula, Metric.AC_POWER_ACTIVE)
-            .new_receiver()
-            .map(_quantity_sample_to_power)
-        )
-        self._unreachable_power_subscriptions[requested] = _UnreachablePower(
-            unreachable, formula, cache
-        )
+            self._unreachable_power_trackers[requested] = tracker
+        await tracker.update(working_ids)
 
     def _unreachable_power(
         self, requested_ids: collections.abc.Set[ComponentId]
@@ -208,52 +113,17 @@ class ComponentManager(abc.ABC):
             requested_ids: The components the request targets.
 
         Returns:
-            The latest cached power of the unreachable subset, or `None` if there is
-            no subscription for this set or no value has arrived yet.
+            The latest power of the unreachable subset, or `None` if nothing is
+                tracked for the requested components or no value has arrived yet.
         """
-        subscription = self._unreachable_power_subscriptions.get(
-            frozenset(requested_ids)
-        )
-        if subscription is not None and subscription.cache.has_value():
-            return subscription.cache.get().value
-        return None
-
-    async def _stop_unreachable_power_subscription(
-        self, subscription: _UnreachablePower
-    ) -> None:
-        """Tear down one unreachable-power subscription.
-
-        The subscription must already have been removed from
-        `_unreachable_power_subscriptions` so the shared-formula check below is
-        accurate.
-
-        Args:
-            subscription: The subscription to stop.
-        """
-        try:
-            # try/finally so the formula is stopped even if stopping the cache fails
-            # — otherwise the formula would leak.
-            await subscription.cache.stop()
-        finally:
-            # The pool caches one formula per distinct formula string and keeps it
-            # (and its evaluating actor) running for the life of the manager, so stop
-            # it once no remaining subscription references the same formula.
-            if self._unreachable_power_pool is not None and not any(
-                other.formula == subscription.formula
-                for other in self._unreachable_power_subscriptions.values()
-            ):
-                await self._unreachable_power_pool.stop_string_formula(
-                    subscription.formula, Metric.AC_POWER_ACTIVE
-                )
+        tracker = self._unreachable_power_trackers.get(frozenset(requested_ids))
+        return tracker.power if tracker is not None else None
 
     async def _stop_all_unreachable_power_subscriptions(self) -> None:
-        """Stop every unreachable-power subscription and the owned formula pool."""
-        # Take the subscriptions out before awaiting, because a request being
-        # distributed meanwhile can add or remove subscriptions.
-        subscriptions = list(self._unreachable_power_subscriptions.values())
-        self._unreachable_power_subscriptions.clear()
-        for subscription in subscriptions:
-            await subscription.cache.stop()
-        if self._unreachable_power_pool is not None:
-            await self._unreachable_power_pool.stop()
-            self._unreachable_power_pool = None
+        """Stop every unreachable-power tracker."""
+        # Take the trackers out before awaiting, because a request being distributed
+        # meanwhile can add trackers.
+        trackers = list(self._unreachable_power_trackers.values())
+        self._unreachable_power_trackers.clear()
+        for tracker in trackers:
+            await tracker.stop()

@@ -24,7 +24,6 @@ from frequenz.sdk.microgrid._old_component_data import InverterData
 from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_managers._component_manager import (
     ComponentManager,
-    _UnreachablePower,
 )
 from frequenz.sdk.microgrid._power_distributing._component_managers._pv_inverter_manager._pv_inverter_manager import (  # noqa: E501
     PVManager,
@@ -38,7 +37,6 @@ from frequenz.sdk.microgrid._power_distributing._unreachable_power import (
 from frequenz.sdk.microgrid._power_distributing.request import Request
 from frequenz.sdk.microgrid._power_distributing.result import Result, Success
 from frequenz.sdk.timeseries import Sample
-from frequenz.sdk.timeseries.formulas._formula_pool import FormulaPool
 
 from ...timeseries.mock_microgrid import MockMicrogrid
 
@@ -110,7 +108,7 @@ class _MechanismManager(ComponentManager):
         # pylint: disable=unused-argument
 
     async def stop(self) -> None:
-        """Stop the unreachable-power subscriptions and owned pool."""
+        """Stop the unreachable-power trackers."""
         await self._stop_all_unreachable_power_subscriptions()
 
     def _unreachable_power_formula(self, component_ids: abc.Set[ComponentId]) -> str:
@@ -274,74 +272,24 @@ class TestUnreachablePowerTracker:
 class TestUnreachablePowerMechanism:
     """Tests for the shared `ComponentManager` unreachable-power logic."""
 
-    async def test_subscription_restarts_when_unreachable_set_changes(
-        self, mocker: MockerFixture
-    ) -> None:
-        """Subscriptions are restarted on set changes and torn down when reachable."""
-        pool = _RecordingPool()
-        mocker.patch(
-            "frequenz.sdk.microgrid._data_pipeline._new_formula_pool",
-            return_value=pool,
-        )
+    async def test_one_tracker_per_requested_set(self, pool: _RecordingPool) -> None:
+        """A tracker is created only for requested sets with unreachable components."""
         manager = _MechanismManager()
-        requested = {ComponentId(1), ComponentId(2), ComponentId(3)}
+        requested = {ComponentId(1), ComponentId(2)}
 
-        # First request: only component 3 is unreachable.
-        await manager._subscribe_to_unreachable_power(
-            requested, {ComponentId(1), ComponentId(2)}
-        )
-        assert pool.created == [_formula_for({ComponentId(3)})]
-        assert not pool.stopped
-
-        # Re-subscribing with the same unreachable subset is a no-op.
-        await manager._subscribe_to_unreachable_power(
-            requested, {ComponentId(1), ComponentId(2)}
-        )
-        assert pool.created == [_formula_for({ComponentId(3)})]
-
-        # The unreachable subset grows to {2, 3}: the old formula is stopped and a
-        # new one is created.
-        await manager._subscribe_to_unreachable_power(requested, {ComponentId(1)})
-        assert pool.stopped == [_formula_for({ComponentId(3)})]
-        assert pool.created == [
-            _formula_for({ComponentId(3)}),
-            _formula_for({ComponentId(2), ComponentId(3)}),
-        ]
-
-        # Everything is reachable again: the subscription is torn down.
+        # Everything is reachable: there's nothing to track.
         await manager._subscribe_to_unreachable_power(requested, requested)
-        assert pool.stopped == [
-            _formula_for({ComponentId(3)}),
-            _formula_for({ComponentId(2), ComponentId(3)}),
-        ]
-        assert not manager._unreachable_power_subscriptions
+        assert not manager._unreachable_power_trackers
+        assert manager._unreachable_power(requested) is None
 
-        # Manager shutdown stops the owned formula pool.
+        await manager._subscribe_to_unreachable_power(requested, {ComponentId(1)})
+        assert list(manager._unreachable_power_trackers) == [frozenset(requested)]
+        assert pool.created == [_formula_for({ComponentId(2)})]
+
+        # Manager shutdown stops the tracker and its formula pool.
         await manager.stop()
+        assert not manager._unreachable_power_trackers
         assert pool.stop_all_count == 1
-
-    async def test_failed_cache_stop_still_stops_formula(
-        self, mocker: MockerFixture
-    ) -> None:
-        """A failing cache teardown must not leave the formula running."""
-        pool = _RecordingPool()
-        manager = _MechanismManager()
-        manager._unreachable_power_pool = cast(FormulaPool, pool)
-
-        failing_cache = mocker.MagicMock(spec=LatestValueCache)
-        failing_cache.stop = mocker.AsyncMock(side_effect=RuntimeError("cache boom"))
-        formula = _formula_for({ComponentId(2)})
-        subscription = _UnreachablePower(
-            component_ids={ComponentId(2)},
-            formula=formula,
-            cache=cast(LatestValueCache[Sample[Power]], failing_cache),
-        )
-
-        with pytest.raises(RuntimeError, match="cache boom"):
-            await manager._stop_unreachable_power_subscription(subscription)
-
-        # Despite the cache failure, the formula was stopped via the finally block.
-        assert pool.stopped == [formula]
 
 
 def _pv_cache(
