@@ -3980,7 +3980,7 @@ power.</p>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Optional set of IDs of batteries to be managed by the
-<code>BatteryPool</code>.  If not specified, all batteries available in the component
+<code>BatteryPool</code>.  If None or empty, all batteries available in the component
 graph are used.</p>
               </div>
               <p>
@@ -4108,7 +4108,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-773"><a id="__codelineno-0-773" name="__codelineno-0-773"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-774"><a id="__codelineno-0-774" name="__codelineno-0-774"></a><span class="sd">        priority: The priority of the actor making the call.</span>
 </span><span id="__span-0-775"><a id="__codelineno-0-775" name="__codelineno-0-775"></a><span class="sd">        component_ids: Optional set of IDs of batteries to be managed by the</span>
-</span><span id="__span-0-776"><a id="__codelineno-0-776" name="__codelineno-0-776"></a><span class="sd">            `BatteryPool`.  If not specified, all batteries available in the component</span>
+</span><span id="__span-0-776"><a id="__codelineno-0-776" name="__codelineno-0-776"></a><span class="sd">            `BatteryPool`.  If None or empty, all batteries available in the component</span>
 </span><span id="__span-0-777"><a id="__codelineno-0-777" name="__codelineno-0-777"></a><span class="sd">            graph are used.</span>
 </span><span id="__span-0-778"><a id="__codelineno-0-778" name="__codelineno-0-778"></a><span class="sd">        name: An optional name used to identify this instance of the pool or a</span>
 </span><span id="__span-0-779"><a id="__codelineno-0-779" name="__codelineno-0-779"></a><span class="sd">            corresponding actor in the logs.</span>
@@ -4190,7 +4190,7 @@ power.</p>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Optional set of IDs of EV Chargers to be managed by the
-EVChargerPool.  If not specified, all EV Chargers available in the
+EVChargerPool.  If None or empty, all EV Chargers available in the
 component graph are used.</p>
               </div>
               <p>
@@ -4318,7 +4318,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-734"><a id="__codelineno-0-734" name="__codelineno-0-734"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-735"><a id="__codelineno-0-735" name="__codelineno-0-735"></a><span class="sd">        priority: The priority of the actor making the call.</span>
 </span><span id="__span-0-736"><a id="__codelineno-0-736" name="__codelineno-0-736"></a><span class="sd">        component_ids: Optional set of IDs of EV Chargers to be managed by the</span>
-</span><span id="__span-0-737"><a id="__codelineno-0-737" name="__codelineno-0-737"></a><span class="sd">            EVChargerPool.  If not specified, all EV Chargers available in the</span>
+</span><span id="__span-0-737"><a id="__codelineno-0-737" name="__codelineno-0-737"></a><span class="sd">            EVChargerPool.  If None or empty, all EV Chargers available in the</span>
 </span><span id="__span-0-738"><a id="__codelineno-0-738" name="__codelineno-0-738"></a><span class="sd">            component graph are used.</span>
 </span><span id="__span-0-739"><a id="__codelineno-0-739" name="__codelineno-0-739"></a><span class="sd">        name: An optional name used to identify this instance of the pool or a</span>
 </span><span id="__span-0-740"><a id="__codelineno-0-740" name="__codelineno-0-740"></a><span class="sd">            corresponding actor in the logs.</span>
@@ -4400,7 +4400,7 @@ power.</p>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Optional set of IDs of PV inverters to be managed by the
-<code>PVPool</code>. If not specified, all PV inverters available in the component
+<code>PVPool</code>. If None or empty, all PV inverters available in the component
 graph are used.</p>
               </div>
               <p>
@@ -4526,7 +4526,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-812"><a id="__codelineno-0-812" name="__codelineno-0-812"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-813"><a id="__codelineno-0-813" name="__codelineno-0-813"></a><span class="sd">        priority: The priority of the actor making the call.</span>
 </span><span id="__span-0-814"><a id="__codelineno-0-814" name="__codelineno-0-814"></a><span class="sd">        component_ids: Optional set of IDs of PV inverters to be managed by the</span>
-</span><span id="__span-0-815"><a id="__codelineno-0-815" name="__codelineno-0-815"></a><span class="sd">            `PVPool`. If not specified, all PV inverters available in the component</span>
+</span><span id="__span-0-815"><a id="__codelineno-0-815" name="__codelineno-0-815"></a><span class="sd">            `PVPool`. If None or empty, all PV inverters available in the component</span>
 </span><span id="__span-0-816"><a id="__codelineno-0-816" name="__codelineno-0-816"></a><span class="sd">            graph are used.</span>
 </span><span id="__span-0-817"><a id="__codelineno-0-817" name="__codelineno-0-817"></a><span class="sd">        name: An optional name used to identify this instance of the pool or a</span>
 </span><span id="__span-0-818"><a id="__codelineno-0-818" name="__codelineno-0-818"></a><span class="sd">            corresponding actor in the logs.</span>
@@ -4606,7 +4606,7 @@ power.</p>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Optional set of IDs of steam boilers to be managed by the
-<code>SteamBoilerPool</code>. If not specified, all steam boilers available in the component
+<code>SteamBoilerPool</code>. If None or empty, all steam boilers available in the component
 graph are used.</p>
               </div>
               <p>
@@ -4734,7 +4734,7 @@ corresponding actor in the logs.</p>
 </span><span id="__span-0-849"><a id="__codelineno-0-849" name="__codelineno-0-849"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-850"><a id="__codelineno-0-850" name="__codelineno-0-850"></a><span class="sd">        priority: The priority of the actor making the call.</span>
 </span><span id="__span-0-851"><a id="__codelineno-0-851" name="__codelineno-0-851"></a><span class="sd">        component_ids: Optional set of IDs of steam boilers to be managed by the</span>
-</span><span id="__span-0-852"><a id="__codelineno-0-852" name="__codelineno-0-852"></a><span class="sd">            `SteamBoilerPool`. If not specified, all steam boilers available in the component</span>
+</span><span id="__span-0-852"><a id="__codelineno-0-852" name="__codelineno-0-852"></a><span class="sd">            `SteamBoilerPool`. If None or empty, all steam boilers available in the component</span>
 </span><span id="__span-0-853"><a id="__codelineno-0-853" name="__codelineno-0-853"></a><span class="sd">            graph are used.</span>
 </span><span id="__span-0-854"><a id="__codelineno-0-854" name="__codelineno-0-854"></a><span class="sd">        name: An optional name used to identify this instance of the pool or a</span>
 </span><span id="__span-0-855"><a id="__codelineno-0-855" name="__codelineno-0-855"></a><span class="sd">            corresponding actor in the logs.</span>
