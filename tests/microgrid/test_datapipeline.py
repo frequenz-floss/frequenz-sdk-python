@@ -19,6 +19,7 @@ from frequenz.client.microgrid.component import (
     GridConnectionPoint,
     LiIonBattery,
     SolarInverter,
+    SteamBoiler,
 )
 from pytest_mock import MockerFixture
 
@@ -126,5 +127,114 @@ async def test_actors_started(
     assert datapipeline._battery_power_wrapper._power_distributing_actor is not None
     await asyncio.sleep(1)
     assert datapipeline._battery_power_wrapper._power_distributing_actor.is_running
+
+    await datapipeline._stop()
+
+
+# pylint: disable-next=too-many-locals
+async def test_empty_component_ids_matches_none_in_either_call_order(
+    mocker: MockerFixture,
+) -> None:
+    """`set()` and `None` must give the same pool, no matter which comes first.
+
+    Regression test for
+    https://github.com/frequenz-floss/frequenz-sdk-python/issues/1474
+
+    The reference store for a set of component IDs is created once and then
+    reused for later calls with the same (normalized) IDs. Before the fix, an
+    empty set and `None` normalized to the same cache key, but were resolved
+    differently inside the reference store: a `None` pool got all components,
+    while a `set()` pool got none. This meant whichever call came first decided
+    what BOTH calls got.
+    """
+    datapipeline = _DataPipeline(
+        resampler_config=ResamplerConfig2(resampling_period=timedelta(seconds=1))
+    )
+
+    grid_1 = GridConnectionPoint(
+        id=ComponentId(1), microgrid_id=_MICROGRID_ID, rated_fuse_current=10_000
+    )
+    bat_inverter_4 = BatteryInverter(id=ComponentId(4), microgrid_id=_MICROGRID_ID)
+    battery_15 = LiIonBattery(id=ComponentId(15), microgrid_id=_MICROGRID_ID)
+    pv_inverter_7 = SolarInverter(id=ComponentId(7), microgrid_id=_MICROGRID_ID)
+    ev_charger_9 = AcEvCharger(id=ComponentId(9), microgrid_id=_MICROGRID_ID)
+    steam_boiler_11 = SteamBoiler(id=ComponentId(11), microgrid_id=_MICROGRID_ID)
+
+    mock_client = MockMicrogridClient(
+        components={
+            grid_1,
+            bat_inverter_4,
+            battery_15,
+            pv_inverter_7,
+            ev_charger_9,
+            steam_boiler_11,
+        },
+        connections={
+            ComponentConnection(source=grid_1.id, destination=bat_inverter_4.id),
+            ComponentConnection(source=bat_inverter_4.id, destination=battery_15.id),
+            ComponentConnection(source=grid_1.id, destination=pv_inverter_7.id),
+            ComponentConnection(source=grid_1.id, destination=ev_charger_9.id),
+            ComponentConnection(source=grid_1.id, destination=steam_boiler_11.id),
+        },
+    )
+    mock_client.initialize(mocker)
+
+    # pylint: disable=protected-access
+    _data_pipeline._DATA_PIPELINE = datapipeline
+
+    all_batteries = frozenset({ComponentId(15)})
+    all_pv_inverters = frozenset({ComponentId(7)})
+    all_ev_chargers = frozenset({ComponentId(9)})
+    all_steam_boilers = frozenset({ComponentId(11)})
+
+    # `set()` first, then `None`: both calls must get all components.
+    battery_empty_first = datapipeline.new_battery_pool(
+        priority=10, component_ids=set()
+    )
+    battery_none_second = datapipeline.new_battery_pool(priority=11)
+    assert battery_empty_first.component_ids == all_batteries
+    assert battery_none_second.component_ids == all_batteries
+
+    pv_empty_first = datapipeline.new_pv_pool(priority=10, component_ids=set())
+    pv_none_second = datapipeline.new_pv_pool(priority=11)
+    assert pv_empty_first.component_ids == all_pv_inverters
+    assert pv_none_second.component_ids == all_pv_inverters
+
+    ev_empty_first = datapipeline.new_ev_charger_pool(priority=10, component_ids=set())
+    ev_none_second = datapipeline.new_ev_charger_pool(priority=11)
+    assert ev_empty_first.component_ids == all_ev_chargers
+    assert ev_none_second.component_ids == all_ev_chargers
+
+    steam_boiler_empty_first = datapipeline.new_steam_boiler_pool(
+        priority=10, component_ids=set()
+    )
+    steam_boiler_none_second = datapipeline.new_steam_boiler_pool(priority=11)
+    assert steam_boiler_empty_first.component_ids == all_steam_boilers
+    assert steam_boiler_none_second.component_ids == all_steam_boilers
+
+    # `None` first, then `set()`: both calls must still get all components.
+    battery_none_first = datapipeline.new_battery_pool(priority=20)
+    battery_empty_second = datapipeline.new_battery_pool(
+        priority=21, component_ids=set()
+    )
+    assert battery_none_first.component_ids == all_batteries
+    assert battery_empty_second.component_ids == all_batteries
+
+    pv_none_first = datapipeline.new_pv_pool(priority=20)
+    pv_empty_second = datapipeline.new_pv_pool(priority=21, component_ids=set())
+    assert pv_none_first.component_ids == all_pv_inverters
+    assert pv_empty_second.component_ids == all_pv_inverters
+
+    ev_none_first = datapipeline.new_ev_charger_pool(priority=20)
+    ev_empty_second = datapipeline.new_ev_charger_pool(priority=21, component_ids=set())
+    assert ev_none_first.component_ids == all_ev_chargers
+    assert ev_empty_second.component_ids == all_ev_chargers
+
+    steam_boiler_none_first = datapipeline.new_steam_boiler_pool(priority=20)
+    steam_boiler_empty_second = datapipeline.new_steam_boiler_pool(
+        priority=21, component_ids=set()
+    )
+    assert steam_boiler_none_first.component_ids == all_steam_boilers
+    assert steam_boiler_empty_second.component_ids == all_steam_boilers
 
     await datapipeline._stop()

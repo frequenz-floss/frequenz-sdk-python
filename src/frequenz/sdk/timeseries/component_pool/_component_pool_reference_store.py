@@ -52,7 +52,7 @@ class ComponentPoolReferenceStore(ABC):
             power_distribution_results_fetcher: A ReceiverFetcher for the results from
                 the power distributing actor.
             component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all components of the components type of this pool
+                None or empty, IDs of all components of the components type of this pool
                 in the microgrid will be fetched from the component graph.
 
         Raises:
@@ -74,7 +74,9 @@ class ComponentPoolReferenceStore(ABC):
             }
         )
 
-        if component_ids is not None:
+        # A None or empty component_ids means "use all components", matching the
+        # frozenset() key both values map to in `_DataPipeline.new_*_pool()`.
+        if component_ids:
             self.component_ids: frozenset[ComponentId] = frozenset(component_ids)
             if not self.component_ids.issubset(all_components):
                 unknown_ids = self.component_ids - all_components
