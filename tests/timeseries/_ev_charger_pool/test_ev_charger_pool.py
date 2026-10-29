@@ -105,3 +105,43 @@ async def test_power_status_same_instance_subscriptions_work(
     second_report = await asyncio.wait_for(second_status_rx.receive(), timeout=1.0)
     assert first_report.target_power == Power.from_watts(123.0)
     assert second_report.target_power == Power.from_watts(123.0)
+
+
+async def test_empty_component_ids_means_all(mocker: MockerFixture) -> None:
+    """An empty `component_ids` set must behave like `None`: use all components.
+
+    Regression test for
+    https://github.com/frequenz-floss/frequenz-sdk-python/issues/1474
+    """
+    mock_cm = MagicMock()
+    mock_graph = MagicMock()
+    all_ids = [ComponentId(12), ComponentId(22)]
+    mock_graph.components.return_value = [MagicMock(id=i) for i in all_ids]
+    mock_cm.component_graph = mock_graph
+    mocker.patch(
+        "frequenz.sdk.microgrid.connection_manager._CONNECTION_MANAGER",
+        mock_cm,
+    )
+    mocker.patch("frequenz.sdk.microgrid.connection_manager.get", return_value=mock_cm)
+
+    registry = ChannelRegistry(name="ev-pool-empty-test")
+    requests_channel = Broadcast[ReportRequest](name="ev-pool-empty-requests")
+
+    def new_store(
+        component_ids: frozenset[ComponentId] | None,
+    ) -> EVChargerPoolReferenceStore:
+        return EVChargerPoolReferenceStore(
+            channel_registry=registry,
+            resampler_subscription_sender=MagicMock(),
+            status_receiver=MagicMock(),
+            power_manager_requests_sender=MagicMock(),
+            power_manager_bounds_subs_sender=requests_channel.new_sender(),
+            power_distribution_results_fetcher=MagicMock(),
+            component_ids=component_ids,
+        )
+
+    none_store = new_store(None)
+    empty_store = new_store(frozenset())
+
+    assert none_store.component_ids == frozenset(all_ids)
+    assert empty_store.component_ids == frozenset(all_ids)

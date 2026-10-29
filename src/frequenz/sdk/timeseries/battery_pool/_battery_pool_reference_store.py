@@ -78,7 +78,7 @@ class BatteryPoolReferenceStore(ComponentPoolReferenceStore):
                 It is currently impossible to use resampling actor for these metrics,
                 because we can't specify resampling function for them.
             component_ids: An optional list of component_ids belonging to this pool.  If
-                not specified, IDs of all components of the components type of this pool
+                None or empty, IDs of all components of the components type of this pool
                 in the microgrid will be fetched from the component graph.
         """
         super().__init__(

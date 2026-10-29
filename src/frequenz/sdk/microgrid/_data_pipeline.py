@@ -734,7 +734,7 @@ def new_ev_charger_pool(
     Args:
         priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of EV Chargers to be managed by the
-            EVChargerPool.  If not specified, all EV Chargers available in the
+            EVChargerPool.  If None or empty, all EV Chargers available in the
             component graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
@@ -773,7 +773,7 @@ def new_battery_pool(
     Args:
         priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of batteries to be managed by the
-            `BatteryPool`.  If not specified, all batteries available in the component
+            `BatteryPool`.  If None or empty, all batteries available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
@@ -812,7 +812,7 @@ def new_pv_pool(
     Args:
         priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of PV inverters to be managed by the
-            `PVPool`. If not specified, all PV inverters available in the component
+            `PVPool`. If None or empty, all PV inverters available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
@@ -849,7 +849,7 @@ def new_steam_boiler_pool(
     Args:
         priority: The priority of the actor making the call.
         component_ids: Optional set of IDs of steam boilers to be managed by the
-            `SteamBoilerPool`. If not specified, all steam boilers available in the component
+            `SteamBoilerPool`. If None or empty, all steam boilers available in the component
             graph are used.
         name: An optional name used to identify this instance of the pool or a
             corresponding actor in the logs.
