@@ -188,7 +188,8 @@ class MockMicrogridClient:
             map(lambda m: m.name if isinstance(m, Metric) else str(m), key.metrics)
         )
         chan = Broadcast[ComponentDataSamples](
-            name=f"mock_stream:{key.component_id}:{metrics_str}"
+            name=f"mock_stream:{key.component_id}:{metrics_str}",
+            resend_latest=True,
         )
         self._component_data_channels[key] = chan
 
