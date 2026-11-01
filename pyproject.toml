@@ -89,7 +89,7 @@ dev-pytest = [
   "pytest-mock == 3.16.0",
   "pytest-asyncio == 1.4.1",
   "time-machine == 2.16.0",
-  "async-solipsism == 0.9",
+  "async-solipsism == 0.10",
   "hypothesis == 6.168.3",
 ]
 dev = [
