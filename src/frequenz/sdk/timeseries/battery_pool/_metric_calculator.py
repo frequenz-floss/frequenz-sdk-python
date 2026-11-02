@@ -6,7 +6,7 @@
 import logging
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Set
+from collections.abc import Callable, Mapping, Set
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
@@ -24,6 +24,9 @@ from ...microgrid._power_distributing._component_managers._battery_manager impor
 )
 from ...microgrid._power_distributing._distribution_algorithm._battery_distribution_algorithm import (  # noqa: E501 # pylint: disable=line-too-long
     _aggregate_battery_power_bounds,
+)
+from ...microgrid._power_distributing._unreachable_power import (
+    UnreachablePowerTracker,
 )
 from ...microgrid._power_distributing.result import PowerBounds
 from .._base_types import Sample, SystemBounds
@@ -464,16 +467,27 @@ class SoCCalculator(MetricCalculator[Sample[Percentage]]):
 
 
 class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
-    """Define how to calculate PowerBounds metrics."""
+    """Define how to calculate PowerBounds metrics.
+
+    The inclusion bounds are the sum of the bounds of the working batteries,
+    shifted by the power measured on the batteries that aren't working.  Those
+    batteries can still charge or discharge, for example at their last command, and
+    the power distributor subtracts their measured power from the target power, so
+    the bounds must include it.
+    """
 
     def __init__(
         self,
         batteries: Set[ComponentId],
+        unreachable_power_formula_generator: Callable[[Set[ComponentId]], str],
     ) -> None:
         """Create class instance.
 
         Args:
             batteries: What batteries should be used for calculation.
+            unreachable_power_formula_generator: A function that returns the power
+                formula for a subset of the batteries, to measure the batteries that
+                aren't working.
         """
         mappings: dict[str, dict[ComponentId, frozenset[ComponentId]]] = (
             _get_battery_inverter_mappings(
@@ -500,6 +514,14 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
             )
 
         super().__init__(used_batteries)
+        self.unreachable_power = UnreachablePowerTracker(
+            used_batteries, unreachable_power_formula_generator, self._bat_bats_map
+        )
+        """The tracker of the power of the batteries that aren't working.
+
+        Its owner must keep it updated with the working batteries, and stop it.
+        """
+
         self._battery_metrics: list[Metric | TransitionalMetric] = [
             TransitionalMetric.POWER_INCLUSION_LOWER_BOUND,
             TransitionalMetric.POWER_EXCLUSION_LOWER_BOUND,
@@ -677,6 +699,10 @@ class PowerBoundsCalculator(MetricCalculator[SystemBounds]):
                 inclusion_bounds=None,
                 exclusion_bounds=None,
             )
+
+        if (unreachable_power := self.unreachable_power.power) is not None:
+            inclusion_bounds_lower += unreachable_power
+            inclusion_bounds_upper += unreachable_power
 
         return SystemBounds(
             timestamp=timestamp,

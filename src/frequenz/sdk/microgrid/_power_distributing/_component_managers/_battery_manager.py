@@ -556,11 +556,6 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
             batteries
         )
 
-        await self._subscribe_to_unreachable_power(
-            batteries,
-            working_batteries,
-        )
-
         for battery_id in working_batteries:
             if battery_id not in self._battery_caches:
                 raise RuntimeError(
@@ -583,6 +578,12 @@ class BatteryManager(ComponentManager):  # pylint: disable=too-many-instance-att
                 f"Inverter(s) ({self._str_ids(inverter_ids)}) are connected to "
                 f"battery(ies) ({self._str_ids(extra_batteries)}) that were not requested"
             )
+
+        # The batteries behind the inverter of a working battery are controlled
+        # through that inverter, so they aren't unreachable.
+        await self._subscribe_to_unreachable_power(
+            batteries, _get_all_from_map(self._bat_bats_map, working_batteries)
+        )
 
         # set of set of batteries one for each working_battery
         battery_sets: frozenset[frozenset[ComponentId]] = frozenset(

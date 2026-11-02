@@ -23,10 +23,14 @@ from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker i
     ComponentPoolStatusTracker,
 )
 from frequenz.sdk.timeseries import ResamplerConfig2
+from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
+    PowerBoundsCalculator,
+)
 from frequenz.sdk.timeseries.battery_pool.messages import BatteryPoolReport
 
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import BatteryDataWrapper, InverterDataWrapper
+from ...utils.unreachable_power import UnreachablePowerFeeder
 from ..mock_microgrid import MockMicrogrid
 
 
@@ -663,3 +667,72 @@ class TestBatteryPoolControl:
         assert sorted(set_power.call_args_list) == [
             mocker.call(inv_id, 0.0) for inv_id in mocks.microgrid.battery_inverter_ids
         ]
+
+    async def test_unreachable_battery_power_counts_towards_bounds(
+        self, mocks: Mocks, mocker: MockerFixture
+    ) -> None:
+        """Test that the bounds include the power of a battery that isn't working.
+
+        A battery that stops working can keep running at its last command, and
+        the power distributor subtracts its measured power from the target power. If
+        the pool bounds leave that power out, it is taken off the target twice and
+        the working batteries are left short by it.
+        """
+        set_power = cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
+        )
+        unreachable_battery = mocks.microgrid.battery_ids[0]
+        working = set(mocks.microgrid.battery_ids[1:])
+        mock = MagicMock(spec=ComponentPoolStatusTracker)
+        mock.get_working_components.return_value = working
+        mocker.patch(
+            "frequenz.sdk.microgrid._power_distributing._component_managers"
+            "._battery_manager.ComponentPoolStatusTracker",
+            return_value=mock,
+        )
+        await mocks.battery_status_sender.send(
+            ComponentPoolStatus(working=working, uncertain={unreachable_battery})
+        )
+        # The battery that isn't working is still discharging at its limit.
+        feeder = UnreachablePowerFeeder(mocker, -1000.0)
+        feeder.start()
+        await self._init_data_for_batteries(mocks)
+        await self._init_data_for_inverters(mocks)
+
+        battery_pool = microgrid.new_battery_pool(priority=5)
+        bounds_rx = battery_pool.power_status.new_receiver()
+
+        report = await self._recv_reports_until(
+            bounds_rx,
+            lambda r: r.bounds is not None
+            and r.bounds.lower != Power.from_watts(-3000.0),
+        )
+        # The working batteries can do [-3000, 3000] W, and the battery that isn't
+        # working adds its -1000 W.
+        self._assert_report(report, power=None, lower=-4000.0, upper=2000.0)
+
+        # The working batteries get their full -1000 W each, not -666.67 W.
+        await battery_pool.propose_power(Power.from_watts(-4000.0))
+        await asyncio.sleep(1.0)
+        assert {
+            call.args[0]: call.args[1] for call in set_power.call_args_list
+        } == pytest.approx(
+            {inv_id: -1000.0 for inv_id in mocks.microgrid.battery_inverter_ids[1:]}
+        )
+        feeder.cancel()
+
+    async def test_bounds_tracker_groups_batteries_like_the_bounds(
+        self, mocks: Mocks
+    ) -> None:
+        """Test that the unreachable-power tracker groups batteries by inverter.
+
+        The bounds count the batteries behind a working battery's inverter as
+        working, so the tracker must too.
+        """
+        calculator = PowerBoundsCalculator(
+            set(mocks.microgrid.battery_ids), lambda _component_ids: ""
+        )
+        # pylint: disable-next=protected-access
+        groups = calculator.unreachable_power._sibling_groups
+        assert groups is calculator._bat_bats_map  # pylint: disable=protected-access

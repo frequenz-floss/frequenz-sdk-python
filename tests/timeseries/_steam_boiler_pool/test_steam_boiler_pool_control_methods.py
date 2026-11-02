@@ -25,6 +25,7 @@ from frequenz.sdk.timeseries.steam_boiler_pool import SteamBoilerPoolReport
 from ...microgrid.fixtures import _Mocks
 from ...utils.component_data_streamer import MockComponentDataStreamer
 from ...utils.component_data_wrapper import SteamBoilerDataWrapper
+from ...utils.unreachable_power import UnreachablePowerFeeder
 from ..mock_microgrid import MockMicrogrid
 
 
@@ -37,7 +38,9 @@ def event_loop_policy() -> async_solipsism.EventLoopPolicy:
 @pytest.fixture
 async def mocks(mocker: MockerFixture) -> typing.AsyncIterator[_Mocks]:
     """Create the mocks."""
-    mockgrid = MockMicrogrid(grid_meter=True)
+    # The components that aren't working are measured by the power distributor,
+    # and by the bounds trackers of both the test's pool and the power manager's.
+    mockgrid = MockMicrogrid(grid_meter=True, num_namespaces=3)
     mockgrid.add_steam_boilers(4)
     await mockgrid.start(mocker)
 
@@ -367,3 +370,57 @@ class TestSteamBoilerPoolControl:
         assert dist_results.succeeded_power == Power.zero()
         assert dist_results.excess_power == Power.zero()
         assert dist_results.succeeded_components == set(boiler_ids)
+
+    async def test_unreachable_steam_boiler_power_counts_towards_bounds(
+        self, mocks: _Mocks, mocker: MockerFixture
+    ) -> None:
+        """Test that the bounds include the power of a steam boiler that isn't working.
+
+        A steam boiler that stops working can keep running at its last command, and
+        the power distributor subtracts its measured power from the target power. If
+        the pool bounds leave that power out, it is taken off the target twice and
+        the working steam boilers are left short by it.
+        """
+        set_power = typing.cast(
+            AsyncMock,
+            microgrid.connection_manager.get().api_client.set_component_power_active,
+        )
+        # The one that isn't working is still running at its limit.
+        feeder = UnreachablePowerFeeder(mocker, 20000.0)
+        feeder.start()
+
+        await self._init_steam_boilers(mocks)
+        steam_boiler_pool = microgrid.new_steam_boiler_pool(priority=5)
+        bounds_rx = steam_boiler_pool.power_status.new_receiver()
+        await self._recv_reports_until(
+            bounds_rx,
+            lambda x: x.bounds is not None and x.bounds.upper.as_watts() == 100000.0,
+        )
+
+        # The second steam boiler fails, but keeps running at its limit.
+        ids = mocks.microgrid.steam_boiler_ids
+        await self._fail_steam_boilers([ids[1]], mocks)
+        await asyncio.sleep(1.0)
+
+        set_power.reset_mock()
+        await steam_boiler_pool.propose_power(Power.from_watts(100000.0))
+        # Without the power of the one that isn't working in the bounds, the target
+        # gets clamped, and this times out.
+        async with asyncio.timeout(5.0):
+            report = await self._recv_reports_until(
+                bounds_rx,
+                lambda x: x.target_power is not None
+                and x.target_power.as_watts() == 100000.0,
+            )
+        # The working steam boilers can do 80000 W, and the one that isn't working
+        # adds its 20000 W.
+        self._assert_report(report, power=100000.0, lower=20000.0, upper=100000.0)
+        await asyncio.sleep(1.0)
+
+        # The working steam boilers get their full bounds.
+        assert {call.args[0]: call.args[1] for call in set_power.call_args_list} == {
+            ids[0]: 10000.0,
+            ids[2]: 30000.0,
+            ids[3]: 40000.0,
+        }
+        feeder.cancel()
