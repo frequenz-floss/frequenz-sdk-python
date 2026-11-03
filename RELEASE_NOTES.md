@@ -2,21 +2,13 @@
 
 ## Summary
 
-<!-- Here goes a general summary of what this release is about -->
+This release fixes how component pools (battery, PV, EV charger, steam boiler) handle an empty `component_ids` set, share state between pools of the same components, and account for the power of components that aren't working in their power bounds.
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
-
 * The exclusion bounds of a `SystemBounds`, for example from `BatteryPool.system_power_bounds`, are no longer guaranteed to be inside its inclusion bounds. When components of a pool aren't working, only the inclusion bounds shift by the power measured on those components, so the exclusion bounds can be partly or fully outside them. If your code assumes that the exclusion bounds are inside the inclusion bounds, check each of them on its own.
 
-## New Features
-
-<!-- Here goes the main new features and examples or instructions on how to use them -->
-
 ## Bug Fixes
-
-<!-- Here goes notable bug fixes that are worth a special mention or explanation -->
 
 * `new_battery_pool(component_ids=set())` uses all batteries again, like before v1.0.0-rc2206.
 * `new_pv_pool()`, `new_ev_charger_pool()` and `new_steam_boiler_pool()` now also treat an empty `component_ids` set as "all components". Before, it gave a pool with no components, unless a pool for all components of that type had already been created (both pools then shared one cache entry).
