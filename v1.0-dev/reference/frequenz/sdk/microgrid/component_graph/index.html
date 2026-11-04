@@ -2952,6 +2952,9 @@
     <div class="doc doc-contents ">
 
         <p>Initialize this instance.</p>
+<p>An <code>UnspecifiedComponent</code> or <code>UnrecognizedComponent</code> with a connection makes the
+graph invalid.  One with no connections stays in the graph, but formulas leave
+it out.</p>
 
 
 <table>
@@ -3464,6 +3467,8 @@ are not CHPs.</p>
     <div class="doc doc-contents ">
 
         <p>Fetch all components in this graph.</p>
+<p>In <code>matching_types</code>, <code>UnspecifiedComponent</code> and <code>UnrecognizedComponent</code> match
+each other.</p>
 
 
 <table>
