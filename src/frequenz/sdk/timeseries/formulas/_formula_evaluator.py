@@ -63,9 +63,9 @@ class FormulaEvaluatingActor(Generic[QuantityT], Actor):
                     "No more input samples available; stopping formula evaluator. (%s)",
                     self._root,
                 )
-                await self._output_channel.close()
+                await self._output_channel.aclose()
                 return
             except Exception:  # pylint: disable=broad-except
                 _logger.exception("Error evaluating formula %s", self._root)
-                await self._output_channel.close()
+                await self._output_channel.aclose()
                 return

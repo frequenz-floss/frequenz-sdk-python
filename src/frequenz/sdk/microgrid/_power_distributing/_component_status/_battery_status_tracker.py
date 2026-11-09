@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
-from frequenz.channels.timer import SkipMissedAndDrift, Timer
+from frequenz.channels.timer import MonotonicTimer, SkipMissedAndDrift
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentStateCode, Inverter
 from typing_extensions import override
@@ -48,7 +48,7 @@ class _ComponentStreamStatus:
     component_id: ComponentId
     """Component id."""
 
-    data_recv_timer: Timer
+    data_recv_timer: MonotonicTimer
     """Timer that is set when no component data has been received for some time."""
 
     last_msg_timestamp: datetime = datetime.now(tz=timezone.utc)
@@ -144,11 +144,11 @@ class BatteryStatusTracker(ComponentStatusTracker, BackgroundService):
 
         self._battery: _ComponentStreamStatus = _ComponentStreamStatus(
             component_id,
-            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
+            data_recv_timer=MonotonicTimer(max_data_age, SkipMissedAndDrift()),
         )
         self._inverter: _ComponentStreamStatus = _ComponentStreamStatus(
             inverter_id,
-            data_recv_timer=Timer(max_data_age, SkipMissedAndDrift()),
+            data_recv_timer=MonotonicTimer(max_data_age, SkipMissedAndDrift()),
         )
 
         # Select needs receivers that can be get in async way only.
