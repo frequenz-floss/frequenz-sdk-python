@@ -6,7 +6,7 @@ This release raises the minimum `frequenz-microgrid-component-graph` version to 
 
 ## Upgrading
 
-- The minimum `frequenz-channels` version will be 1.13.0 once it is released. Until then, this branch uses its unreleased code from [channels PR 595](https://github.com/frequenz-floss/frequenz-channels-python/pull/595).
+- The minimum `frequenz-channels` version is now 1.13.0.
 
 - The minimum `typing-extensions` version is now 4.16.0. `frequenz-channels` also requires `frequenz-core >= 1.6.0, < 2`.
 
