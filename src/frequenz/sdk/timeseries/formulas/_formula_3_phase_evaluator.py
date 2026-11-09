@@ -76,7 +76,7 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
                 _logger.debug(
                     "input streams closed; stopping three-phase formula evaluator."
                 )
-                await self._output_channel.close()
+                await self._output_channel.aclose()
                 return
 
             if (
@@ -87,7 +87,7 @@ class Formula3PhaseEvaluatingActor(Generic[QuantityT], Actor):
                 _logger.debug(
                     "One of the three phase samples is None, stopping the evaluator."
                 )
-                await self._output_channel.close()
+                await self._output_channel.aclose()
                 return
 
             if not (

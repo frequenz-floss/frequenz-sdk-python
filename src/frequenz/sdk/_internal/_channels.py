@@ -182,7 +182,7 @@ class ChannelRegistry:
         entry = self._channels.pop(key, None)
         if entry is None:
             raise KeyError(f"No channel for key {key!r} exists.")
-        await entry.channel.close()
+        await entry.channel.aclose()
 
 
 @dataclasses.dataclass(frozen=True)

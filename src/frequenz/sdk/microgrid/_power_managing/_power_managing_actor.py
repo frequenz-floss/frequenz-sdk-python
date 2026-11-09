@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
 from frequenz.channels import Receiver, Sender, select, selected_from
-from frequenz.channels.timer import SkipMissedAndDrift, Timer
+from frequenz.channels.timer import MonotonicTimer, SkipMissedAndDrift
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import (
     Battery,
@@ -211,7 +211,9 @@ class PowerManagingActor(Actor):
     async def _run(self) -> None:
         """Run the power managing actor."""
         last_result_partial_failure = False
-        drop_old_proposals_timer = Timer(timedelta(seconds=1.0), SkipMissedAndDrift())
+        drop_old_proposals_timer = MonotonicTimer(
+            timedelta(seconds=1.0), SkipMissedAndDrift()
+        )
         async for selected in select(
             self._proposals_receiver,
             self._bounds_subscription_receiver,

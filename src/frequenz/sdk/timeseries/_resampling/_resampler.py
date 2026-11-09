@@ -14,7 +14,7 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
-from frequenz.channels.timer import Timer, TriggerAllMissed, _to_microseconds
+from frequenz.channels.timer import MonotonicTimer, TriggerAllMissed, _to_microseconds
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import cancel_and_await
@@ -49,7 +49,7 @@ class Resampler:
             config: The configuration for the resampler. If a `ResamplerConfig2` is
                 provided, the resampler will use a
                 [`WallClockTimer`][frequenz.sdk.timeseries.WallClockTimer] instead of a
-                [`Timer`][frequenz.channels.timer.Timer].
+                [`MonotonicTimer`][frequenz.channels.timer.MonotonicTimer].
         """
         self._config = config
         """The configuration for this resampler."""
@@ -57,7 +57,7 @@ class Resampler:
         self._resamplers: dict[Source, _StreamingHelper] = {}
         """A mapping between sources and the streaming helper handling that source."""
 
-        self._timer: Timer | WallClockTimer
+        self._timer: MonotonicTimer | WallClockTimer
         """The timer used to trigger the resampling windows."""
 
         if isinstance(config, ResamplerConfig2):
@@ -78,10 +78,10 @@ class Resampler:
         the window end is deterministic.
         """
 
-        self._timer = Timer(config.resampling_period, TriggerAllMissed())
+        self._timer = MonotonicTimer(config.resampling_period, TriggerAllMissed())
         """The timer used to trigger the resampling windows."""
 
-        # Hack to align the timer, this should be implemented in the Timer class
+        # Align the timer; MonotonicTimer should align its own ticks.
         self._timer._next_tick_time = _to_microseconds(
             timedelta(seconds=asyncio.get_running_loop().time())
             + config.resampling_period
@@ -180,7 +180,7 @@ class Resampler:
                 case TickInfo():  # WallClockTimer
                     next_tick_time = tick_info.expected_tick_time
 
-                case timedelta() as drift:  # Timer (monotonic)
+                case timedelta() as drift:  # MonotonicTimer
                     next_tick_time = self._window_end
 
                     if drift > tolerance:
