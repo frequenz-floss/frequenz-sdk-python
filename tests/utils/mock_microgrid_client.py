@@ -143,7 +143,7 @@ class MockMicrogridClient:
         """
         for key, channel in self._component_data_channels.items():
             if key.component_id == cid:
-                await channel.close()
+                await channel.aclose()
 
     def _create_mock_api(self) -> MagicMock:
         """Create mock of MicrogridApiClient.

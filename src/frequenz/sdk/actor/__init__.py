@@ -517,7 +517,7 @@ async def main() -> None:  # (6)!
 
     await run(echo_actor)  # (9)!
 
-    await echo_channel.close()  # (16)!
+    await echo_channel.aclose()  # (16)!
 
     async for message in echo_receiver:  # (17)!
         print(f"Received {message=}")

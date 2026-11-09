@@ -53,7 +53,7 @@ async def source_chan() -> AsyncIterator[Broadcast[Sample[Quantity]]]:
     """Create a broadcast channel of samples."""
     chan = Broadcast[Sample[Quantity]](name="test")
     yield chan
-    await chan.close()
+    await chan.aclose()
 
 
 def as_float_tuple(sample: Sample[Quantity]) -> tuple[datetime, float]:
@@ -1512,7 +1512,7 @@ async def test_receiving_stopped_resampling_error(
     resampling_fun_mock.reset_mock()
 
     # Close channel, try to resample again
-    await source_chan.close()
+    await source_chan.aclose()
     with pytest.raises(SenderError):
         await source_sender.send(sample0s)
     await _advance_time(fake_time, resampling_period_s)

@@ -12,8 +12,7 @@ from datetime import timedelta
 from typing import Any, Final, Literal, TypeGuard, overload
 
 import marshmallow
-from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError
-from frequenz.channels.experimental import WithPrevious
+from frequenz.channels import Broadcast, Receiver, ReceiverStoppedError, WithPrevious
 from marshmallow import Schema, ValidationError
 from typing_extensions import override
 
