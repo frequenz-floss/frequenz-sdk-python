@@ -6,7 +6,11 @@ This release raises the minimum `frequenz-microgrid-component-graph` version to 
 
 ## Upgrading
 
-<!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
+- The minimum `frequenz-channels` version will be 1.13.0 once it is released. Until then, this branch uses its unreleased code from [channels PR 595](https://github.com/frequenz-floss/frequenz-channels-python/pull/595).
+
+- The minimum `typing-extensions` version is now 4.16.0. `frequenz-channels` also requires `frequenz-core >= 1.6.0, < 2`.
+
+- The SDK no longer uses the channels APIs that will be removed in channels v2.0.0. The SDK's public API, timer behavior, and channel closing are unchanged. `Broadcast` and the SDK's `new_receiver(limit=...)` arguments stay as they are.
 
 ## New Features
 
