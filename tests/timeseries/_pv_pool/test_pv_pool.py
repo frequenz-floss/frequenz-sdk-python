@@ -161,7 +161,7 @@ async def test_bounds_tracker_tracks_unreachable_power_again_on_restart(
         await feeder.wait_for_formulas(1)
 
         # An error ends the run, the way `run_forever` sees it.
-        await data_channel.close()
+        await data_channel.aclose()
         with pytest.raises(ReceiverStoppedError):
             await run
         data_channel = Broadcast[InverterData](name="data")

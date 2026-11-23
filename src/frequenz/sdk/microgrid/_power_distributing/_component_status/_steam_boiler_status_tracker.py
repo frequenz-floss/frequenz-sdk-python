@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from frequenz.channels import Receiver, Sender, select, selected_from
-from frequenz.channels.timer import SkipMissedAndDrift, Timer
+from frequenz.channels.timer import MonotonicTimer, SkipMissedAndDrift
 from frequenz.client.common.microgrid.components import ComponentId
 from frequenz.client.microgrid.component import ComponentStateCode
 from typing_extensions import override
@@ -147,7 +147,7 @@ class SteamBoilerStatusTracker(ComponentStatusTracker, BackgroundService):
             connection_manager.get().api_client, self._component_id
         )
         set_power_result_rx = self._set_power_result_receiver
-        missing_data_timer = Timer(self._max_data_age, SkipMissedAndDrift())
+        missing_data_timer = MonotonicTimer(self._max_data_age, SkipMissedAndDrift())
 
         # Send initial status
         await self._status_sender.send(
