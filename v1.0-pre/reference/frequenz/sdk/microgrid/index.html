@@ -3114,7 +3114,11 @@ are validation errors on the components.</p>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>Whether to allow unconnected components in the
-graph, that are not reachable from the root.</p>
+graph, that are not reachable from the root.  Pass-through components,
+such as <code>Relay</code> and <code>Hvac</code>, are left out of formulas, but what is behind
+them is not.  They never have to be reachable themselves, and neither
+does an <code>UnspecifiedComponent</code> or <code>UnrecognizedComponent</code> with no
+connections.</p>
               </div>
               <p>
                   <span class="doc-param-annotation">
