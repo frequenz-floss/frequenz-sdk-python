@@ -14,7 +14,9 @@
     - `ResamplerConfig3` has different defaults, see below.
     - Only `resampling_period` can be passed by position.
     - `initial_buffer_len` is called `input_period_estimation_samples`.
-    - Resampling functions receive a `ResamplingContext` instead of the configuration, which is now `context.config`.
+    - Resampling functions receive a `ResamplingContext` instead of the configuration and the source properties, which are now `context.config` and `context.source_properties`.
+
+- `ResamplerConfig2` and `ResamplingFunction2` are deprecated. Use `ResamplerConfig3` and `ResamplingFunction3` instead. `ResamplerConfig3` uses the same wall clock timer, but it has different defaults (see below), only `resampling_period` can be passed by position, `initial_buffer_len` is called `input_period_estimation_samples`, and resampling functions receive a `ResamplingContext` instead of the configuration and the source properties. Keep any `timer_config` and `tick_delay` you pass. Subclassing `ResamplerConfig2` also shows the deprecation warning of `ResamplerConfig`, whose advice about the timer doesn't apply to it.
 
 ## New Features
 

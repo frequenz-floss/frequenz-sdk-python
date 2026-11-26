@@ -469,7 +469,11 @@ async def test_wait_for_samples() -> None:
             id="ResamplerConfig",
             marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
         ),
-        ResamplerConfig2,
+        pytest.param(
+            ResamplerConfig2,
+            id="ResamplerConfig2",
+            marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+        ),
         ResamplerConfig3,
     ],
 )

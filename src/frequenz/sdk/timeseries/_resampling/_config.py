@@ -311,8 +311,17 @@ class ResamplerConfig:
             )
 
 
+@deprecated(
+    "frequenz.sdk.timeseries.ResamplingFunction2 is deprecated. "
+    "Use frequenz.sdk.timeseries.ResamplingFunction3 instead, which receives a "
+    "resampling context instead of the configuration."
+)
 class ResamplingFunction2(Protocol):
     """Combine multiple samples into a new one.
+
+    Deprecated:
+        Deprecated since v1.0.0-rc2217. Use
+        [`ResamplingFunction3`][frequenz.sdk.timeseries.ResamplingFunction3] instead.
 
     A resampling function produces a new sample based on a list of pre-existing
     samples. It can do "upsampling" when the data rate of the `input_samples`
@@ -324,6 +333,10 @@ class ResamplingFunction2(Protocol):
     enable extrapolation, but no samples from the future (so the timestamp of the
     new sample that is going to be produced will always be bigger than the biggest
     timestamp in the input data).
+
+    A [`ResamplingFunction3`][frequenz.sdk.timeseries.ResamplingFunction3] receives
+    a [`ResamplingContext`][frequenz.sdk.timeseries.ResamplingContext] with the
+    configuration and the window being resampled, instead of the configuration.
     """
 
     def __call__(
@@ -353,9 +366,28 @@ class ResamplingFunction2(Protocol):
 # about it, as it happens when the SDK is imported.
 with ignoring_deprecations():
 
+    @deprecated(
+        "frequenz.sdk.timeseries.ResamplerConfig2 is deprecated. "
+        "Use frequenz.sdk.timeseries.ResamplerConfig3 instead, but note it has "
+        "different defaults and resampling function signature, so resampled "
+        "values can change."
+    )
     @dataclass(frozen=True)
     class ResamplerConfig2(ResamplerConfig):
-        """Resampler configuration."""
+        """Resampler configuration.
+
+        Deprecated:
+            Deprecated since v1.0.0-rc2217. Use
+            [`ResamplerConfig3`][frequenz.sdk.timeseries.ResamplerConfig3] instead.
+
+        A [`ResamplerConfig3`][frequenz.sdk.timeseries.ResamplerConfig3] has
+        different defaults, and its resampling function receives a
+        [`ResamplingContext`][frequenz.sdk.timeseries.ResamplingContext] instead
+        of the configuration. To keep the results of this class, pass
+        `max_data_age_in_periods=3.0`, `closed=WindowSide.RIGHT` and
+        `label=WindowSide.RIGHT`, together with any `timer_config` and
+        `tick_delay`.
+        """
 
         resampling_period: timedelta
         """The resampling period.

@@ -55,7 +55,11 @@ _CONFIG_CLASSES = [
         id="ResamplerConfig",
         marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
     ),
-    ResamplerConfig2,
+    pytest.param(
+        ResamplerConfig2,
+        id="ResamplerConfig2",
+        marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+    ),
     ResamplerConfig3,
 ]
 """All the resampler configuration classes, to parametrize tests.

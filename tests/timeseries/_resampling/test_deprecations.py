@@ -6,7 +6,7 @@
 import subprocess
 import sys
 import textwrap
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from frequenz.core.warnings import asserting_no_deprecations
@@ -14,7 +14,11 @@ from frequenz.core.warnings import asserting_no_deprecations
 from frequenz.sdk.timeseries import (
     ResamplerConfig,
     ResamplerConfig2,
+    ResamplerConfig3,
+    ResamplingContext,
     ResamplingFunction,
+    ResamplingFunction2,
+    SourceProperties,
 )
 
 _PERIOD = timedelta(seconds=1)
@@ -25,8 +29,21 @@ _RESAMPLER_CONFIG_MESSAGE = (
     "wall clock timer and has different defaults, so resampled values can change."
 )
 
+_RESAMPLER_CONFIG2_MESSAGE = (
+    "frequenz.sdk.timeseries.ResamplerConfig2 is deprecated. "
+    "Use frequenz.sdk.timeseries.ResamplerConfig3 instead, but note it has "
+    "different defaults and resampling function signature, so resampled "
+    "values can change."
+)
+
 _RESAMPLING_FUNCTION_MESSAGE = (
     "frequenz.sdk.timeseries.ResamplingFunction is deprecated. "
+    "Use frequenz.sdk.timeseries.ResamplingFunction3 instead, which receives a "
+    "resampling context instead of the configuration."
+)
+
+_RESAMPLING_FUNCTION2_MESSAGE = (
+    "frequenz.sdk.timeseries.ResamplingFunction2 is deprecated. "
     "Use frequenz.sdk.timeseries.ResamplingFunction3 instead, which receives a "
     "resampling context instead of the configuration."
 )
@@ -50,10 +67,36 @@ def test_resampling_function_is_deprecated() -> None:
     assert [str(w.message) for w in record] == [_RESAMPLING_FUNCTION_MESSAGE]
 
 
-def test_resampler_config2_does_not_warn_about_resampler_config() -> None:
-    """Test creating a `ResamplerConfig2` doesn't warn about its base class."""
-    with asserting_no_deprecations():
+def test_resampler_config2_is_deprecated() -> None:
+    """Test creating a `ResamplerConfig2` warns once, and not about its base class."""
+    with pytest.deprecated_call() as record:
         ResamplerConfig2(_PERIOD)
+
+    assert [str(w.message) for w in record] == [_RESAMPLER_CONFIG2_MESSAGE]
+
+
+def test_resampling_function2_is_deprecated() -> None:
+    """Test subclassing `ResamplingFunction2` warns once."""
+    with pytest.deprecated_call() as record:
+
+        class _Function(ResamplingFunction2):  # pylint: disable=unused-variable
+            pass
+
+    assert [str(w.message) for w in record] == [_RESAMPLING_FUNCTION2_MESSAGE]
+
+
+def test_resampler_config3_does_not_warn() -> None:
+    """Test the replacement doesn't warn, nor its default resampling function."""
+    with asserting_no_deprecations():
+        config = ResamplerConfig3(_PERIOD)
+        config.resampling_function(
+            [(datetime(2026, 1, 1, tzinfo=timezone.utc), 1.0)],
+            ResamplingContext(
+                window_start=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                config=config,
+                source_properties=SourceProperties(),
+            ),
+        )
 
 
 def test_import_does_not_warn() -> None:
