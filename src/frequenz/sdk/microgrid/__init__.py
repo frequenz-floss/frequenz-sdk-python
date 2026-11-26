@@ -389,7 +389,11 @@ from datetime import timedelta
 
 from frequenz.microgrid_component_graph import ComponentGraphConfig, FormulaOverrides
 
-from ..timeseries._resampling._config import ResamplerConfig
+from ..timeseries._resampling._config import (
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplerConfig3,
+)
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     consumer,
@@ -408,7 +412,7 @@ from ._power_managing import PowerManagerAlgorithm
 
 async def initialize(
     server_url: str,
-    resampler_config: ResamplerConfig,
+    resampler_config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig,
     *,
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     # pylint: disable-next: line-too-long

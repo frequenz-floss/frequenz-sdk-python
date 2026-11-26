@@ -28,7 +28,7 @@ from frequenz.client.microgrid.component import (
 
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
-from ..timeseries import ResamplerConfig
+from ..timeseries import ResamplerConfig, ResamplerConfig2, ResamplerConfig3
 from ..timeseries._voltage_streamer import VoltageStreamer
 from ._data_sourcing import ComponentMetricRequest, DataSourcingActor
 from ._power_managing._base_classes import DefaultPower, PowerManagerAlgorithm
@@ -97,7 +97,7 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
-        resampler_config: ResamplerConfig,
+        resampler_config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig,
         api_power_request_timeout: timedelta = timedelta(seconds=5.0),
         battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
     ) -> None:
@@ -110,7 +110,9 @@ class _DataPipeline:  # pylint: disable=too-many-instance-attributes
             battery_power_manager_algorithm: The power manager algorithm to use for
                 batteries.
         """
-        self._resampler_config: ResamplerConfig = resampler_config
+        self._resampler_config: (
+            ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig
+        ) = resampler_config
 
         self._channel_registry: ChannelRegistry = ChannelRegistry(
             name="Data Pipeline Registry"
@@ -638,7 +640,7 @@ _DATA_PIPELINE: _DataPipeline | None = None
 
 
 async def initialize(
-    resampler_config: ResamplerConfig,
+    resampler_config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig,
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     battery_power_manager_algorithm: PowerManagerAlgorithm = PowerManagerAlgorithm.SHIFTING_MATRYOSHKA,  # noqa: E501
 ) -> None:

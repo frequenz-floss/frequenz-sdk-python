@@ -18,7 +18,7 @@ from numpy.typing import ArrayLike
 
 from ..actor._background_service import BackgroundService
 from ._base_types import Sample
-from ._resampling._config import ResamplerConfig
+from ._resampling._config import ResamplerConfig, ResamplerConfig2, ResamplerConfig3
 from ._resampling._resampler import Resampler
 from ._ringbuffer import OrderedRingBuffer
 
@@ -135,7 +135,9 @@ class MovingWindow(BackgroundService):
         size: timedelta,
         resampled_data_recv: Receiver[Sample[Quantity]],
         input_sampling_period: timedelta,
-        resampler_config: ResamplerConfig | None = None,
+        resampler_config: (
+            ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig | None
+        ) = None,
         align_to: datetime = UNIX_EPOCH,
         name: str | None = None,
     ) -> None:
