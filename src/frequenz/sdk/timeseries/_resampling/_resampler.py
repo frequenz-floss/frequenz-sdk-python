@@ -12,13 +12,20 @@ from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
 from frequenz.channels.timer import MonotonicTimer, TriggerAllMissed, _to_microseconds
+from frequenz.core.typing import FloatInt
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import cancel_and_await
 from .._base_types import Sample
 from ._base_types import Sink, Source, SourceProperties
 from ._buffer import _ResamplingBuffer
-from ._config import ResamplerConfig, ResamplerConfig2, WindowSide
+from ._config import (
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplerConfig3,
+    ResamplingContext,
+    WindowSide,
+)
 from ._exceptions import ResamplingError, SourceStoppedError
 from ._wall_clock_timer import TickInfo, WallClockTimer
 
@@ -38,14 +45,22 @@ class Resampler:
     samples coming to a resampled timeseries for a while, eventually the
     `Resampler` will produce `Sample`s with `None` as value, meaning there is
     no way to produce meaningful samples with the available data.
+
+    Warning: Limitation
+        The resampler currently expects the samples of each timeseries to arrive
+        in timestamp order. Samples that arrive out of order can be wrongly left
+        out of or included in a window. See
+        [frequenz-sdk-python#47](https://github.com/frequenz-floss/frequenz-sdk-python/issues/47).
     """
 
-    def __init__(self, config: ResamplerConfig) -> None:
+    def __init__(
+        self, config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig
+    ) -> None:
         """Initialize an instance.
 
         Args:
-            config: The configuration for the resampler. If a `ResamplerConfig2` is
-                provided, the resampler will use a
+            config: The configuration for the resampler. If a `ResamplerConfig3` or
+                a `ResamplerConfig2` is provided, the resampler will use a
                 [`WallClockTimer`][frequenz.sdk.timeseries.WallClockTimer] instead of a
                 [`MonotonicTimer`][frequenz.channels.timer.MonotonicTimer].
         """
@@ -58,11 +73,20 @@ class Resampler:
         self._timer: MonotonicTimer | WallClockTimer
         """The timer used to trigger the resampling windows."""
 
-        if isinstance(config, ResamplerConfig2):
-            self._timer = WallClockTimer(config.resampling_period, config.timer_config)
-            return
+        # ResamplerConfig2 is a subclass of ResamplerConfig, so it has to be
+        # matched first.
+        match config:
+            case ResamplerConfig3() | ResamplerConfig2():
+                self._timer = WallClockTimer(
+                    config.resampling_period, config.timer_config
+                )
+                return
+            case ResamplerConfig():
+                pass
+            case unexpected:
+                assert_never(unexpected)
 
-        window_end, start_delay_time = self._calculate_window_end()
+        window_end, start_delay_time = self._calculate_window_end(config)
         self._window_end: datetime = window_end
         """The time in which the current window ends.
 
@@ -87,7 +111,7 @@ class Resampler:
         )  # pylint: disable=protected-access
 
     @property
-    def config(self) -> ResamplerConfig:
+    def config(self) -> ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig:
         """Get the resampler configuration.
 
         Returns:
@@ -225,26 +249,31 @@ class Resampler:
             if one_shot:
                 break
 
-    def _calculate_window_end(self) -> tuple[datetime, timedelta]:
+    def _calculate_window_end(
+        self, config: ResamplerConfig
+    ) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
 
         The calculated resampling window end is a multiple of
-        `self._config.resampling_period` starting at `self._config.align_to`.
+        `config.resampling_period` starting at `config.align_to`.
 
-        if `self._config.align_to` is `None`, the current time is used.
+        if `config.align_to` is `None`, the current time is used.
 
-        If the current time is not aligned to `self._config.resampling_period`, then
+        If the current time is not aligned to `config.resampling_period`, then
         the end of the current resampling window will be more than one period away, to
         make sure to have some time to collect samples if the misalignment is too big.
 
+        Args:
+            config: The configuration for the resampler.
+
         Returns:
             A tuple with the end of the current resampling window aligned to
-                `self._config.align_to` as the first item and the time we need to
+                `config.align_to` as the first item and the time we need to
                 delay the timer start to make sure it is also aligned.
         """
         now = datetime.now(timezone.utc)
-        period = self._config.resampling_period
-        align_to = self._config.align_to
+        period = config.resampling_period
+        align_to = config.align_to
 
         if align_to is None:
             return (now + period, timedelta(0))
@@ -278,7 +307,9 @@ class _ResamplingHelper:
     estimated, so samples are kept.
     """
 
-    def __init__(self, name: str, config: ResamplerConfig) -> None:
+    def __init__(
+        self, name: str, config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig
+    ) -> None:
         """Initialize an instance.
 
         Args:
@@ -298,6 +329,15 @@ class _ResamplingHelper:
         # as possible.
         self.add_sample: Callable[[tuple[datetime, float]], None] = self._buffer.add
         """Add a new sample to the buffer."""
+        self._estimation_samples: int
+        """The number of samples to receive before estimating the input period."""
+        match config:
+            case ResamplerConfig3():
+                self._estimation_samples = config.input_period_estimation_samples
+            case ResamplerConfig():
+                self._estimation_samples = config.initial_buffer_len
+            case unexpected:
+                assert_never(unexpected)
 
     @property
     def source_properties(self) -> SourceProperties:
@@ -326,7 +366,7 @@ class _ResamplingHelper:
             or props.sampling_start is None
             or props.received_samples
             < config.resampling_period.total_seconds() * config.max_data_age_in_periods
-            or props.received_samples < config.initial_buffer_len
+            or props.received_samples < self._estimation_samples
             # There might be a race between the first sample being received and
             # this function being called
             or now <= props.sampling_start
@@ -386,7 +426,7 @@ class _ResamplingHelper:
         )
 
         value = (
-            conf.resampling_function(relevant_samples, conf, props)
+            self._call_resampling_function(relevant_samples, timestamp)
             if relevant_samples
             else None
         )
@@ -400,6 +440,36 @@ class _ResamplingHelper:
                 assert_never(unexpected)
 
         return Sample(timestamp, None if value is None else Quantity(value))
+
+    def _call_resampling_function(
+        self,
+        relevant_samples: list[tuple[datetime, float]],
+        timestamp: datetime,
+    ) -> FloatInt:
+        """Call the resampling function of the configuration.
+
+        Args:
+            relevant_samples: The samples to pass to the resampling function.
+            timestamp: The end of the resampling window.
+
+        Returns:
+            The value returned by the resampling function.
+        """
+        conf = self._config
+        match conf:
+            case ResamplerConfig3():
+                context = ResamplingContext(
+                    window_start=timestamp - conf.resampling_period,
+                    config=conf,
+                    source_properties=self._source_properties,
+                )
+                return conf.resampling_function(relevant_samples, context)
+            case ResamplerConfig():
+                return conf.resampling_function(
+                    relevant_samples, conf, self._source_properties
+                )
+            case unexpected:
+                assert_never(unexpected)
 
 
 class _StreamingHelper:
