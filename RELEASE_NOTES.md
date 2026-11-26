@@ -8,6 +8,14 @@
 
 <!-- Here goes notes on how to upgrade from previous versions, including deprecations and what they should be replaced with -->
 
+- `ResamplerConfig` and `ResamplingFunction` are deprecated. Use `ResamplerConfig3` and `ResamplingFunction3` instead. This is not a search and replace:
+
+    - The resampler uses a wall clock timer with `ResamplerConfig3`, so `align_to` moves to `timer_config=WallClockTimerConfig.from_interval(resampling_period, align_to=...)`. The wall clock timer also resamples the incomplete window after a start ([#1472](https://github.com/frequenz-floss/frequenz-sdk-python/issues/1472)), and can skip or repeat timestamps when the wall clock jumps ([#1478](https://github.com/frequenz-floss/frequenz-sdk-python/issues/1478)).
+    - `ResamplerConfig3` has different defaults, see below.
+    - Only `resampling_period` can be passed by position.
+    - `initial_buffer_len` is called `input_period_estimation_samples`.
+    - Resampling functions receive a `ResamplingContext` instead of the configuration, which is now `context.config`.
+
 ## New Features
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->

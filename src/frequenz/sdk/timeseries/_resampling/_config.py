@@ -15,6 +15,8 @@ from typing import Protocol, assert_never
 
 from frequenz.core.datetime import UNIX_EPOCH
 from frequenz.core.typing import FloatInt
+from frequenz.core.warnings import ignoring_deprecations
+from typing_extensions import deprecated
 
 from ._base_types import SourceProperties
 from ._wall_clock_timer import WallClockTimerConfig
@@ -49,8 +51,17 @@ class WindowSide(Enum):
     """The right side of the resampling window."""
 
 
+@deprecated(
+    "frequenz.sdk.timeseries.ResamplingFunction is deprecated. "
+    "Use frequenz.sdk.timeseries.ResamplingFunction3 instead, which receives a "
+    "resampling context instead of the configuration."
+)
 class ResamplingFunction(Protocol):
     """Combine multiple samples into a new one.
+
+    Deprecated:
+        Deprecated since v1.0.0-rc2217. Use
+        [`ResamplingFunction3`][frequenz.sdk.timeseries.ResamplingFunction3] instead.
 
     A resampling function produces a new sample based on a list of pre-existing
     samples. It can do "upsampling" when the data rate of the `input_samples`
@@ -62,6 +73,10 @@ class ResamplingFunction(Protocol):
     enable extrapolation, but no samples from the future (so the timestamp of the
     new sample that is going to be produced will always be bigger than the biggest
     timestamp in the input data).
+
+    A [`ResamplingFunction3`][frequenz.sdk.timeseries.ResamplingFunction3] receives
+    a [`ResamplingContext`][frequenz.sdk.timeseries.ResamplingContext] with the
+    configuration and the window being resampled, instead of the configuration.
     """
 
     def __call__(
@@ -87,9 +102,30 @@ class ResamplingFunction(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@deprecated(
+    "frequenz.sdk.timeseries.ResamplerConfig is deprecated. "
+    "Use frequenz.sdk.timeseries.ResamplerConfig3 instead, but note it uses a "
+    "wall clock timer and has different defaults, so resampled values can change."
+)
 @dataclass(frozen=True)
 class ResamplerConfig:
-    """Resampler configuration."""
+    """Resampler configuration.
+
+    Deprecated:
+        Deprecated since v1.0.0-rc2217. Use
+        [`ResamplerConfig3`][frequenz.sdk.timeseries.ResamplerConfig3] instead.
+
+    With a [`ResamplerConfig3`][frequenz.sdk.timeseries.ResamplerConfig3], the
+    resampler uses a [`WallClockTimer`][frequenz.sdk.timeseries.WallClockTimer]
+    instead of a monotonic timer, so the alignment is set with
+    [`timer_config`][frequenz.sdk.timeseries.ResamplerConfig3.timer_config]
+    instead of `align_to`. It also has different defaults, and its resampling
+    function receives a
+    [`ResamplingContext`][frequenz.sdk.timeseries.ResamplingContext] instead of
+    the configuration. To keep the results of this class, pass
+    `max_data_age_in_periods=3.0`, `closed=WindowSide.RIGHT` and
+    `label=WindowSide.RIGHT`.
+    """
 
     resampling_period: timedelta
     """The resampling period.
@@ -313,151 +349,158 @@ class ResamplingFunction2(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-@dataclass(frozen=True)
-class ResamplerConfig2(ResamplerConfig):
-    """Resampler configuration."""
+# Subclassing the deprecated ResamplerConfig warns, but users can't do anything
+# about it, as it happens when the SDK is imported.
+with ignoring_deprecations():
 
-    resampling_period: timedelta
-    """The resampling period.
+    @dataclass(frozen=True)
+    class ResamplerConfig2(ResamplerConfig):
+        """Resampler configuration."""
 
-    This is the time it passes between resampled data should be calculated.
+        resampling_period: timedelta
+        """The resampling period.
 
-    It must be a positive time span.
-    """
+        This is the time it passes between resampled data should be calculated.
 
-    max_data_age_in_periods: float = 3.0
-    """The maximum age a sample can have to be considered *relevant* for resampling.
+        It must be a positive time span.
+        """
 
-    Expressed in number of periods, where period is the `resampling_period`
-    if we are downsampling (resampling period bigger than the input period) or
-    the *input sampling period* if we are upsampling (input period bigger than
-    the resampling period).
+        max_data_age_in_periods: float = 3.0
+        """The maximum age a sample can have to be considered *relevant* for resampling.
 
-    It must be bigger than 1.0.
+        Expressed in number of periods, where period is the `resampling_period`
+        if we are downsampling (resampling period bigger than the input period) or
+        the *input sampling period* if we are upsampling (input period bigger than
+        the resampling period).
 
-    Example:
-        If `resampling_period` is 3 seconds, the input sampling period is
-        1 and `max_data_age_in_periods` is 2, then data older than 3*2
-        = 6 seconds will be discarded when creating a new sample and never
-        passed to the resampling function.
+        It must be bigger than 1.0.
 
-        If `resampling_period` is 3 seconds, the input sampling period is
-        5 and `max_data_age_in_periods` is 2, then data older than 5*2
-        = 10 seconds will be discarded when creating a new sample and never
-        passed to the resampling function.
-    """
+        Example:
+            If `resampling_period` is 3 seconds, the input sampling period is
+            1 and `max_data_age_in_periods` is 2, then data older than 3*2
+            = 6 seconds will be discarded when creating a new sample and never
+            passed to the resampling function.
 
-    resampling_function: ResamplingFunction2 = lambda samples, _, __: statistics.fmean(
-        s[1] for s in samples
-    )
-    """The resampling function.
+            If `resampling_period` is 3 seconds, the input sampling period is
+            5 and `max_data_age_in_periods` is 2, then data older than 5*2
+            = 10 seconds will be discarded when creating a new sample and never
+            passed to the resampling function.
+        """
 
-    This function will be applied to the sequence of relevant samples at
-    a given time. The result of the function is what is sent as the resampled
-    value.
-    """
+        resampling_function: ResamplingFunction2 = (
+            lambda samples, _, __: statistics.fmean(s[1] for s in samples)
+        )
+        """The resampling function.
 
-    initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
-    """The number of samples to receive before estimating the input sampling period.
+        This function will be applied to the sequence of relevant samples at
+        a given time. The result of the function is what is sent as the resampled
+        value.
+        """
 
-    The input sampling period is estimated once, at the first resampling after
-    receiving enough samples, and decides how old the relevant samples can be
-    when upsampling (see `max_data_age_in_periods`). Until it is known, samples
-    are not removed from the resampling buffer, except when it is full.
+        initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
+        """The number of samples to receive before estimating the input sampling period.
 
-    The number of received samples must also be at least the number of seconds
-    in `max_data_age_in_periods` resampling periods. For example, with a
-    resampling period of 60 seconds and a `max_data_age_in_periods` of 3, the
-    input sampling period is estimated after receiving at least 180 samples (see
+        The input sampling period is estimated once, at the first resampling after
+        receiving enough samples, and decides how old the relevant samples can be
+        when upsampling (see `max_data_age_in_periods`). Until it is known, samples
+        are not removed from the resampling buffer, except when it is full.
+
+        The number of received samples must also be at least the number of seconds
+        in `max_data_age_in_periods` resampling periods. For example, with a
+        resampling period of 60 seconds and a `max_data_age_in_periods` of 3, the
+        input sampling period is estimated after receiving at least 180 samples (see
     [frequenz-sdk-python#1497](https://github.com/frequenz-floss/frequenz-sdk-python/issues/1497)).
 
-    It must be at least 1 and at most `max_buffer_len`.
-    """
-
-    warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
-    """The number of samples above which a resampling buffer logs a warning.
-
-    Old samples are removed from the buffer when resampling, so it only holds
-    the samples that are still relevant and the ones received since. If it
-    holds more samples than this value after removing old ones, a warning is
-    logged once, so buffers don't grow too big inadvertently.
-
-    It must be at least 1 and at most `max_buffer_len`.
-    """
-
-    max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
-    """The maximum number of samples a resampling buffer can hold.
-
-    When the buffer is full, the oldest sample is dropped when a new one is
-    added, even if it would be needed to resample. An error is logged once if
-    samples needed to resample may have been dropped.
-
-    It must be bigger than `warn_buffer_len`.
-    """
-
-    align_to: datetime | None = field(default=None, init=False)
-    """Deprecated: Use timer_config.align_to instead."""
-
-    timer_config: WallClockTimerConfig | None = None
-    """The custom configuration of the wall clock timer used to keep track of time.
-
-    If not provided or `None`, a configuration will be created by passing the
-    [`resampling_period`][frequenz.sdk.timeseries.ResamplerConfig2.resampling_period] to
-    the [`from_interval()`][frequenz.sdk.timeseries.WallClockTimerConfig.from_interval]
-    method.
-    """
-
-    def __post_init__(self) -> None:
-        """Check that config values are valid.
-
-        Raises:
-            ValueError: If any value is out of range.
+        It must be at least 1 and at most `max_buffer_len`.
         """
-        if self.resampling_period.total_seconds() < 0.0:
-            raise ValueError(
-                f"resampling_period ({self.resampling_period}) must be positive"
-            )
-        if self.max_data_age_in_periods < 1.0:
-            raise ValueError(
-                f"max_data_age_in_periods ({self.max_data_age_in_periods}) should be at least 1.0"
-            )
-        if self.warn_buffer_len < 1:
-            raise ValueError(
-                f"warn_buffer_len ({self.warn_buffer_len}) should be at least 1"
-            )
-        if self.max_buffer_len <= self.warn_buffer_len:
-            raise ValueError(
-                f"max_buffer_len ({self.max_buffer_len}) should "
-                f"be bigger than warn_buffer_len ({self.warn_buffer_len})"
-            )
 
-        if self.initial_buffer_len < 1:
-            raise ValueError(
-                f"initial_buffer_len ({self.initial_buffer_len}) should at least 1"
-            )
-        if self.initial_buffer_len > self.max_buffer_len:
-            raise ValueError(
-                f"initial_buffer_len ({self.initial_buffer_len}) is bigger "
-                f"than max_buffer_len ({self.max_buffer_len}), use a smaller "
-                "initial_buffer_len or a bigger max_buffer_len"
-            )
-        if self.initial_buffer_len > self.warn_buffer_len:
-            _logger.warning(
-                "initial_buffer_len (%s) is bigger than warn_buffer_len (%s)",
-                self.initial_buffer_len,
-                self.warn_buffer_len,
-            )
-        if self.align_to is not None:
-            raise ValueError(
-                f"align_to ({self.align_to}) must be specified via timer_config"
-            )
-        if self.tick_delay < timedelta(0):
-            raise ValueError(f"tick_delay ({self.tick_delay}) should be non-negative")
-        if self.tick_delay >= self.resampling_period:
-            raise ValueError(
-                f"tick_delay ({self.tick_delay}) should be smaller than "
-                f"resampling_period ({self.resampling_period})"
-            )
+        warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
+        """The number of samples above which a resampling buffer logs a warning.
+
+        Old samples are removed from the buffer when resampling, so it only holds
+        the samples that are still relevant and the ones received since. If it
+        holds more samples than this value after removing old ones, a warning is
+        logged once, so buffers don't grow too big inadvertently.
+
+        It must be at least 1 and at most `max_buffer_len`.
+        """
+
+        max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
+        """The maximum number of samples a resampling buffer can hold.
+
+        When the buffer is full, the oldest sample is dropped when a new one is
+        added, even if it would be needed to resample. An error is logged once if
+        samples needed to resample may have been dropped.
+
+        It must be bigger than `warn_buffer_len`.
+        """
+
+        align_to: datetime | None = field(default=None, init=False)
+        """Deprecated: Use timer_config.align_to instead."""
+
+        timer_config: WallClockTimerConfig | None = None
+        """The custom configuration of the wall clock timer used to keep track of time.
+
+        If not provided or `None`, a configuration will be created by passing the
+        [`resampling_period`][frequenz.sdk.timeseries.ResamplerConfig2.resampling_period] to
+        the [`from_interval()`][frequenz.sdk.timeseries.WallClockTimerConfig.from_interval]
+        method.
+        """
+
+        def __post_init__(self) -> None:
+            """Check that config values are valid.
+
+            Raises:
+                ValueError: If any value is out of range.
+            """
+            if self.resampling_period.total_seconds() < 0.0:
+                raise ValueError(
+                    f"resampling_period ({self.resampling_period}) must be positive"
+                )
+            if self.max_data_age_in_periods < 1.0:
+                raise ValueError(
+                    f"max_data_age_in_periods ({self.max_data_age_in_periods}) "
+                    "should be at least 1.0"
+                )
+            if self.warn_buffer_len < 1:
+                raise ValueError(
+                    f"warn_buffer_len ({self.warn_buffer_len}) should be at least 1"
+                )
+            if self.max_buffer_len <= self.warn_buffer_len:
+                raise ValueError(
+                    f"max_buffer_len ({self.max_buffer_len}) should "
+                    f"be bigger than warn_buffer_len ({self.warn_buffer_len})"
+                )
+
+            if self.initial_buffer_len < 1:
+                raise ValueError(
+                    f"initial_buffer_len ({self.initial_buffer_len}) should at least 1"
+                )
+            if self.initial_buffer_len > self.max_buffer_len:
+                raise ValueError(
+                    f"initial_buffer_len ({self.initial_buffer_len}) is bigger "
+                    f"than max_buffer_len ({self.max_buffer_len}), use a smaller "
+                    "initial_buffer_len or a bigger max_buffer_len"
+                )
+            if self.initial_buffer_len > self.warn_buffer_len:
+                _logger.warning(
+                    "initial_buffer_len (%s) is bigger than warn_buffer_len (%s)",
+                    self.initial_buffer_len,
+                    self.warn_buffer_len,
+                )
+            if self.align_to is not None:
+                raise ValueError(
+                    f"align_to ({self.align_to}) must be specified via timer_config"
+                )
+            if self.tick_delay < timedelta(0):
+                raise ValueError(
+                    f"tick_delay ({self.tick_delay}) should be non-negative"
+                )
+            if self.tick_delay >= self.resampling_period:
+                raise ValueError(
+                    f"tick_delay ({self.tick_delay}) should be smaller than "
+                    f"resampling_period ({self.resampling_period})"
+                )
 
 
 @dataclass(frozen=True, kw_only=True)

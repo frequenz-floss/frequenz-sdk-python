@@ -462,7 +462,16 @@ async def test_wait_for_samples() -> None:
 
 
 @pytest.mark.parametrize(
-    "config_class", [ResamplerConfig, ResamplerConfig2, ResamplerConfig3]
+    "config_class",
+    [
+        pytest.param(
+            ResamplerConfig,
+            id="ResamplerConfig",
+            marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+        ),
+        ResamplerConfig2,
+        ResamplerConfig3,
+    ],
 )
 async def test_wait_for_samples_with_resampling(
     config_class: type[ResamplerConfig] | type[ResamplerConfig3],

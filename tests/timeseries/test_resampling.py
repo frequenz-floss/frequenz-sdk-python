@@ -49,8 +49,19 @@ from ..utils import a_sequence
 _ConfigClass = type[ResamplerConfig] | type[ResamplerConfig3]
 """A resampler configuration class."""
 
-_CONFIG_CLASSES = [ResamplerConfig, ResamplerConfig2, ResamplerConfig3]
-"""All the resampler configuration classes, to parametrize tests."""
+_CONFIG_CLASSES = [
+    pytest.param(
+        ResamplerConfig,
+        id="ResamplerConfig",
+        marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+    ),
+    ResamplerConfig2,
+    ResamplerConfig3,
+]
+"""All the resampler configuration classes, to parametrize tests.
+
+Deprecated classes are still tested until they are removed.
+"""
 
 
 def _make_config(
@@ -708,6 +719,7 @@ async def test_tick_delay_excludes_window_samples_arriving_after_delay(
         ),
     ),
 )
+@pytest.mark.filterwarnings("once::DeprecationWarning")
 async def test_calculate_window_end_trivial_cases(
     fake_time: time_machine.Coordinates,
     resampling_period_s: float,
@@ -846,6 +858,7 @@ async def test_resampling_window_size_is_constant(
 # Not parametrized because now warnings are handled by the wall clock timer when the
 # wall clock timer is used, not the resampler, so it should be tested in the wall clock
 # timer tests.
+@pytest.mark.filterwarnings("once::DeprecationWarning")
 async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
