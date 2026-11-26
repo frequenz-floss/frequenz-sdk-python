@@ -33,14 +33,11 @@ class Consumer:
 
     Example:
         ```python
-        from datetime import timedelta
-
         from frequenz.sdk import microgrid
-        from frequenz.sdk.timeseries import ResamplerConfig2
 
         await microgrid.initialize(
             "grpc://127.0.0.1:50051",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1.0))
+            microgrid.EXAMPLE_RESAMPLER_CONFIG,
         )
 
         consumer = microgrid.consumer()

@@ -418,11 +418,12 @@ async def tick_delay_resampler(
     async def timer() -> AsyncIterator[TickInfo]:
         yield TickInfo(expected_tick_time=window_end, sleep_infos=[])
 
-    config = ResamplerConfig2(
-        resampling_period=resampling_period,
+    config = ResamplerConfig3(
+        resampling_period,
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=WindowSide.LEFT,
+        label=WindowSide.RIGHT,
         tick_delay=tick_delay,
     )
     resampler = Resampler(config)
@@ -552,11 +553,12 @@ async def test_without_tick_delay_late_window_samples_are_missed(
     async def timer() -> AsyncIterator[TickInfo]:
         yield TickInfo(expected_tick_time=window_end, sleep_infos=[])
 
-    config = ResamplerConfig2(
-        resampling_period=resampling_period,
+    config = ResamplerConfig3(
+        resampling_period,
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=WindowSide.LEFT,
+        label=WindowSide.RIGHT,
         tick_delay=timedelta(0),
     )
     resampler = Resampler(config)
@@ -2000,7 +2002,7 @@ async def test_resampler_closed_option(
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
-    """Test the `closed` option in ResamplerConfig."""
+    """Test the `closed` option in ResamplerConfig3."""
     timestamp = datetime.now(timezone.utc)
 
     resampling_period_s = 2
@@ -2009,11 +2011,12 @@ async def test_resampler_closed_option(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = ResamplerConfig(
-        resampling_period=timedelta(seconds=resampling_period_s),
+    config = ResamplerConfig3(
+        timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=closed,
+        label=WindowSide.RIGHT,
     )
     resampler = Resampler(config)
 
@@ -2121,7 +2124,7 @@ async def test_resampler_label_option(
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
-    """Test the `label` option in ResamplerConfig."""
+    """Test the `label` option in ResamplerConfig3."""
     timestamp = datetime.now(timezone.utc)
 
     resampling_period_s = 2
@@ -2130,10 +2133,11 @@ async def test_resampler_label_option(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = ResamplerConfig(
-        resampling_period=timedelta(seconds=resampling_period_s),
+    config = ResamplerConfig3(
+        timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
+        closed=WindowSide.RIGHT,
         label=label,
     )
     resampler = Resampler(config)

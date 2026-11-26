@@ -31,16 +31,13 @@ class LogicalMeter:
 
     Example:
         ```python
-        from datetime import timedelta
-
         from frequenz.sdk import microgrid
-        from frequenz.sdk.timeseries import ResamplerConfig2
         from frequenz.client.microgrid.metrics import Metric
 
 
         await microgrid.initialize(
             "grpc://microgrid.sandbox.api.frequenz.io:62060",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+            microgrid.EXAMPLE_RESAMPLER_CONFIG,
         )
 
         logical_meter = (

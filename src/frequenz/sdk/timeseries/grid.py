@@ -39,14 +39,11 @@ class Grid:
 
     Example:
         ```python
-        from datetime import timedelta
-
         from frequenz.sdk import microgrid
-        from frequenz.sdk.timeseries import ResamplerConfig2
 
         await microgrid.initialize(
             "grpc://127.0.0.1:50051",
-            ResamplerConfig2(resampling_period=timedelta(seconds=1))
+            microgrid.EXAMPLE_RESAMPLER_CONFIG,
         )
 
         grid = microgrid.grid()

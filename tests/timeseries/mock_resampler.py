@@ -16,7 +16,7 @@ from pytest_mock import MockerFixture
 from frequenz.sdk._internal._asyncio import cancel_and_await
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
 from frequenz.sdk.microgrid._data_sourcing import ComponentMetricRequest
-from frequenz.sdk.timeseries import ResamplerConfig2, Sample
+from frequenz.sdk.timeseries import ResamplerConfig3, Sample
 from frequenz.sdk.timeseries.formulas._formula_pool import (
     NON_EXISTING_COMPONENT_ID,
 )
@@ -30,7 +30,7 @@ class MockResampler:
     def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         mocker: MockerFixture,
-        resampler_config: ResamplerConfig2,
+        resampler_config: ResamplerConfig3,
         bat_inverter_ids: list[ComponentId],
         pv_inverter_ids: list[ComponentId],
         evc_ids: list[ComponentId],
