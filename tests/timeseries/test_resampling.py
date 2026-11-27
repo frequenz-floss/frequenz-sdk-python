@@ -1126,6 +1126,8 @@ async def test_resampling_with_one_window(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
     assert _get_buffered_samples(resampler, source_receiver) == 0
 
@@ -1307,6 +1309,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         sampling_start=timestamp,
         received_samples=7,
         sampling_period=timedelta(seconds=6 / 7),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
     assert _get_buffered_samples(resampler, source_receiver) == 0
 
@@ -1489,7 +1493,11 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         current_iteration=5,
     )
     assert source_props == SourceProperties(
-        sampling_start=timestamp, received_samples=7, sampling_period=None
+        sampling_start=timestamp,
+        received_samples=7,
+        sampling_period=None,
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
     assert _get_buffered_samples(resampler, source_receiver) == 7
 
@@ -1875,6 +1883,8 @@ async def test_resampling_all_zeros(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
     assert _get_buffered_samples(resampler, source_receiver) == 0
 

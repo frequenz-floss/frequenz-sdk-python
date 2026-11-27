@@ -14,6 +14,8 @@
 
 - `SourceProperties` has a new `dropped_samples` field, with the number of samples the resampler dropped because its buffer was full.
 
+- `SourceProperties` has new `total_windows_without_samples` and `current_windows_without_samples` fields, with the number of resampling windows without relevant samples in total and in the current gap in the data. They tell how healthy a timeseries is, and whether it is in a gap right now.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->

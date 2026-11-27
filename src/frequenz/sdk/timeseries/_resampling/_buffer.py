@@ -23,8 +23,9 @@ class _ResamplingBuffer:
     sample is dropped when a new one is added. Otherwise, old samples are only
     removed when asked to, while getting the relevant samples.
 
-    It keeps the number of received and dropped samples, and the time of the
-    first sample, up to date in the source properties. It logs when relevant
+    It keeps the number of received and dropped samples, the windows without
+    relevant samples, and the time of the first sample, up to date in the source
+    properties. It logs when relevant
     samples were dropped or when it holds more than `warn_len` samples, and
     when it has no relevant samples, once per gap in the data.
     """
@@ -55,8 +56,6 @@ class _ResamplingBuffer:
         """Whether dropping relevant samples was already logged."""
         self._logged_too_big = False
         """Whether the buffer holding more than `warn_len` was already logged."""
-        self._windows_without_samples = 0
-        """The number of consecutive windows without relevant samples."""
 
     def __len__(self) -> int:
         """Return the number of samples in the buffer.
@@ -121,18 +120,20 @@ class _ResamplingBuffer:
         # resort to some C (or similar) implementation.
         relevant_samples = list(itertools.islice(self._samples, min_index, max_index))
         # Missing samples are logged once per gap in the data, not for each window.
+        props = self._source_properties
         if not relevant_samples:
-            self._windows_without_samples += 1
-            if self._windows_without_samples == 1:
+            props.total_windows_without_samples += 1
+            props.current_windows_without_samples += 1
+            if props.current_windows_without_samples == 1:
                 self._log_no_relevant_samples(start, end)
-        elif self._windows_without_samples:
+        elif props.current_windows_without_samples:
             _logger.info(
                 "Relevant samples found again for timeseries %s, after %s windows "
                 "without them",
                 self._name,
-                self._windows_without_samples,
+                props.current_windows_without_samples,
             )
-            self._windows_without_samples = 0
+            props.current_windows_without_samples = 0
 
         if remove_older:
             for _ in range(min_index):

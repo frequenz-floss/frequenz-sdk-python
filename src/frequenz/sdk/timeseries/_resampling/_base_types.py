@@ -63,3 +63,21 @@ class SourceProperties:
     It is updated when resampling, so it doesn't include the samples dropped
     since the last resampling.
     """
+
+    total_windows_without_samples: int = 0
+    """The number of resampling windows that had no relevant samples.
+
+    The resampled value of these windows is `None`. It is updated when
+    resampling.
+    """
+
+    current_windows_without_samples: int = 0
+    """The number of resampling windows without relevant samples in the current gap.
+
+    It is `0` when the last resampled window had relevant samples, so it tells
+    whether the timeseries currently has a gap in its data, and for how long. It
+    is updated when resampling.
+
+    Resampling functions are only called for windows with relevant samples, so
+    they always see `0` here.
+    """

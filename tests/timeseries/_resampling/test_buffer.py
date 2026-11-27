@@ -202,7 +202,7 @@ def test_no_relevant_samples_is_logged_once_per_gap(
 ) -> None:
     """Test missing relevant samples are logged at the start and end of each gap."""
     caplog.set_level(logging.INFO, logger=_LOGGER_NAME)
-    buffer, _ = _make_buffer()
+    buffer, props = _make_buffer()
 
     def resample(window: int) -> None:
         _ = buffer.relevant_samples(
@@ -211,9 +211,15 @@ def test_no_relevant_samples_is_logged_once_per_gap(
 
     resample(0)
     resample(1)
+    assert props.total_windows_without_samples == 2
+    assert props.current_windows_without_samples == 2
     buffer.add((_at(2.5), 2.5))
     resample(2)
+    assert props.total_windows_without_samples == 2
+    assert props.current_windows_without_samples == 0
     resample(3)
+    assert props.total_windows_without_samples == 3
+    assert props.current_windows_without_samples == 1
 
     assert [
         message for message in caplog.messages if "relevant" in message.lower()
