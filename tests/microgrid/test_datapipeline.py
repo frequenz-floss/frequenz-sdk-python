@@ -29,7 +29,6 @@ from pytest_mock import MockerFixture
 from frequenz.sdk import microgrid
 from frequenz.sdk.microgrid import _data_pipeline
 from frequenz.sdk.microgrid._data_pipeline import _DataPipeline
-from frequenz.sdk.timeseries import ResamplerConfig2
 from frequenz.sdk.timeseries.component_pool import ComponentPool
 
 from ..timeseries.mock_microgrid import MockMicrogrid
@@ -51,7 +50,7 @@ async def test_actors_started(
 ) -> None:
     """Test that the datasourcing, resampling and power distributing actors are started."""
     datapipeline = _DataPipeline(
-        resampler_config=ResamplerConfig2(resampling_period=timedelta(seconds=1))
+        resampler_config=microgrid.EXAMPLE_RESAMPLER_CONFIG,
     )
     await asyncio.sleep(1)
 
@@ -154,7 +153,7 @@ async def test_empty_component_ids_matches_none_in_either_call_order(
     what BOTH calls got.
     """
     datapipeline = _DataPipeline(
-        resampler_config=ResamplerConfig2(resampling_period=timedelta(seconds=1))
+        resampler_config=microgrid.EXAMPLE_RESAMPLER_CONFIG,
     )
 
     grid_1 = GridConnectionPoint(

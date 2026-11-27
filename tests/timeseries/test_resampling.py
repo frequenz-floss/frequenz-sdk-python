@@ -5,7 +5,7 @@
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
@@ -21,12 +21,16 @@ from frequenz.sdk.timeseries import (
     DEFAULT_BUFFER_LEN_WARN,
     ResamplerConfig,
     ResamplerConfig2,
+    ResamplerConfig3,
+    ResamplingContext,
     ResamplingFunction,
+    ResamplingFunction3,
     Sample,
     Sink,
     Source,
     SourceProperties,
     TickInfo,
+    WallClockTimer,
     WindowSide,
 )
 from frequenz.sdk.timeseries._resampling._exceptions import (
@@ -40,6 +44,75 @@ from ..utils import a_sequence
 # We relax some pylint checks as for tests they don't make a lot of sense for this test.
 # pylint: disable=too-many-lines,disable=too-many-locals
 # pylint: disable=too-many-arguments,disable=too-many-positional-arguments
+
+
+_ConfigClass = type[ResamplerConfig] | type[ResamplerConfig3]
+"""A resampler configuration class."""
+
+_CONFIG_CLASSES = [
+    pytest.param(
+        ResamplerConfig,
+        id="ResamplerConfig",
+        marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+    ),
+    pytest.param(
+        ResamplerConfig2,
+        id="ResamplerConfig2",
+        marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+    ),
+    ResamplerConfig3,
+]
+"""All the resampler configuration classes, to parametrize tests.
+
+Deprecated classes are still tested until they are removed.
+"""
+
+
+def _make_config(
+    config_class: _ConfigClass, **kwargs: Any
+) -> ResamplerConfig | ResamplerConfig3:
+    """Create a configuration that behaves like the old classes.
+
+    `ResamplerConfig3` closes and labels windows on the left by default, so this
+    uses the right side for it unless told otherwise, and calls its resampling
+    function like the old classes do, so the same expectations work for all
+    classes.
+    """
+    if config_class is ResamplerConfig3:
+        kwargs.setdefault("closed", WindowSide.RIGHT)
+        kwargs.setdefault("label", WindowSide.RIGHT)
+        if "initial_buffer_len" in kwargs:
+            kwargs["input_period_estimation_samples"] = kwargs.pop("initial_buffer_len")
+        if "resampling_function" in kwargs:
+            kwargs["resampling_function"] = _with_old_signature(
+                kwargs["resampling_function"]
+            )
+    return config_class(**kwargs)
+
+
+def _estimation_samples_name(config_class: _ConfigClass) -> str:
+    """Return the name of the setting called `initial_buffer_len` in the old classes."""
+    if config_class is ResamplerConfig3:
+        return "input_period_estimation_samples"
+    return "initial_buffer_len"
+
+
+def _with_old_signature(function: Any) -> ResamplingFunction3:
+    """Call a function with the arguments the old resampling functions receive.
+
+    The old resampling functions receive the configuration and the source
+    properties as separate arguments, which `ResamplerConfig3` passes in a
+    `ResamplingContext`. This way the same expectations work for all classes.
+    """
+
+    def resampling_function(
+        input_samples: Sequence[tuple[datetime, float]], context: ResamplingContext, /
+    ) -> float:
+        return cast(
+            float, function(input_samples, context.config, context.source_properties)
+        )
+
+    return resampling_function
 
 
 @pytest.fixture(autouse=True)
@@ -102,18 +175,19 @@ async def _assert_no_more_samples(
 
 
 @pytest.mark.parametrize("init_len", list(range(1, DEFAULT_BUFFER_LEN_WARN + 1, 16)))
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampler_config_len_ok(
     init_len: int,
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test checks on the resampling buffer."""
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=1.0),
         initial_buffer_len=init_len,
     )
-    assert config.initial_buffer_len == init_len
+    assert getattr(config, _estimation_samples_name(config_class)) == init_len
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
     assert _filter_logs(caplog.record_tuples, logger_name="") == []
 
@@ -122,16 +196,18 @@ async def test_resampler_config_len_ok(
     "init_len",
     range(DEFAULT_BUFFER_LEN_WARN + 1, DEFAULT_BUFFER_LEN_MAX + 1, 64),
 )
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampler_config_len_warn(
-    init_len: int, config_class: type[ResamplerConfig], caplog: pytest.LogCaptureFixture
+    init_len: int, config_class: _ConfigClass, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test checks on the resampling buffer."""
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=1.0),
         initial_buffer_len=init_len,
     )
-    assert config.initial_buffer_len == init_len
+    name = _estimation_samples_name(config_class)
+    assert getattr(config, name) == init_len
     # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
     assert _filter_logs(
         caplog.record_tuples, logger_name="frequenz.sdk.timeseries._resampling._config"
@@ -139,7 +215,7 @@ async def test_resampler_config_len_warn(
         (
             "frequenz.sdk.timeseries._resampling._config",
             logging.WARNING,
-            f"initial_buffer_len ({init_len}) is bigger than "
+            f"{name} ({init_len}) is bigger than "
             f"warn_buffer_len ({DEFAULT_BUFFER_LEN_WARN})",
         )
     ]
@@ -149,73 +225,143 @@ async def test_resampler_config_len_warn(
     "init_len",
     list(range(-2, 1)) + [DEFAULT_BUFFER_LEN_MAX + 1, DEFAULT_BUFFER_LEN_MAX + 2],
 )
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampler_config_len_error(
-    init_len: int, config_class: type[ResamplerConfig]
+    init_len: int, config_class: _ConfigClass
 ) -> None:
     """Test checks on the resampling buffer."""
     with pytest.raises(ValueError):
-        _ = config_class(
+        _ = _make_config(
+            config_class,
             resampling_period=timedelta(seconds=1.0),
             initial_buffer_len=init_len,
         )
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampler_config_tick_delay_negative_error(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
 ) -> None:
     """Test that negative tick_delay values are rejected."""
     with pytest.raises(ValueError, match="tick_delay"):
-        _ = config_class(
+        _ = _make_config(
+            config_class,
             resampling_period=timedelta(seconds=1.0),
             tick_delay=timedelta(milliseconds=-1),
         )
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 @pytest.mark.parametrize("tick_delay", [timedelta(seconds=1.0), timedelta(seconds=1.1)])
 async def test_resampler_config_tick_delay_too_big_error(
-    config_class: type[ResamplerConfig], tick_delay: timedelta
+    config_class: _ConfigClass, tick_delay: timedelta
 ) -> None:
     """Test that tick_delay must be smaller than resampling_period."""
     with pytest.raises(ValueError, match="smaller than resampling_period"):
-        _ = config_class(
+        _ = _make_config(
+            config_class,
             resampling_period=timedelta(seconds=1.0),
             tick_delay=tick_delay,
         )
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
-async def test_helper_buffer_too_big(
-    config_class: type[ResamplerConfig],
-    fake_time: time_machine.Coordinates,
-    caplog: pytest.LogCaptureFixture,
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
+async def test_helper_keeps_window_samples_when_next_window_starts(
+    config_class: _ConfigClass,
 ) -> None:
-    """Test checks on the resampling buffer."""
-    config = config_class(
-        resampling_period=timedelta(seconds=DEFAULT_BUFFER_LEN_MAX + 1),
-        max_data_age_in_periods=1,
+    """Test a sample of the next window doesn't push out the window being resampled.
+
+    The sample can arrive after the tick, but before the window of that tick
+    is resampled, for example because of `tick_delay` or a late wakeup.
+    """
+    config = _make_config(
+        config_class,
+        resampling_period=timedelta(seconds=1),
+        max_data_age_in_periods=1.0,
+        closed=WindowSide.LEFT,
+        initial_buffer_len=4,
     )
     helper = _ResamplingHelper("test", config)
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    step = timedelta(seconds=0.25)
 
-    for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = (datetime.now(timezone.utc), i)
-        helper.add_sample(sample)
-        await _advance_time(fake_time, 1)
+    def add_samples(first: int, last: int) -> None:
+        for i in range(first, last + 1):
+            helper.add_sample((start + step * i, float(i)))
 
-    _ = helper.resample(datetime.now(timezone.utc))
-    # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert (
-        "frequenz.sdk.timeseries._resampling._resampler",
-        logging.ERROR,
-        f"The new buffer length ({DEFAULT_BUFFER_LEN_MAX + 1}) "
-        f"for timeseries test is too big, using {DEFAULT_BUFFER_LEN_MAX} instead",
-    ) in _filter_logs(
-        caplog.record_tuples,
+    # The first window gives an input period of exactly 0.25 seconds
+    add_samples(0, 3)
+    assert helper.resample(start + timedelta(seconds=1)).value == Quantity(1.5)
+    assert helper.source_properties.sampling_period == step
+
+    # Sample 8 belongs to the next window, [2, 3), and arrives before the
+    # window [1, 2) is resampled.
+    add_samples(4, 8)
+    assert helper.resample(start + timedelta(seconds=2)).value == Quantity(5.5)
+
+    add_samples(9, 12)
+    assert helper.resample(start + timedelta(seconds=3)).value == Quantity(9.5)
+    assert helper.source_properties.dropped_samples == 0
+
+
+def _resample_with_max_age(
+    config_class: _ConfigClass, max_age: float
+) -> Sample[Quantity]:
+    """Resample three samples, one per second, with the given maximum data age."""
+    config = _make_config(
+        config_class,
+        resampling_period=timedelta(seconds=1),
+        max_data_age_in_periods=max_age,
     )
-    # pylint: disable=protected-access
-    assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
+    helper = _ResamplingHelper("test", config)
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    for i in range(3):
+        helper.add_sample((start + timedelta(seconds=i), float(i)))
+    return helper.resample(start + timedelta(seconds=3))
+
+
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
+async def test_helper_max_data_age_older_than_datetime(
+    config_class: _ConfigClass,
+) -> None:
+    """Test a maximum data age that goes back before year 1 uses all samples."""
+    assert _resample_with_max_age(config_class, 1e11).value == Quantity(1.0)
+
+
+# ResamplerConfig3 rejects maximum data ages that don't fit in a timedelta
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES[:2])
+async def test_helper_max_data_age_too_big_for_timedelta(
+    config_class: _ConfigClass,
+) -> None:
+    """Test a maximum data age too big for a `timedelta` uses all samples."""
+    assert _resample_with_max_age(config_class, 1e20).value == Quantity(1.0)
+
+
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
+async def test_helper_first_window_uses_all_its_samples(
+    config_class: _ConfigClass,
+) -> None:
+    """Test the first window uses all its samples, before the input period is known.
+
+    Before the input period was estimated, the buffer kept only the newest
+    `initial_buffer_len` samples, so the first window used only those.
+    """
+    config = _make_config(
+        config_class,
+        resampling_period=timedelta(seconds=60),
+        max_data_age_in_periods=1.0,
+        closed=WindowSide.LEFT,
+    )
+    helper = _ResamplingHelper("test", config)
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+    for window in range(3):
+        window_start = start + timedelta(seconds=60 * window)
+        for i in range(60):
+            helper.add_sample((window_start + timedelta(seconds=i), float(i + 1)))
+        resampled = helper.resample(window_start + timedelta(seconds=60))
+        assert resampled.value == Quantity(30.5), f"window {window}"
+    assert helper.source_properties.dropped_samples == 0
 
 
 # Tick-delay test fixtures: time constants
@@ -287,11 +433,12 @@ async def tick_delay_resampler(
     async def timer() -> AsyncIterator[TickInfo]:
         yield TickInfo(expected_tick_time=window_end, sleep_infos=[])
 
-    config = ResamplerConfig2(
-        resampling_period=resampling_period,
+    config = ResamplerConfig3(
+        resampling_period,
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=WindowSide.LEFT,
+        label=WindowSide.RIGHT,
         tick_delay=tick_delay,
     )
     resampler = Resampler(config)
@@ -421,11 +568,12 @@ async def test_without_tick_delay_late_window_samples_are_missed(
     async def timer() -> AsyncIterator[TickInfo]:
         yield TickInfo(expected_tick_time=window_end, sleep_infos=[])
 
-    config = ResamplerConfig2(
-        resampling_period=resampling_period,
+    config = ResamplerConfig3(
+        resampling_period,
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=WindowSide.LEFT,
+        label=WindowSide.RIGHT,
         tick_delay=timedelta(0),
     )
     resampler = Resampler(config)
@@ -575,6 +723,7 @@ async def test_tick_delay_excludes_window_samples_arriving_after_delay(
         ),
     ),
 )
+@pytest.mark.filterwarnings("once::DeprecationWarning")
 async def test_calculate_window_end_trivial_cases(
     fake_time: time_machine.Coordinates,
     resampling_period_s: float,
@@ -584,40 +733,37 @@ async def test_calculate_window_end_trivial_cases(
 ) -> None:
     """Test the calculation of the resampling window end for simple cases."""
     resampling_period = timedelta(seconds=resampling_period_s)
-    resampler = Resampler(
-        ResamplerConfig(
-            resampling_period=resampling_period,
-            align_to=align_to,
-        )
+    config = ResamplerConfig(
+        resampling_period=resampling_period,
+        align_to=align_to,
     )
+    resampler = Resampler(config)
     fake_time.move_to(now)
     # pylint: disable-next=protected-access
-    assert resampler._calculate_window_end() == result
+    assert resampler._calculate_window_end(config) == result
 
     # Repeat the test with align_to=None, so the result should be align to now
     # instead
-    resampler_now = Resampler(
-        ResamplerConfig(
-            resampling_period=resampling_period,
-            align_to=now,
-        )
+    config_now = ResamplerConfig(
+        resampling_period=resampling_period,
+        align_to=now,
     )
-    resampler_none = Resampler(
-        ResamplerConfig(
-            resampling_period=resampling_period,
-            align_to=None,
-        )
+    resampler_now = Resampler(config_now)
+    config_none = ResamplerConfig(
+        resampling_period=resampling_period,
+        align_to=None,
     )
+    resampler_none = Resampler(config_none)
     fake_time.move_to(now)
     # pylint: disable=protected-access
-    none_result = resampler_none._calculate_window_end()
-    assert resampler_now._calculate_window_end() == none_result
+    none_result = resampler_none._calculate_window_end(config_none)
+    assert resampler_now._calculate_window_end(config_now) == none_result
     assert none_result[0] == now + resampling_period
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampling_window_size_is_constant(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -630,7 +776,8 @@ async def test_resampling_window_size_is_constant(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
         resampling_function=resampling_fun_mock,
@@ -715,6 +862,7 @@ async def test_resampling_window_size_is_constant(
 # Not parametrized because now warnings are handled by the wall clock timer when the
 # wall clock timer is used, not the resampler, so it should be tested in the wall clock
 # timer tests.
+@pytest.mark.filterwarnings("once::DeprecationWarning")
 async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
@@ -854,6 +1002,7 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     )
     resampling_fun_mock.assert_called_once_with(
         a_sequence(
+            as_float_tuple(sample2_5s),
             as_float_tuple(sample3s),
             as_float_tuple(sample4s),
             as_float_tuple(sample4_5s),
@@ -875,9 +1024,9 @@ async def test_timer_errors_are_logged(  # pylint: disable=too-many-statements
     resampling_fun_mock.reset_mock()
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_future_samples_not_included(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -890,7 +1039,8 @@ async def test_future_samples_not_included(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=2.0,
         resampling_function=resampling_fun_mock,
@@ -943,7 +1093,7 @@ async def test_future_samples_not_included(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=3, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -973,9 +1123,9 @@ async def test_future_samples_not_included(
     )
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampling_with_one_window(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -988,7 +1138,8 @@ async def test_resampling_with_one_window(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
         resampling_function=resampling_fun_mock,
@@ -1037,7 +1188,7 @@ async def test_resampling_with_one_window(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 2
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1067,16 +1218,16 @@ async def test_resampling_with_one_window(
         config,
         source_props,
     )
-    # By now we have a full buffer (5 samples and a buffer of length 4), which
-    # we received in 4 seconds, so we have an input period of 0.8s.
+    # By now we received 5 samples, at least initial_buffer_len (4), in 4
+    # seconds, so we have an input period of 0.8s.
     assert source_props == SourceProperties(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
     )
-    # The buffer should be able to hold 2 seconds of data, and data is coming
-    # every 0.8 seconds, so we should be able to store 3 samples.
-    assert _get_buffer_len(resampler, source_receiver) == 3
+    # Now that the input period is known, samples older than the window (2, 4]
+    # are removed from the buffer.
+    assert _get_buffered_samples(resampler, source_receiver) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1093,16 +1244,18 @@ async def test_resampling_with_one_window(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
-    assert _get_buffer_len(resampler, source_receiver) == 3
+    assert _get_buffered_samples(resampler, source_receiver) == 0
 
 
 # Even when a lot could be refactored to use smaller functions, I'm allowing
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-many-statements
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -1115,7 +1268,8 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.5,
         resampling_function=resampling_fun_mock,
@@ -1165,7 +1319,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 2
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1199,7 +1353,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 5
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1228,17 +1382,16 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         config,
         source_props,
     )
-    # By now we have a full buffer (7 samples and a buffer of length 6), which
-    # we received in 4 seconds, so we have an input period of 6/7s.
+    # By now we received 7 samples, at least initial_buffer_len (7), in 6
+    # seconds, so we have an input period of 6/7s.
     assert source_props == SourceProperties(
         sampling_start=timestamp,
         received_samples=7,
         sampling_period=timedelta(seconds=6 / 7),
     )
-    # The buffer should be able to hold 2 * 1.5 (3) seconds of data, and data
-    # is coming every 6/7 seconds (~0.857s), so we should be able to store
-    # 4 samples.
-    assert _get_buffer_len(resampler, source_receiver) == 4
+    # Now that the input period is known, samples older than 2 * 1.5 (3)
+    # seconds are removed from the buffer.
+    assert _get_buffered_samples(resampler, source_receiver) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1275,16 +1428,18 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         sampling_start=timestamp,
         received_samples=7,
         sampling_period=timedelta(seconds=6 / 7),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
-    assert _get_buffer_len(resampler, source_receiver) == 4
+    assert _get_buffered_samples(resampler, source_receiver) == 0
 
 
 # Even when a lot could be refactored to use smaller functions, I'm allowing
 # too many statements because it makes following failures in tests more easy
 # when the code is very flat.
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampling_with_two_windows(  # pylint: disable=too-many-statements
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -1297,7 +1452,8 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=2.0,
         resampling_function=resampling_fun_mock,
@@ -1347,7 +1503,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 2
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1382,7 +1538,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=5, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 5
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1416,7 +1572,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 7
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1443,7 +1599,7 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=7, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 7
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1457,14 +1613,18 @@ async def test_resampling_with_two_windows(  # pylint: disable=too-many-statemen
         current_iteration=5,
     )
     assert source_props == SourceProperties(
-        sampling_start=timestamp, received_samples=7, sampling_period=None
+        sampling_start=timestamp,
+        received_samples=7,
+        sampling_period=None,
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 7
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_receiving_stopped_resampling_error(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -1477,7 +1637,8 @@ async def test_receiving_stopped_resampling_error(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=2.0,
         resampling_function=resampling_fun_mock,
@@ -1528,9 +1689,9 @@ async def test_receiving_stopped_resampling_error(
     assert timeseries_error.source is source_receiver
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_receiving_resampling_error(
-    config_class: type[ResamplerConfig], fake_time: time_machine.Coordinates
+    config_class: _ConfigClass, fake_time: time_machine.Coordinates
 ) -> None:
     """Test resampling stops if there is an unknown error."""
     timestamp = datetime.now(timezone.utc)
@@ -1542,7 +1703,8 @@ async def test_receiving_resampling_error(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
     resampler = Resampler(
-        config_class(
+        _make_config(
+            config_class,
             resampling_period=timedelta(seconds=resampling_period_s),
             max_data_age_in_periods=2.0,
             resampling_function=resampling_fun_mock,
@@ -1576,9 +1738,9 @@ async def test_receiving_resampling_error(
     assert isinstance(timeseries_error, TestException)
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_timer_is_aligned(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
     caplog: pytest.LogCaptureFixture,
@@ -1590,14 +1752,15 @@ async def test_timer_is_aligned(
     # There is a small difference in behaviour between the (monotonic) Timer and the
     # WallClockTimer: the former will wait until it has at least one full period filled
     # with data, while the later fires at the next aligned period after it started.
-    is_wall_clock = issubclass(config_class, ResamplerConfig2)
+    is_wall_clock = config_class is not ResamplerConfig
     start_offset_s = 0 if is_wall_clock else resampling_period_s
     timestamp = datetime.now(timezone.utc)
 
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=2.0,
         resampling_function=resampling_fun_mock,
@@ -1727,9 +1890,9 @@ async def test_timer_is_aligned(
     resampling_fun_mock.reset_mock()
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_resampling_all_zeros(
-    config_class: type[ResamplerConfig],
+    config_class: _ConfigClass,
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
@@ -1742,7 +1905,8 @@ async def test_resampling_all_zeros(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = config_class(
+    config = _make_config(
+        config_class,
         resampling_period=timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
         resampling_function=resampling_fun_mock,
@@ -1787,7 +1951,7 @@ async def test_resampling_all_zeros(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=2, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 2
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1817,16 +1981,16 @@ async def test_resampling_all_zeros(
         config,
         source_props,
     )
-    # By now we have a full buffer (5 samples and a buffer of length 4), which
-    # we received in 4 seconds, so we have an input period of 0.8s.
+    # By now we received 5 samples, at least initial_buffer_len (4), in 4
+    # seconds, so we have an input period of 0.8s.
     assert source_props == SourceProperties(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
     )
-    # The buffer should be able to hold 2 seconds of data, and data is coming
-    # every 0.8 seconds, so we should be able to store 3 samples.
-    assert _get_buffer_len(resampler, source_receiver) == 3
+    # Now that the input period is known, samples older than the window (2, 4]
+    # are removed from the buffer.
+    assert _get_buffered_samples(resampler, source_receiver) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1843,8 +2007,10 @@ async def test_resampling_all_zeros(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        total_windows_without_samples=3,
+        current_windows_without_samples=3,
     )
-    assert _get_buffer_len(resampler, source_receiver) == 3
+    assert _get_buffered_samples(resampler, source_receiver) == 0
 
 
 @pytest.mark.parametrize("closed", [WindowSide.RIGHT, WindowSide.LEFT])
@@ -1853,7 +2019,7 @@ async def test_resampler_closed_option(
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
-    """Test the `closed` option in ResamplerConfig."""
+    """Test the `closed` option in ResamplerConfig3."""
     timestamp = datetime.now(timezone.utc)
 
     resampling_period_s = 2
@@ -1862,11 +2028,12 @@ async def test_resampler_closed_option(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = ResamplerConfig(
-        resampling_period=timedelta(seconds=resampling_period_s),
+    config = ResamplerConfig3(
+        timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
         closed=closed,
+        label=WindowSide.RIGHT,
     )
     resampler = Resampler(config)
 
@@ -1920,7 +2087,7 @@ async def test_resampler_closed_option(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=3, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 3
     sink_mock.reset_mock()
     resampling_fun_mock.reset_mock()
 
@@ -1965,7 +2132,7 @@ async def test_resampler_closed_option(
     assert source_props == SourceProperties(
         sampling_start=timestamp, received_samples=6, sampling_period=None
     )
-    assert _get_buffer_len(resampler, source_receiver) == config.initial_buffer_len
+    assert _get_buffered_samples(resampler, source_receiver) == 6
 
 
 @pytest.mark.parametrize("label", [WindowSide.LEFT, WindowSide.RIGHT])
@@ -1974,7 +2141,7 @@ async def test_resampler_label_option(
     fake_time: time_machine.Coordinates,
     source_chan: Broadcast[Sample[Quantity]],
 ) -> None:
-    """Test the `label` option in ResamplerConfig."""
+    """Test the `label` option in ResamplerConfig3."""
     timestamp = datetime.now(timezone.utc)
 
     resampling_period_s = 2
@@ -1983,10 +2150,11 @@ async def test_resampler_label_option(
     resampling_fun_mock = MagicMock(
         spec=ResamplingFunction, return_value=expected_resampled_value
     )
-    config = ResamplerConfig(
-        resampling_period=timedelta(seconds=resampling_period_s),
+    config = ResamplerConfig3(
+        timedelta(seconds=resampling_period_s),
         max_data_age_in_periods=1.0,
-        resampling_function=resampling_fun_mock,
+        resampling_function=_with_old_signature(resampling_fun_mock),
+        closed=WindowSide.RIGHT,
         label=label,
     )
     resampler = Resampler(config)
@@ -2018,21 +2186,121 @@ async def test_resampler_label_option(
     )
 
 
-def _get_buffer_len(resampler: Resampler, source_receiver: Source) -> int:
+async def test_config3_uses_wall_clock_timer() -> None:
+    """Test the resampler uses a wall clock timer with a `ResamplerConfig3`."""
+    resampler = Resampler(ResamplerConfig3(timedelta(seconds=1)))
+
     # pylint: disable-next=protected-access
-    blen = resampler._resamplers[source_receiver]._helper._buffer.maxlen
-    assert blen is not None
-    return blen
+    assert isinstance(resampler._timer, WallClockTimer)
+
+
+async def test_config3_defaults_resample_own_window_only(
+    fake_time: time_machine.Coordinates,
+    source_chan: Broadcast[Sample[Quantity]],
+) -> None:
+    """Test the defaults average the samples of each window, labelled with its start."""
+    timestamp = datetime.now(timezone.utc)
+    period = timedelta(seconds=2)
+    resampler = Resampler(ResamplerConfig3(period))
+    source_sender = source_chan.new_sender()
+    sink_mock = AsyncMock(spec=Sink, return_value=True)
+    resampler.add_timeseries("test", source_chan.new_receiver(), sink_mock)
+
+    # Window [0, 2): the sample at 2 is in the next window
+    await source_sender.send(Sample(timestamp, Quantity(5.0)))
+    await source_sender.send(Sample(timestamp + timedelta(seconds=1), Quantity(12.0)))
+    await source_sender.send(Sample(timestamp + period, Quantity(100.0)))
+    await _advance_time(fake_time, period.total_seconds())
+    await resampler.resample(one_shot=True)
+
+    sink_mock.assert_called_once_with(Sample(timestamp, Quantity(8.5)))
+    sink_mock.reset_mock()
+
+    # Window [2, 4): the samples of the previous window are not included
+    await source_sender.send(Sample(timestamp + timedelta(seconds=3), Quantity(4.0)))
+    await _advance_time(fake_time, period.total_seconds())
+    await resampler.resample(one_shot=True)
+
+    sink_mock.assert_called_once_with(Sample(timestamp + period, Quantity(52.0)))
+
+
+async def test_config3_default_mean_includes_older_samples_when_upsampling() -> None:
+    """Test the default mean can use samples older than the window when upsampling.
+
+    When the input period is bigger than the resampling period, the maximum data
+    age is relative to the input period.
+    """
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    helper = _ResamplingHelper(
+        "test",
+        ResamplerConfig3(timedelta(seconds=1), input_period_estimation_samples=2),
+    )
+
+    helper.add_sample((start, 1.0))
+    helper.add_sample((start + timedelta(seconds=3), 4.0))
+    assert helper.resample(start + timedelta(seconds=4)).value == Quantity(4.0)
+    # The input period is estimated from 2 samples in 4 seconds
+    assert helper.source_properties.sampling_period == timedelta(seconds=2)
+
+    # The window [4, 5) is empty, but the sample at 3 is not older than 2 seconds
+    assert helper.resample(start + timedelta(seconds=5)).value == Quantity(4.0)
+
+
+async def test_config3_context(
+    fake_time: time_machine.Coordinates,
+) -> None:
+    """Test each timeseries gets a context with the window and its own properties."""
+    timestamp = datetime.now(timezone.utc)
+    period = timedelta(seconds=2)
+    resampling_fun_mock = MagicMock(spec=ResamplingFunction3, return_value=1.0)
+    config = ResamplerConfig3(period, resampling_function=resampling_fun_mock)
+    resampler = Resampler(config)
+    channels = [Broadcast[Sample[Quantity]](name=f"test-{i}") for i in range(2)]
+    receivers = [channel.new_receiver() for channel in channels]
+    for channel, receiver in zip(channels, receivers):
+        resampler.add_timeseries(
+            channel.name, receiver, AsyncMock(spec=Sink, return_value=True)
+        )
+        await channel.new_sender().send(Sample(timestamp, Quantity(1.0)))
+
+    await _advance_time(fake_time, period.total_seconds())
+    await resampler.resample(one_shot=True)
+
+    assert resampling_fun_mock.call_count == 2
+    contexts = [call.args[1] for call in resampling_fun_mock.call_args_list]
+    assert contexts == [
+        ResamplingContext(
+            window_start=timestamp,
+            config=config,
+            source_properties=resampler.get_source_properties(receiver),
+        )
+        for receiver in receivers
+    ]
+    assert contexts[0].source_properties is not contexts[1].source_properties
+    for channel in channels:
+        await channel.aclose()
+
+
+def _get_buffered_samples(resampler: Resampler, source_receiver: Source) -> int:
+    # pylint: disable-next=protected-access
+    return len(resampler._resamplers[source_receiver]._helper._buffer)
+
+
+_RESAMPLER_LOGGERS = (
+    "frequenz.sdk.timeseries._resampling._resampler",
+    "frequenz.sdk.timeseries._resampling._buffer",
+)
 
 
 def _filter_logs(
     record_tuples: list[tuple[str, int, str]],
     *,
-    logger_name: str = "frequenz.sdk.timeseries._resampling._resampler",
+    logger_name: str | None = None,
     logger_level: int | None = None,
 ) -> list[tuple[str, int, str]]:
+    names = _RESAMPLER_LOGGERS if logger_name is None else (logger_name,)
     return [
         t
         for t in record_tuples
-        if t[0] == logger_name and (logger_level is None or logger_level == t[1])
+        if t[0] in names and (logger_level is None or logger_level == t[1])
     ]

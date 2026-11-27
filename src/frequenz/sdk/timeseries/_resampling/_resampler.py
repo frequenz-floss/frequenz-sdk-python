@@ -6,21 +6,26 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
 import logging
-import math
-from bisect import bisect, bisect_left
-from collections import deque
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
 from frequenz.channels.timer import MonotonicTimer, TriggerAllMissed, _to_microseconds
+from frequenz.core.typing import FloatInt
 from frequenz.quantities import Quantity
 
 from ..._internal._asyncio import cancel_and_await
 from .._base_types import Sample
 from ._base_types import Sink, Source, SourceProperties
-from ._config import ResamplerConfig, ResamplerConfig2, WindowSide
+from ._buffer import _ResamplingBuffer
+from ._config import (
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplerConfig3,
+    ResamplingContext,
+    WindowSide,
+)
 from ._exceptions import ResamplingError, SourceStoppedError
 from ._wall_clock_timer import TickInfo, WallClockTimer
 
@@ -40,14 +45,22 @@ class Resampler:
     samples coming to a resampled timeseries for a while, eventually the
     `Resampler` will produce `Sample`s with `None` as value, meaning there is
     no way to produce meaningful samples with the available data.
+
+    Warning: Limitation
+        The resampler currently expects the samples of each timeseries to arrive
+        in timestamp order. Samples that arrive out of order can be wrongly left
+        out of or included in a window. See
+        [frequenz-sdk-python#47](https://github.com/frequenz-floss/frequenz-sdk-python/issues/47).
     """
 
-    def __init__(self, config: ResamplerConfig) -> None:
+    def __init__(
+        self, config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig
+    ) -> None:
         """Initialize an instance.
 
         Args:
-            config: The configuration for the resampler. If a `ResamplerConfig2` is
-                provided, the resampler will use a
+            config: The configuration for the resampler. If a `ResamplerConfig3` or
+                a `ResamplerConfig2` is provided, the resampler will use a
                 [`WallClockTimer`][frequenz.sdk.timeseries.WallClockTimer] instead of a
                 [`MonotonicTimer`][frequenz.channels.timer.MonotonicTimer].
         """
@@ -60,11 +73,20 @@ class Resampler:
         self._timer: MonotonicTimer | WallClockTimer
         """The timer used to trigger the resampling windows."""
 
-        if isinstance(config, ResamplerConfig2):
-            self._timer = WallClockTimer(config.resampling_period, config.timer_config)
-            return
+        # ResamplerConfig2 is a subclass of ResamplerConfig, so it has to be
+        # matched first.
+        match config:
+            case ResamplerConfig3() | ResamplerConfig2():
+                self._timer = WallClockTimer(
+                    config.resampling_period, config.timer_config
+                )
+                return
+            case ResamplerConfig():
+                pass
+            case unexpected:
+                assert_never(unexpected)
 
-        window_end, start_delay_time = self._calculate_window_end()
+        window_end, start_delay_time = self._calculate_window_end(config)
         self._window_end: datetime = window_end
         """The time in which the current window ends.
 
@@ -89,7 +111,7 @@ class Resampler:
         )  # pylint: disable=protected-access
 
     @property
-    def config(self) -> ResamplerConfig:
+    def config(self) -> ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig:
         """Get the resampler configuration.
 
         Returns:
@@ -227,26 +249,31 @@ class Resampler:
             if one_shot:
                 break
 
-    def _calculate_window_end(self) -> tuple[datetime, timedelta]:
+    def _calculate_window_end(
+        self, config: ResamplerConfig
+    ) -> tuple[datetime, timedelta]:
         """Calculate the end of the current resampling window.
 
         The calculated resampling window end is a multiple of
-        `self._config.resampling_period` starting at `self._config.align_to`.
+        `config.resampling_period` starting at `config.align_to`.
 
-        if `self._config.align_to` is `None`, the current time is used.
+        if `config.align_to` is `None`, the current time is used.
 
-        If the current time is not aligned to `self._config.resampling_period`, then
+        If the current time is not aligned to `config.resampling_period`, then
         the end of the current resampling window will be more than one period away, to
         make sure to have some time to collect samples if the misalignment is too big.
 
+        Args:
+            config: The configuration for the resampler.
+
         Returns:
             A tuple with the end of the current resampling window aligned to
-                `self._config.align_to` as the first item and the time we need to
+                `config.align_to` as the first item and the time we need to
                 delay the timer start to make sure it is also aligned.
         """
         now = datetime.now(timezone.utc)
-        period = self._config.resampling_period
-        align_to = self._config.align_to
+        period = config.resampling_period
+        align_to = config.align_to
 
         if align_to is None:
             return (now + period, timedelta(0))
@@ -269,14 +296,20 @@ class Resampler:
 class _ResamplingHelper:
     """Keeps track of *relevant* samples to pass them to the resampling function.
 
-    Samples are stored in an internal ring buffer. All collected samples that
+    Samples are stored in an internal buffer. All collected samples that
     are newer than `max(resampling_period, input_period)
     * max_data_age_in_periods` are considered *relevant* and are passed
     to the provided `resampling_function` when calling the `resample()` method.
-    All older samples are discarded.
+
+    Once the input period is known, older samples are removed from the buffer
+    when resampling, as they won't be relevant for any later window either.
+    Before that, the look-back can still grow when the input period is
+    estimated, so samples are kept.
     """
 
-    def __init__(self, name: str, config: ResamplerConfig) -> None:
+    def __init__(
+        self, name: str, config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig
+    ) -> None:
         """Initialize an instance.
 
         Args:
@@ -285,10 +318,26 @@ class _ResamplingHelper:
         """
         self._name = name
         self._config = config
-        self._buffer: deque[tuple[datetime, float]] = deque(
-            maxlen=config.initial_buffer_len
-        )
         self._source_properties: SourceProperties = SourceProperties()
+        self._buffer = _ResamplingBuffer(
+            name,
+            max_len=config.max_buffer_len,
+            warn_len=config.warn_buffer_len,
+            source_properties=self._source_properties,
+        )
+        # The buffer's method is used directly, as adding samples must be as fast
+        # as possible.
+        self.add_sample: Callable[[tuple[datetime, float]], None] = self._buffer.add
+        """Add a new sample to the buffer."""
+        self._estimation_samples: int
+        """The number of samples to receive before estimating the input period."""
+        match config:
+            case ResamplerConfig3():
+                self._estimation_samples = config.input_period_estimation_samples
+            case ResamplerConfig():
+                self._estimation_samples = config.initial_buffer_len
+            case unexpected:
+                assert_never(unexpected)
 
     @property
     def source_properties(self) -> SourceProperties:
@@ -299,17 +348,6 @@ class _ResamplingHelper:
         """
         return self._source_properties
 
-    def add_sample(self, sample: tuple[datetime, float]) -> None:
-        """Add a new sample to the internal buffer.
-
-        Args:
-            sample: The sample to be added to the buffer.
-        """
-        self._buffer.append(sample)
-        if self._source_properties.sampling_start is None:
-            self._source_properties.sampling_start = sample[0]
-        self._source_properties.received_samples += 1
-
     def _update_source_sample_period(self, now: datetime) -> bool:
         """Update the source sample period.
 
@@ -319,10 +357,6 @@ class _ResamplingHelper:
         Returns:
             Whether the source sample period was changed (was really updated).
         """
-        assert (
-            self._buffer.maxlen is not None and self._buffer.maxlen > 0
-        ), "We need a maxlen of at least 1 to update the sample period"
-
         config = self._config
         props = self._source_properties
 
@@ -332,7 +366,7 @@ class _ResamplingHelper:
             or props.sampling_start is None
             or props.received_samples
             < config.resampling_period.total_seconds() * config.max_data_age_in_periods
-            or len(self._buffer) < self._buffer.maxlen
+            or props.received_samples < self._estimation_samples
             # There might be a race between the first sample being received and
             # this function being called
             or now <= props.sampling_start
@@ -351,67 +385,6 @@ class _ResamplingHelper:
         )
         return True
 
-    def _update_buffer_len(self) -> bool:
-        """Update the length of the buffer based on the source properties.
-
-        Returns:
-            Whether the buffer length was changed (was really updated).
-        """
-        # To make type checking happy
-        assert self._buffer.maxlen is not None
-        assert self._source_properties.sampling_period is not None
-
-        input_sampling_period = self._source_properties.sampling_period
-
-        config = self._config
-
-        new_buffer_len = math.ceil(
-            # If we are upsampling, one sample could be enough for
-            # back-filling, but we store max_data_age_in_periods for input
-            # periods, so resampling functions can do more complex
-            # inter/extrapolation if they need to.
-            (input_sampling_period.total_seconds() * config.max_data_age_in_periods)
-            if input_sampling_period > config.resampling_period
-            # If we are downsampling, we want a buffer that can hold
-            # max_data_age_in_periods * resampling_period of data, and we one
-            # sample every input_sampling_period.
-            else (
-                config.resampling_period.total_seconds()
-                / input_sampling_period.total_seconds()
-                * config.max_data_age_in_periods
-            )
-        )
-
-        new_buffer_len = max(1, new_buffer_len)
-        if new_buffer_len > config.max_buffer_len:
-            _logger.error(
-                "The new buffer length (%s) for timeseries %s is too big, using %s instead",
-                new_buffer_len,
-                self._name,
-                config.max_buffer_len,
-            )
-            new_buffer_len = config.max_buffer_len
-        elif new_buffer_len > config.warn_buffer_len:
-            _logger.warning(
-                "The new buffer length (%s) for timeseries %s bigger than %s",
-                new_buffer_len,
-                self._name,
-                config.warn_buffer_len,
-            )
-
-        if new_buffer_len == self._buffer.maxlen:
-            return False
-
-        _logger.debug(
-            "New buffer length calculated for %r: %s",
-            self._name,
-            new_buffer_len,
-        )
-
-        self._buffer = deque(self._buffer, maxlen=new_buffer_len)
-
-        return True
-
     def resample(self, timestamp: datetime) -> Sample[Quantity]:
         """Generate a new sample based on all the current *relevant* samples.
 
@@ -425,8 +398,7 @@ class _ResamplingHelper:
                 If there are no *relevant* samples, then the new sample will
                 have `None` as `value`.
         """
-        if self._update_source_sample_period(timestamp):
-            self._update_buffer_len()
+        self._update_source_sample_period(timestamp)
 
         conf = self._config
         props = self._source_properties
@@ -441,36 +413,27 @@ class _ResamplingHelper:
             if props.sampling_period is not None
             else conf.resampling_period
         )
-        minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
+        try:
+            minimum_relevant_timestamp = (
+                timestamp - period * conf.max_data_age_in_periods
+            )
+        except OverflowError:
+            # The maximum data age goes back further than a datetime can, so all
+            # samples are relevant.
+            minimum_relevant_timestamp = datetime.min.replace(tzinfo=timezone.utc)
 
-        match conf.closed:
-            case WindowSide.LEFT:
-                bisect_func = bisect_left
-            case WindowSide.RIGHT:
-                bisect_func = bisect
-            case unexpected:
-                assert_never(unexpected)
-
-        min_index = bisect_func(
-            self._buffer,
+        # Samples older than the relevant ones won't be relevant for later windows
+        # either, unless the input period is still unknown, as the look-back can
+        # grow when it is estimated.
+        relevant_samples = self._buffer.relevant_samples(
             minimum_relevant_timestamp,
-            key=lambda s: s[0],
+            timestamp,
+            conf.closed,
+            remove_older=props.sampling_period is not None,
         )
 
-        max_index = bisect_func(self._buffer, timestamp, key=lambda s: s[0])
-
-        # Using itertools for slicing doesn't look very efficient, but
-        # experiments with a custom (ring) buffer that can slice showed that
-        # it is not that bad. See:
-        # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
-        # So if we need more performance beyond this point, we probably need to
-        # resort to some C (or similar) implementation.
-        relevant_samples = list(itertools.islice(self._buffer, min_index, max_index))
-        if not relevant_samples:
-            self._log_no_relevant_samples(minimum_relevant_timestamp, timestamp)
-
         value = (
-            conf.resampling_function(relevant_samples, conf, props)
+            self._call_resampling_function(relevant_samples, timestamp)
             if relevant_samples
             else None
         )
@@ -485,33 +448,35 @@ class _ResamplingHelper:
 
         return Sample(timestamp, None if value is None else Quantity(value))
 
-    def _log_no_relevant_samples(
-        self, minimum_relevant_timestamp: datetime, timestamp: datetime
-    ) -> None:
-        """Log that no relevant samples were found.
+    def _call_resampling_function(
+        self,
+        relevant_samples: list[tuple[datetime, float]],
+        timestamp: datetime,
+    ) -> FloatInt:
+        """Call the resampling function of the configuration.
 
         Args:
-            minimum_relevant_timestamp: Minimum timestamp that was requested
-            timestamp: Timestamp that was requested
+            relevant_samples: The samples to pass to the resampling function.
+            timestamp: The end of the resampling window.
+
+        Returns:
+            The value returned by the resampling function.
         """
-        if not _logger.isEnabledFor(logging.WARNING):
-            return
-
-        if self._buffer:
-            buffer_info = (
-                f"{self._buffer[0][0]} - "
-                f"{self._buffer[-1][0]} ({len(self._buffer)} samples)"
-            )
-        else:
-            buffer_info = "Empty"
-
-        _logger.warning(
-            "No relevant samples found for: %s\n  Requested: %s - %s\n     Buffer: %s",
-            self._name,
-            minimum_relevant_timestamp,
-            timestamp,
-            buffer_info,
-        )
+        conf = self._config
+        match conf:
+            case ResamplerConfig3():
+                context = ResamplingContext(
+                    window_start=timestamp - conf.resampling_period,
+                    config=conf,
+                    source_properties=self._source_properties,
+                )
+                return conf.resampling_function(relevant_samples, context)
+            case ResamplerConfig():
+                return conf.resampling_function(
+                    relevant_samples, conf, self._source_properties
+                )
+            case unexpected:
+                assert_never(unexpected)
 
 
 class _StreamingHelper:

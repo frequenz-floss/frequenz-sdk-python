@@ -22,7 +22,6 @@ from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.timeseries import ResamplerConfig2
 from frequenz.sdk.timeseries.battery_pool._metric_calculator import (
     PowerBoundsCalculator,
 )
@@ -69,7 +68,9 @@ async def mocks(mocker: MockerFixture) -> AsyncIterator[Mocks]:
     if microgrid._data_pipeline._DATA_PIPELINE is not None:
         microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig2(resampling_period=timedelta(seconds=0.1))
+        dataclasses.replace(
+            microgrid.EXAMPLE_RESAMPLER_CONFIG, resampling_period=timedelta(seconds=0.1)
+        ),
     )
     streamer = MockComponentDataStreamer(mockgrid.mock_client)
 

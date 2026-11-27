@@ -20,7 +20,9 @@ from frequenz.sdk.timeseries import (
     MovingWindow,
     ResamplerConfig,
     ResamplerConfig2,
+    ResamplerConfig3,
     Sample,
+    WindowSide,
 )
 
 
@@ -64,7 +66,9 @@ async def push_logical_meter_data(
 
 def init_moving_window(
     size: timedelta,
-    resampler_config: ResamplerConfig | None = None,
+    resampler_config: (
+        ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig | None
+    ) = None,
 ) -> tuple[MovingWindow, Sender[Sample[Quantity]]]:
     """Initialize the moving window with given shape.
 
@@ -457,13 +461,41 @@ async def test_wait_for_samples() -> None:
         assert task.done()
 
 
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+@pytest.mark.parametrize(
+    "config_class",
+    [
+        pytest.param(
+            ResamplerConfig,
+            id="ResamplerConfig",
+            marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+        ),
+        pytest.param(
+            ResamplerConfig2,
+            id="ResamplerConfig2",
+            marks=pytest.mark.filterwarnings("once::DeprecationWarning"),
+        ),
+        ResamplerConfig3,
+    ],
+)
 async def test_wait_for_samples_with_resampling(
-    config_class: type[ResamplerConfig], fake_time: time_machine.Coordinates
+    config_class: type[ResamplerConfig] | type[ResamplerConfig3],
+    fake_time: time_machine.Coordinates,
 ) -> None:
     """Test waiting for samples in a moving window with resampling."""
+    resampling_period = timedelta(seconds=2)
     window, sender = init_moving_window(
-        timedelta(seconds=20), config_class(resampling_period=timedelta(seconds=2))
+        timedelta(seconds=20),
+        (
+            # Use the defaults of the other classes, so the expectations hold
+            ResamplerConfig3(
+                resampling_period,
+                max_data_age_in_periods=3.0,
+                closed=WindowSide.RIGHT,
+                label=WindowSide.RIGHT,
+            )
+            if config_class is ResamplerConfig3
+            else config_class(resampling_period=resampling_period)
+        ),
     )
     async with window:
         task = asyncio.create_task(window.wait_for_samples(3))
@@ -523,7 +555,7 @@ async def test_wait_for_samples_with_resampling(
         # There is also an inconsistency here between the monotonic and wall clock,
         # the wall clock timer have less samples in the buffer at the end. This is
         # probably some border condition because of the way we fake time
-        is_wall_clock = config_class is ResamplerConfig2
+        is_wall_clock = config_class is not ResamplerConfig
         assert window.count_valid() == (5 if is_wall_clock else 7)
         assert task.done()
 
@@ -537,7 +569,12 @@ async def test_resampling_window(fake_time: time_machine.Coordinates) -> None:
     window_size = timedelta(seconds=16)
     input_sampling = timedelta(seconds=1)
     output_sampling = timedelta(seconds=2)
-    resampler_config = ResamplerConfig(resampling_period=output_sampling)
+    resampler_config = ResamplerConfig3(
+        output_sampling,
+        max_data_age_in_periods=3.0,
+        closed=WindowSide.RIGHT,
+        label=WindowSide.RIGHT,
+    )
 
     async with MovingWindow(
         size=window_size,

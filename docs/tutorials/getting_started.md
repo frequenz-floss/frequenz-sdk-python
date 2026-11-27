@@ -30,16 +30,18 @@ importing the necessary libraries.
 ```python
 import asyncio
 
-from datetime import timedelta
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries import ResamplerConfig2
 ```
 
 ## Create the application skeleton
 
 The main logic of your application will run within an async function. Let's
 create a skeleton that contains all the necessary code to initialize a
-microgrid.
+microgrid. It uses
+[`microgrid.EXAMPLE_RESAMPLER_CONFIG`][frequenz.sdk.microgrid.EXAMPLE_RESAMPLER_CONFIG],
+a resampler configuration for examples. A real application should use its own
+configuration, and the documentation of `EXAMPLE_RESAMPLER_CONFIG` explains how
+to choose one.
 
 ```python
 async def run() -> None:
@@ -49,7 +51,7 @@ async def run() -> None:
     # Initialize the microgrid
     await microgrid.initialize(
         server_url,
-        ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+        microgrid.EXAMPLE_RESAMPLER_CONFIG,
     )
 
     # Define your application logic here
@@ -98,9 +100,7 @@ Here is the full version of your first Frequenz SDK application.
 ```python
 import asyncio
 
-from datetime import timedelta
 from frequenz.sdk import microgrid
-from frequenz.sdk.timeseries import ResamplerConfig2
 
 async def run() -> None:
     # This points to the default Frequenz microgrid sandbox
@@ -109,7 +109,7 @@ async def run() -> None:
     # Initialize the microgrid
     await microgrid.initialize(
         server_url,
-        ResamplerConfig2(resampling_period=timedelta(seconds=1)),
+        microgrid.EXAMPLE_RESAMPLER_CONFIG,
     )
 
     # Define your application logic here

@@ -389,7 +389,11 @@ from datetime import timedelta
 
 from frequenz.microgrid_component_graph import ComponentGraphConfig, FormulaOverrides
 
-from ..timeseries._resampling._config import ResamplerConfig
+from ..timeseries._resampling._config import (
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplerConfig3,
+)
 from . import _data_pipeline, connection_manager
 from ._data_pipeline import (
     consumer,
@@ -403,12 +407,14 @@ from ._data_pipeline import (
     producer,
     voltage_per_phase,
 )
+from ._example_resampler_config import EXAMPLE_RESAMPLER_CONFIG
 from ._power_managing import PowerManagerAlgorithm
+from ._resampling_functions import latest_window_mean
 
 
 async def initialize(
     server_url: str,
-    resampler_config: ResamplerConfig,
+    resampler_config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig,
     *,
     api_power_request_timeout: timedelta = timedelta(seconds=5.0),
     # pylint: disable-next: line-too-long
@@ -416,6 +422,15 @@ async def initialize(
     component_graph_config: ComponentGraphConfig | None = None,
 ) -> None:
     """Initialize the microgrid connection manager and the data pipeline.
+
+    The resampler configuration decides how the data of all the microgrid
+    timeseries is resampled, for example the data of component pools, formulas and
+    the grid.
+
+    Applications that control a microgrid can use
+    [`EXAMPLE_RESAMPLER_CONFIG`][frequenz.sdk.microgrid.EXAMPLE_RESAMPLER_CONFIG] as
+    a baseline for their configuration. Its documentation explains why it uses
+    those values.
 
     Args:
         server_url: The location of the microgrid API server in the form of a URL.
@@ -450,9 +465,11 @@ async def initialize(
 
 __all__ = [
     "ComponentGraphConfig",
+    "EXAMPLE_RESAMPLER_CONFIG",
     "FormulaOverrides",
     "PowerManagerAlgorithm",
     "initialize",
+    "latest_window_mean",
     "consumer",
     "grid",
     "frequency",

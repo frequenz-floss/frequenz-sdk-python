@@ -4,6 +4,7 @@
 """Test the EV charger pool control methods."""
 
 import asyncio
+import dataclasses
 from collections.abc import AsyncIterator, Callable
 from datetime import datetime, timedelta, timezone
 from typing import cast
@@ -24,7 +25,7 @@ from frequenz.sdk.microgrid._power_distributing import ComponentPoolStatus
 from frequenz.sdk.microgrid._power_distributing._component_pool_status_tracker import (
     ComponentPoolStatusTracker,
 )
-from frequenz.sdk.timeseries import ResamplerConfig2, Sample3Phase
+from frequenz.sdk.timeseries import Sample3Phase
 from frequenz.sdk.timeseries.ev_charger_pool import EVChargerPoolReport
 
 from ...microgrid.fixtures import _Mocks
@@ -52,7 +53,9 @@ async def mocks(mocker: MockerFixture) -> AsyncIterator[_Mocks]:
     if microgrid._data_pipeline._DATA_PIPELINE is not None:
         microgrid._data_pipeline._DATA_PIPELINE = None
     await microgrid._data_pipeline.initialize(
-        ResamplerConfig2(resampling_period=timedelta(seconds=0.1))
+        dataclasses.replace(
+            microgrid.EXAMPLE_RESAMPLER_CONFIG, resampling_period=timedelta(seconds=0.1)
+        ),
     )
     streamer = MockComponentDataStreamer(mockgrid.mock_client)
 

@@ -14,7 +14,11 @@ from .._internal._asyncio import cancel_and_await
 from .._internal._channels import ChannelRegistry
 from ..actor._actor import Actor
 from ..timeseries import Sample
-from ..timeseries._resampling._config import ResamplerConfig
+from ..timeseries._resampling._config import (
+    ResamplerConfig,
+    ResamplerConfig2,
+    ResamplerConfig3,
+)
 from ..timeseries._resampling._exceptions import ResamplingError
 from ..timeseries._resampling._resampler import Resampler
 from ._data_sourcing import ComponentMetricRequest
@@ -31,7 +35,7 @@ class ComponentMetricsResamplingActor(Actor):
         channel_registry: ChannelRegistry,
         data_sourcing_request_sender: Sender[ComponentMetricRequest],
         resampling_request_receiver: Receiver[ComponentMetricRequest],
-        config: ResamplerConfig,
+        config: ResamplerConfig3 | ResamplerConfig2 | ResamplerConfig,
         name: str | None = None,
     ) -> None:
         """Initialize an instance.

@@ -28,7 +28,6 @@ from frequenz.sdk.microgrid._power_distributing import (
     Result,
     Success,
 )
-from frequenz.sdk.timeseries import ResamplerConfig2
 
 HOST = "microgrid.sandbox.api.frequenz.io"
 PORT = 62060
@@ -139,7 +138,7 @@ async def run() -> None:
     """Create microgrid api and run tests."""
     await microgrid.initialize(
         "grpc://microgrid.sandbox.api.frequenz.io:62060",
-        ResamplerConfig2(resampling_period=timedelta(seconds=1.0)),
+        microgrid.EXAMPLE_RESAMPLER_CONFIG,
     )
 
     all_batteries = connection_manager.get().component_graph.components(
