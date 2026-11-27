@@ -12,6 +12,8 @@
 
 <!-- Here goes the main new features and examples or instructions on how to use them -->
 
+- `SourceProperties` has a new `dropped_samples` field, with the number of samples the resampler dropped because its buffer was full.
+
 ## Bug Fixes
 
 <!-- Here goes notable bug fixes that are worth a special mention or explanation -->

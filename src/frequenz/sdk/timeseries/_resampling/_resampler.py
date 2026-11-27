@@ -430,6 +430,7 @@ class _ResamplingHelper:
 
         conf = self._config
         props = self._source_properties
+        props.dropped_samples = props.received_samples - len(self._buffer)
 
         # To see which samples are relevant we need to consider if we are down
         # or upsampling.

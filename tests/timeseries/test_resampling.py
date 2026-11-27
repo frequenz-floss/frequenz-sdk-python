@@ -218,6 +218,28 @@ async def test_helper_buffer_too_big(
     assert helper._buffer.maxlen == DEFAULT_BUFFER_LEN_MAX
 
 
+@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
+async def test_helper_counts_dropped_samples_when_resampling(
+    config_class: type[ResamplerConfig],
+) -> None:
+    """Test samples dropped because the buffer is full are counted when resampling."""
+    config = config_class(
+        resampling_period=timedelta(seconds=1),
+        initial_buffer_len=2,
+        warn_buffer_len=1,
+        max_buffer_len=2,
+    )
+    helper = _ResamplingHelper("test", config)
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+
+    for seconds in (0.25, 0.5, 0.75):
+        helper.add_sample((start + timedelta(seconds=seconds), seconds))
+    assert helper.source_properties.dropped_samples == 0
+
+    _ = helper.resample(start + timedelta(seconds=1))
+    assert helper.source_properties.dropped_samples == 1
+
+
 # Tick-delay test fixtures: time constants
 @pytest.fixture
 def window_end() -> datetime:
@@ -1073,6 +1095,7 @@ async def test_resampling_with_one_window(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        dropped_samples=2,
     )
     # The buffer should be able to hold 2 seconds of data, and data is coming
     # every 0.8 seconds, so we should be able to store 3 samples.
@@ -1093,6 +1116,7 @@ async def test_resampling_with_one_window(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        dropped_samples=2,
     )
     assert _get_buffer_len(resampler, source_receiver) == 3
 
@@ -1234,6 +1258,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         sampling_start=timestamp,
         received_samples=7,
         sampling_period=timedelta(seconds=6 / 7),
+        dropped_samples=3,
     )
     # The buffer should be able to hold 2 * 1.5 (3) seconds of data, and data
     # is coming every 6/7 seconds (~0.857s), so we should be able to store
@@ -1275,6 +1300,7 @@ async def test_resampling_with_one_and_a_half_windows(  # pylint: disable=too-ma
         sampling_start=timestamp,
         received_samples=7,
         sampling_period=timedelta(seconds=6 / 7),
+        dropped_samples=3,
     )
     assert _get_buffer_len(resampler, source_receiver) == 4
 
@@ -1823,6 +1849,7 @@ async def test_resampling_all_zeros(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        dropped_samples=2,
     )
     # The buffer should be able to hold 2 seconds of data, and data is coming
     # every 0.8 seconds, so we should be able to store 3 samples.
@@ -1843,6 +1870,7 @@ async def test_resampling_all_zeros(
         sampling_start=timestamp,
         received_samples=5,
         sampling_period=timedelta(seconds=0.8),
+        dropped_samples=2,
     )
     assert _get_buffer_len(resampler, source_receiver) == 3
 

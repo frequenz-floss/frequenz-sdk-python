@@ -56,3 +56,10 @@ class SourceProperties:
 
     `None` means it is unknown.
     """
+
+    dropped_samples: int = 0
+    """The number of samples dropped because the resampling buffer was full.
+
+    It is updated when resampling, so it doesn't include the samples dropped
+    since the last resampling.
+    """
