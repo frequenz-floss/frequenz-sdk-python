@@ -184,6 +184,7 @@ def test_no_relevant_samples_is_logged_in_one_line(
     buffer, _ = _make_buffer()
     _ = buffer.relevant_samples(_at(0), _at(1), WindowSide.LEFT, remove_older=False)
 
+    buffer, _ = _make_buffer()
     buffer.add((_at(2), 2.0))
     buffer.add((_at(3), 3.0))
     _ = buffer.relevant_samples(_at(0), _at(1), WindowSide.LEFT, remove_older=False)
@@ -193,4 +194,34 @@ def test_no_relevant_samples_is_logged_in_one_line(
         f"{_at(1)} (buffer: empty)",
         f"No relevant samples found for timeseries test between {_at(0)} and "
         f"{_at(1)} (buffer: {_at(2)} to {_at(3)}, 2 samples)",
+    ]
+
+
+def test_no_relevant_samples_is_logged_once_per_gap(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test missing relevant samples are logged at the start and end of each gap."""
+    caplog.set_level(logging.INFO, logger=_LOGGER_NAME)
+    buffer, _ = _make_buffer()
+
+    def resample(window: int) -> None:
+        _ = buffer.relevant_samples(
+            _at(window), _at(window + 1), WindowSide.LEFT, remove_older=True
+        )
+
+    resample(0)
+    resample(1)
+    buffer.add((_at(2.5), 2.5))
+    resample(2)
+    resample(3)
+
+    assert [
+        message for message in caplog.messages if "relevant" in message.lower()
+    ] == [
+        f"No relevant samples found for timeseries test between {_at(0)} and "
+        f"{_at(1)} (buffer: empty)",
+        "Relevant samples found again for timeseries test, after 2 windows "
+        "without them",
+        f"No relevant samples found for timeseries test between {_at(3)} and "
+        f"{_at(4)} (buffer: {_at(2.5)} to {_at(2.5)}, 1 samples)",
     ]

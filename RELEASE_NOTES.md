@@ -23,3 +23,5 @@
     - `initial_buffer_len` is the number of samples to receive before estimating the input sampling period.
     - `warn_buffer_len` logs a warning, once per timeseries, when a buffer holds more samples than this after removing old ones.
     - `max_buffer_len` logs an error, once per timeseries, when samples needed to resample may have been dropped because the buffer was full.
+
+- The resampler no longer logs a warning at every resampling while a timeseries has no relevant samples. It logs it once when the samples stop, and logs when they are back, with the number of windows without them.
