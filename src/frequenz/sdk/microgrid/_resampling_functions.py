@@ -24,8 +24,8 @@ def latest_window_mean(
     timeseries are covered with the newest values available. How old these values
     can be depends on
     [`max_data_age_in_periods`][frequenz.sdk.timeseries.ResamplerConfig3.max_data_age_in_periods].
-    See [`initialize()`][frequenz.sdk.microgrid.initialize] for how to use it to
-    control a microgrid.
+    [`EXAMPLE_RESAMPLER_CONFIG`][frequenz.sdk.microgrid.EXAMPLE_RESAMPLER_CONFIG]
+    uses it, and explains why it suits controlling a microgrid.
 
     Windows are the resampling windows of the resampler, and
     [`closed`][frequenz.sdk.timeseries.ResamplerConfig3.closed] decides to which
@@ -38,20 +38,6 @@ def latest_window_mean(
         in timestamp order. Samples that arrive out of order can make this
         function use the wrong window. See
         [frequenz-sdk-python#47](https://github.com/frequenz-floss/frequenz-sdk-python/issues/47).
-
-    Example:
-        ```python
-        from datetime import timedelta
-
-        from frequenz.sdk.microgrid import latest_window_mean
-        from frequenz.sdk.timeseries import ResamplerConfig3
-
-        config = ResamplerConfig3(
-            timedelta(seconds=1),
-            max_data_age_in_periods=3.0,
-            resampling_function=latest_window_mean,
-        )
-        ```
 
     Args:
         input_samples: The samples to resample, sorted by timestamp. It must not

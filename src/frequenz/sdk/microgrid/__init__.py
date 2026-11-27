@@ -407,6 +407,7 @@ from ._data_pipeline import (
     producer,
     voltage_per_phase,
 )
+from ._example_resampler_config import EXAMPLE_RESAMPLER_CONFIG
 from ._power_managing import PowerManagerAlgorithm
 from ._resampling_functions import latest_window_mean
 
@@ -426,44 +427,10 @@ async def initialize(
     timeseries is resampled, for example the data of component pools, formulas and
     the grid.
 
-    To control a microgrid, tolerating short gaps in the data is usually more
-    important than having each value cover only its own window. A small glitch in a
-    data stream, or a device that sends data less often than the resampling period,
-    should not make resampled values `None`. For this, we recommend using
-    [`latest_window_mean()`][frequenz.sdk.microgrid.latest_window_mean] with a
-    [`max_data_age_in_periods`][frequenz.sdk.timeseries.ResamplerConfig3.max_data_age_in_periods]
-    bigger than 1.0:
-
-    ```python
-    from datetime import timedelta
-
-    from frequenz.sdk import microgrid
-    from frequenz.sdk.timeseries import ResamplerConfig3
-
-
-    async def main() -> None:
-        await microgrid.initialize(
-            "grpc://localhost:50051",
-            ResamplerConfig3(
-                timedelta(seconds=1),
-                max_data_age_in_periods=3.0,
-                resampling_function=microgrid.latest_window_mean,
-            ),
-        )
-    ```
-
-    With this configuration, each value is the mean of the samples in its window.
-    If the window has no samples, the newest of the two previous windows with
-    samples is used instead, so its values are reused with a newer timestamp. The
-    maximum data age is relative to the input period for devices that send data
-    less often than the resampling period, so their last value is repeated while
-    it is not older than three input periods.
-
-    The maximum data age doesn't guarantee that gaps of that size are covered. Until
-    the resampler has estimated the input period of a device, which needs
-    [`input_period_estimation_samples`][frequenz.sdk.timeseries.ResamplerConfig3.input_period_estimation_samples]
-    samples after a start, the maximum data age is relative to the resampling
-    period, so resampled values of slow devices can be `None`.
+    Applications that control a microgrid can use
+    [`EXAMPLE_RESAMPLER_CONFIG`][frequenz.sdk.microgrid.EXAMPLE_RESAMPLER_CONFIG] as
+    a baseline for their configuration. Its documentation explains why it uses
+    those values.
 
     Args:
         server_url: The location of the microgrid API server in the form of a URL.
@@ -498,6 +465,7 @@ async def initialize(
 
 __all__ = [
     "ComponentGraphConfig",
+    "EXAMPLE_RESAMPLER_CONFIG",
     "FormulaOverrides",
     "PowerManagerAlgorithm",
     "initialize",
