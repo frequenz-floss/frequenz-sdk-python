@@ -178,14 +178,15 @@ class _ResamplingBuffer:
 
         if self._samples:
             buffer_info = (
-                f"{self._samples[0][0]} - "
-                f"{self._samples[-1][0]} ({len(self._samples)} samples)"
+                f"{self._samples[0][0]} to {self._samples[-1][0]}, "
+                f"{len(self._samples)} samples"
             )
         else:
-            buffer_info = "Empty"
+            buffer_info = "empty"
 
         _logger.warning(
-            "No relevant samples found for: %s\n  Requested: %s - %s\n     Buffer: %s",
+            "No relevant samples found for timeseries %s between %s and %s "
+            "(buffer: %s)",
             self._name,
             start,
             end,

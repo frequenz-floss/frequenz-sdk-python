@@ -175,3 +175,22 @@ def test_bigger_than_warn_len_is_logged_once_after_removing_older_samples(
         "The buffer for timeseries test holds 10 samples, more than "
         "warn_buffer_len (4)"
     ]
+
+
+def test_no_relevant_samples_is_logged_in_one_line(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test the warning about missing relevant samples is a single line."""
+    buffer, _ = _make_buffer()
+    _ = buffer.relevant_samples(_at(0), _at(1), WindowSide.LEFT, remove_older=False)
+
+    buffer.add((_at(2), 2.0))
+    buffer.add((_at(3), 3.0))
+    _ = buffer.relevant_samples(_at(0), _at(1), WindowSide.LEFT, remove_older=False)
+
+    assert _logs(caplog, logging.WARNING) == [
+        f"No relevant samples found for timeseries test between {_at(0)} and "
+        f"{_at(1)} (buffer: empty)",
+        f"No relevant samples found for timeseries test between {_at(0)} and "
+        f"{_at(1)} (buffer: {_at(2)} to {_at(3)}, 2 samples)",
+    ]
