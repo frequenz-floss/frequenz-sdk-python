@@ -289,6 +289,39 @@ async def test_helper_keeps_window_samples_when_next_window_starts(
     assert helper.source_properties.dropped_samples == 0
 
 
+def _resample_with_max_age(
+    config_class: _ConfigClass, max_age: float
+) -> Sample[Quantity]:
+    """Resample three samples, one per second, with the given maximum data age."""
+    config = _make_config(
+        config_class,
+        resampling_period=timedelta(seconds=1),
+        max_data_age_in_periods=max_age,
+    )
+    helper = _ResamplingHelper("test", config)
+    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    for i in range(3):
+        helper.add_sample((start + timedelta(seconds=i), float(i)))
+    return helper.resample(start + timedelta(seconds=3))
+
+
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
+async def test_helper_max_data_age_older_than_datetime(
+    config_class: _ConfigClass,
+) -> None:
+    """Test a maximum data age that goes back before year 1 uses all samples."""
+    assert _resample_with_max_age(config_class, 1e11).value == Quantity(1.0)
+
+
+# ResamplerConfig3 rejects maximum data ages that don't fit in a timedelta
+@pytest.mark.parametrize("config_class", _CONFIG_CLASSES[:2])
+async def test_helper_max_data_age_too_big_for_timedelta(
+    config_class: _ConfigClass,
+) -> None:
+    """Test a maximum data age too big for a `timedelta` uses all samples."""
+    assert _resample_with_max_age(config_class, 1e20).value == Quantity(1.0)
+
+
 @pytest.mark.parametrize("config_class", _CONFIG_CLASSES)
 async def test_helper_first_window_uses_all_its_samples(
     config_class: _ConfigClass,

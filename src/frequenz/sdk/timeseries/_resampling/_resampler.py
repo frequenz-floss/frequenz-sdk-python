@@ -413,7 +413,14 @@ class _ResamplingHelper:
             if props.sampling_period is not None
             else conf.resampling_period
         )
-        minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
+        try:
+            minimum_relevant_timestamp = (
+                timestamp - period * conf.max_data_age_in_periods
+            )
+        except OverflowError:
+            # The maximum data age goes back further than a datetime can, so all
+            # samples are relevant.
+            minimum_relevant_timestamp = datetime.min.replace(tzinfo=timezone.utc)
 
         # Samples older than the relevant ones won't be relevant for later windows
         # either, unless the input period is still unknown, as the look-back can

@@ -27,3 +27,5 @@
     - `max_buffer_len` logs an error, once per timeseries, when samples needed to resample may have been dropped because the buffer was full.
 
 - The resampler no longer logs a warning at every resampling while a timeseries has no relevant samples. It logs it once when the samples stop, and logs when they are back, with the number of windows without them.
+
+- The resampler no longer fails when `max_data_age_in_periods` is so big that the oldest relevant timestamp can't be represented. All samples are relevant then.
