@@ -22,26 +22,19 @@ _logger = logging.getLogger(__name__)
 
 
 DEFAULT_BUFFER_LEN_INIT = 16
-"""Default initial buffer length.
-
-Buffers will be created initially with this length, but they could grow or
-shrink depending on the source properties, like sampling rate, to make
-sure all the requested past sampling periods can be stored.
+"""Default number of samples to receive before estimating the input sampling period.
 """
 
 
 DEFAULT_BUFFER_LEN_MAX = 1024
-"""Default maximum allowed buffer length.
+"""Default maximum number of samples a buffer can hold.
 
-If a buffer length would get bigger than this, it will be truncated to this
-length.
+When a buffer is full, the oldest sample is dropped when a new one is added.
 """
 
 
 DEFAULT_BUFFER_LEN_WARN = 128
-"""Default minimum buffer length that will produce a warning.
-
-If a buffer length would get bigger than this, a warning will be logged.
+"""Default number of samples above which a buffer logs a warning.
 """
 
 
@@ -161,33 +154,41 @@ class ResamplerConfig:
     """
 
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
-    """The initial length of the resampling buffer.
+    """The number of samples to receive before estimating the input sampling period.
 
-    The buffer could grow or shrink depending on the source properties,
-    like sampling rate, to make sure all the requested past sampling periods
-    can be stored.
+    The input sampling period is estimated once, at the first resampling after
+    receiving enough samples, and decides how old the relevant samples can be
+    when upsampling (see `max_data_age_in_periods`). Until it is known, samples
+    are not removed from the resampling buffer, except when it is full.
+
+    The number of received samples must also be at least the number of seconds
+    in `max_data_age_in_periods` resampling periods. For example, with a
+    resampling period of 60 seconds and a `max_data_age_in_periods` of 3, the
+    input sampling period is estimated after receiving at least 180 samples (see
+    [frequenz-sdk-python#1497](https://github.com/frequenz-floss/frequenz-sdk-python/issues/1497)).
 
     It must be at least 1 and at most `max_buffer_len`.
     """
 
     warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
-    """The minimum length of the resampling buffer that will emit a warning.
+    """The number of samples above which a resampling buffer logs a warning.
 
-    If a buffer grows bigger than this value, it will emit a warning in the
-    logs, so buffers don't grow too big inadvertently.
+    Old samples are removed from the buffer when resampling, so it only holds
+    the samples that are still relevant and the ones received since. If it
+    holds more samples than this value after removing old ones, a warning is
+    logged once, so buffers don't grow too big inadvertently.
 
     It must be at least 1 and at most `max_buffer_len`.
     """
 
     max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
-    """The maximum length of the resampling buffer.
+    """The maximum number of samples a resampling buffer can hold.
 
-    Buffers won't be allowed to grow beyond this point even if it would be
-    needed to keep all the requested past sampling periods. An error will be
-    emitted in the logs if the buffer length needs to be truncated to this
-    value.
+    When the buffer is full, the oldest sample is dropped when a new one is
+    added, even if it would be needed to resample. An error is logged once if
+    samples needed to resample may have been dropped.
 
-    It must be at bigger than `warn_buffer_len`.
+    It must be bigger than `warn_buffer_len`.
     """
 
     align_to: datetime | None = UNIX_EPOCH
@@ -356,33 +357,41 @@ class ResamplerConfig2(ResamplerConfig):
     """
 
     initial_buffer_len: int = DEFAULT_BUFFER_LEN_INIT
-    """The initial length of the resampling buffer.
+    """The number of samples to receive before estimating the input sampling period.
 
-    The buffer could grow or shrink depending on the source properties,
-    like sampling rate, to make sure all the requested past sampling periods
-    can be stored.
+    The input sampling period is estimated once, at the first resampling after
+    receiving enough samples, and decides how old the relevant samples can be
+    when upsampling (see `max_data_age_in_periods`). Until it is known, samples
+    are not removed from the resampling buffer, except when it is full.
+
+    The number of received samples must also be at least the number of seconds
+    in `max_data_age_in_periods` resampling periods. For example, with a
+    resampling period of 60 seconds and a `max_data_age_in_periods` of 3, the
+    input sampling period is estimated after receiving at least 180 samples (see
+    [frequenz-sdk-python#1497](https://github.com/frequenz-floss/frequenz-sdk-python/issues/1497)).
 
     It must be at least 1 and at most `max_buffer_len`.
     """
 
     warn_buffer_len: int = DEFAULT_BUFFER_LEN_WARN
-    """The minimum length of the resampling buffer that will emit a warning.
+    """The number of samples above which a resampling buffer logs a warning.
 
-    If a buffer grows bigger than this value, it will emit a warning in the
-    logs, so buffers don't grow too big inadvertently.
+    Old samples are removed from the buffer when resampling, so it only holds
+    the samples that are still relevant and the ones received since. If it
+    holds more samples than this value after removing old ones, a warning is
+    logged once, so buffers don't grow too big inadvertently.
 
     It must be at least 1 and at most `max_buffer_len`.
     """
 
     max_buffer_len: int = DEFAULT_BUFFER_LEN_MAX
-    """The maximum length of the resampling buffer.
+    """The maximum number of samples a resampling buffer can hold.
 
-    Buffers won't be allowed to grow beyond this point even if it would be
-    needed to keep all the requested past sampling periods. An error will be
-    emitted in the logs if the buffer length needs to be truncated to this
-    value.
+    When the buffer is full, the oldest sample is dropped when a new one is
+    added, even if it would be needed to resample. An error is logged once if
+    samples needed to resample may have been dropped.
 
-    It must be at bigger than `warn_buffer_len`.
+    It must be bigger than `warn_buffer_len`.
     """
 
     align_to: datetime | None = field(default=None, init=False)
