@@ -58,6 +58,7 @@ dev-flake8 = [
 dev-formatting = ["black == 26.10.1", "isort == 9.0.2"]
 dev-mkdocs = [
   "black == 26.10.1",
+  "griffe-frequenz-core == 1.1.0",
   "Markdown==3.11.2",
   "mike == 2.2.0",
   "mkdocs-gen-files == 0.6.1",
@@ -180,6 +181,14 @@ filterwarnings = [
   "error",
   "once::DeprecationWarning",
   "once::PendingDeprecationWarning",
+  # But using our own deprecated symbols is an error, so we don't release code
+  # still using our own deprecated symbols, which will be noise for users.
+  # This is only a heuristic: it catches deprecation messages mentioning the
+  # fully qualified name of the deprecated symbol, as in "frequenz.sdk.OldThing
+  # is deprecated. Use frequenz.sdk.NewThing instead.". This is the
+  # recommended style in the deprecation guide:
+  # https://github.com/frequenz-floss/docs/blob/v0.x.x/python/deprecations.md
+  'error:.*frequenz\.sdk\.[\w\.]+ (is|was) deprecated:DeprecationWarning',
   # We need to ignore PytestUnraisableExceptionWarning because we have some
   # cleanup issues, and sometimes exceptions are raised in __del__ methods, for
   # example when trying to do async stuff and the event loop is already closed.

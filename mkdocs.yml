@@ -103,6 +103,8 @@ plugins:
         python:
           paths: ["src"]
           options:
+            extensions:
+            - griffe_frequenz_core.deprecations
             docstring_section_style: spacy
             inherited_members: true
             merge_init_into_class: false
