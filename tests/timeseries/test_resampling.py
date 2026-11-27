@@ -187,108 +187,6 @@ async def test_resampler_config_tick_delay_too_big_error(
 
 
 @pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
-async def test_helper_buffer_too_big(
-    config_class: type[ResamplerConfig],
-    fake_time: time_machine.Coordinates,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test dropping relevant samples because the buffer is full is logged once."""
-    # The window has one more sample than the buffer can hold
-    config = config_class(
-        resampling_period=timedelta(seconds=DEFAULT_BUFFER_LEN_MAX + 2),
-        max_data_age_in_periods=1,
-    )
-    helper = _ResamplingHelper("test", config)
-
-    for i in range(DEFAULT_BUFFER_LEN_MAX + 1):
-        sample = (datetime.now(timezone.utc), i)
-        helper.add_sample(sample)
-        await _advance_time(fake_time, 1)
-
-    _ = helper.resample(datetime.now(timezone.utc))
-    # A new drop doesn't log again
-    helper.add_sample((datetime.now(timezone.utc), DEFAULT_BUFFER_LEN_MAX + 1))
-    _ = helper.resample(datetime.now(timezone.utc))
-    # Ignore errors produced by wrongly finalized gRPC server in unrelated tests
-    assert _filter_logs(caplog.record_tuples, logger_level=logging.ERROR) == [
-        (
-            "frequenz.sdk.timeseries._resampling._resampler",
-            logging.ERROR,
-            "The buffer for timeseries test is full "
-            f"(max_buffer_len={DEFAULT_BUFFER_LEN_MAX}), so samples needed for "
-            "resampling may have been dropped. Use a bigger max_buffer_len.",
-        )
-    ]
-    assert helper.source_properties.dropped_samples == 2
-    # pylint: disable=protected-access
-    assert len(helper._buffer) == DEFAULT_BUFFER_LEN_MAX
-
-
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
-@pytest.mark.parametrize("closed", [WindowSide.LEFT, WindowSide.RIGHT])
-async def test_helper_full_buffer_dropping_old_samples_is_not_logged(
-    config_class: type[ResamplerConfig],
-    closed: WindowSide,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test dropping samples older than a buffered irrelevant one is not an error."""
-    config = config_class(
-        resampling_period=timedelta(seconds=1),
-        max_data_age_in_periods=1,
-        closed=closed,
-        initial_buffer_len=1,
-        warn_buffer_len=1,
-        max_buffer_len=3,
-    )
-    helper = _ResamplingHelper("test", config)
-    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
-
-    for seconds in (0.25, 0.5):
-        helper.add_sample((start + timedelta(seconds=seconds), seconds))
-    assert helper.resample(start + timedelta(seconds=1)).value == Quantity(0.375)
-
-    # The buffer is full, so these push out the sample at 0.25, but the one at
-    # 0.5 is still in the buffer, and it is not relevant anymore
-    for seconds in (1.25, 1.5):
-        helper.add_sample((start + timedelta(seconds=seconds), seconds))
-    assert helper.resample(start + timedelta(seconds=2)).value == Quantity(1.375)
-
-    assert helper.source_properties.dropped_samples == 1
-    assert not _filter_logs(caplog.record_tuples, logger_level=logging.ERROR)
-
-
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
-async def test_helper_buffer_bigger_than_warn_len_is_logged_once(
-    config_class: type[ResamplerConfig],
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test a buffer holding more than `warn_buffer_len` samples is logged once."""
-    config = config_class(
-        resampling_period=timedelta(seconds=1),
-        max_data_age_in_periods=1,
-        closed=WindowSide.LEFT,
-        initial_buffer_len=2,
-        warn_buffer_len=4,
-    )
-    helper = _ResamplingHelper("test", config)
-    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
-
-    for window in range(3):
-        for i in range(10):
-            helper.add_sample((start + timedelta(seconds=window + i / 10), 1.0))
-        helper.resample(start + timedelta(seconds=window + 1))
-
-    assert _filter_logs(caplog.record_tuples, logger_level=logging.WARNING) == [
-        (
-            "frequenz.sdk.timeseries._resampling._resampler",
-            logging.WARNING,
-            "The buffer for timeseries test holds 10 samples, more than "
-            "warn_buffer_len (4)",
-        )
-    ]
-
-
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
 async def test_helper_keeps_window_samples_when_next_window_starts(
     config_class: type[ResamplerConfig],
 ) -> None:
@@ -350,28 +248,6 @@ async def test_helper_first_window_uses_all_its_samples(
         resampled = helper.resample(window_start + timedelta(seconds=60))
         assert resampled.value == Quantity(30.5), f"window {window}"
     assert helper.source_properties.dropped_samples == 0
-
-
-@pytest.mark.parametrize("config_class", [ResamplerConfig, ResamplerConfig2])
-async def test_helper_counts_dropped_samples_when_resampling(
-    config_class: type[ResamplerConfig],
-) -> None:
-    """Test samples dropped because the buffer is full are counted when resampling."""
-    config = config_class(
-        resampling_period=timedelta(seconds=1),
-        initial_buffer_len=2,
-        warn_buffer_len=1,
-        max_buffer_len=2,
-    )
-    helper = _ResamplingHelper("test", config)
-    start = datetime(2020, 1, 1, tzinfo=timezone.utc)
-
-    for seconds in (0.25, 0.5, 0.75):
-        helper.add_sample((start + timedelta(seconds=seconds), seconds))
-    assert helper.source_properties.dropped_samples == 0
-
-    _ = helper.resample(start + timedelta(seconds=1))
-    assert helper.source_properties.dropped_samples == 1
 
 
 # Tick-delay test fixtures: time constants
@@ -2179,14 +2055,21 @@ def _get_buffered_samples(resampler: Resampler, source_receiver: Source) -> int:
     return len(resampler._resamplers[source_receiver]._helper._buffer)
 
 
+_RESAMPLER_LOGGERS = (
+    "frequenz.sdk.timeseries._resampling._resampler",
+    "frequenz.sdk.timeseries._resampling._buffer",
+)
+
+
 def _filter_logs(
     record_tuples: list[tuple[str, int, str]],
     *,
-    logger_name: str = "frequenz.sdk.timeseries._resampling._resampler",
+    logger_name: str | None = None,
     logger_level: int | None = None,
 ) -> list[tuple[str, int, str]]:
+    names = _RESAMPLER_LOGGERS if logger_name is None else (logger_name,)
     return [
         t
         for t in record_tuples
-        if t[0] == logger_name and (logger_level is None or logger_level == t[1])
+        if t[0] in names and (logger_level is None or logger_level == t[1])
     ]

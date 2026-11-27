@@ -6,10 +6,8 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
 import logging
-from bisect import bisect, bisect_left
-from collections import deque
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import assert_never
 
@@ -19,6 +17,7 @@ from frequenz.quantities import Quantity
 from ..._internal._asyncio import cancel_and_await
 from .._base_types import Sample
 from ._base_types import Sink, Source, SourceProperties
+from ._buffer import _ResamplingBuffer
 from ._config import ResamplerConfig, ResamplerConfig2, WindowSide
 from ._exceptions import ResamplingError, SourceStoppedError
 from ._wall_clock_timer import TickInfo, WallClockTimer
@@ -276,9 +275,7 @@ class _ResamplingHelper:
     Once the input period is known, older samples are removed from the buffer
     when resampling, as they won't be relevant for any later window either.
     Before that, the look-back can still grow when the input period is
-    estimated, so samples are kept. In any case, the buffer can't hold more than
-    `max_buffer_len` samples: when it is full, the oldest sample is dropped when
-    a new one is added.
+    estimated, so samples are kept.
     """
 
     def __init__(self, name: str, config: ResamplerConfig) -> None:
@@ -290,16 +287,17 @@ class _ResamplingHelper:
         """
         self._name = name
         self._config = config
-        self._buffer: deque[tuple[datetime, float]] = deque(
-            maxlen=config.max_buffer_len
-        )
         self._source_properties: SourceProperties = SourceProperties()
-        self._removed_samples = 0
-        """The number of samples removed because they were too old."""
-        self._logged_dropped = False
-        """Whether dropping relevant samples was already logged."""
-        self._logged_too_big = False
-        """Whether the buffer holding more than `warn_buffer_len` was already logged."""
+        self._buffer = _ResamplingBuffer(
+            name,
+            max_len=config.max_buffer_len,
+            warn_len=config.warn_buffer_len,
+            source_properties=self._source_properties,
+        )
+        # The buffer's method is used directly, as adding samples must be as fast
+        # as possible.
+        self.add_sample: Callable[[tuple[datetime, float]], None] = self._buffer.add
+        """Add a new sample to the buffer."""
 
     @property
     def source_properties(self) -> SourceProperties:
@@ -309,17 +307,6 @@ class _ResamplingHelper:
             The properties of the source.
         """
         return self._source_properties
-
-    def add_sample(self, sample: tuple[datetime, float]) -> None:
-        """Add a new sample to the internal buffer.
-
-        Args:
-            sample: The sample to be added to the buffer.
-        """
-        self._buffer.append(sample)
-        if self._source_properties.sampling_start is None:
-            self._source_properties.sampling_start = sample[0]
-        self._source_properties.received_samples += 1
 
     def _update_source_sample_period(self, now: datetime) -> bool:
         """Update the source sample period.
@@ -388,44 +375,15 @@ class _ResamplingHelper:
         )
         minimum_relevant_timestamp = timestamp - period * conf.max_data_age_in_periods
 
-        match conf.closed:
-            case WindowSide.LEFT:
-                bisect_func = bisect_left
-            case WindowSide.RIGHT:
-                bisect_func = bisect
-            case unexpected:
-                assert_never(unexpected)
-
-        min_index = bisect_func(
-            self._buffer,
-            minimum_relevant_timestamp,
-            key=lambda s: s[0],
-        )
-
-        max_index = bisect_func(self._buffer, timestamp, key=lambda s: s[0])
-
-        # Dropped samples are counted here, as counting them when adding samples
-        # would slow down adding samples, which must be as fast as possible.
-        self._update_dropped_samples(min_index)
-
-        # Using itertools for slicing doesn't look very efficient, but
-        # experiments with a custom (ring) buffer that can slice showed that
-        # it is not that bad. See:
-        # https://github.com/frequenz-floss/frequenz-sdk-python/pull/130
-        # So if we need more performance beyond this point, we probably need to
-        # resort to some C (or similar) implementation.
-        relevant_samples = list(itertools.islice(self._buffer, min_index, max_index))
-        if not relevant_samples:
-            self._log_no_relevant_samples(minimum_relevant_timestamp, timestamp)
-
         # Samples older than the relevant ones won't be relevant for later windows
         # either, unless the input period is still unknown, as the look-back can
         # grow when it is estimated.
-        if props.sampling_period is not None:
-            for _ in range(min_index):
-                self._buffer.popleft()
-            self._removed_samples += min_index
-            self._log_buffer_too_big()
+        relevant_samples = self._buffer.relevant_samples(
+            minimum_relevant_timestamp,
+            timestamp,
+            conf.closed,
+            remove_older=props.sampling_period is not None,
+        )
 
         value = (
             conf.resampling_function(relevant_samples, conf, props)
@@ -442,72 +400,6 @@ class _ResamplingHelper:
                 assert_never(unexpected)
 
         return Sample(timestamp, None if value is None else Quantity(value))
-
-    def _update_dropped_samples(self, min_index: int) -> None:
-        """Update the number of dropped samples, logging once if needed ones may be.
-
-        Args:
-            min_index: The index of the oldest relevant sample in the buffer.
-        """
-        props = self._source_properties
-        dropped = props.received_samples - self._removed_samples - len(self._buffer)
-        new_drops = dropped > props.dropped_samples
-        props.dropped_samples = dropped
-        # Dropped samples are older than the oldest one in the buffer, so they can
-        # only be needed if the oldest one in the buffer is not older than the
-        # relevant ones. Their timestamps are not kept, so they may also be older
-        # than the relevant ones.
-        if self._logged_dropped or not new_drops or min_index > 0:
-            return
-        self._logged_dropped = True
-        _logger.error(
-            "The buffer for timeseries %s is full (max_buffer_len=%s), so samples "
-            "needed for resampling may have been dropped. Use a bigger "
-            "max_buffer_len.",
-            self._name,
-            self._config.max_buffer_len,
-        )
-
-    def _log_buffer_too_big(self) -> None:
-        """Log, once, if the buffer holds more than `warn_buffer_len` samples."""
-        if self._logged_too_big or len(self._buffer) <= self._config.warn_buffer_len:
-            return
-        self._logged_too_big = True
-        _logger.warning(
-            "The buffer for timeseries %s holds %s samples, more than "
-            "warn_buffer_len (%s)",
-            self._name,
-            len(self._buffer),
-            self._config.warn_buffer_len,
-        )
-
-    def _log_no_relevant_samples(
-        self, minimum_relevant_timestamp: datetime, timestamp: datetime
-    ) -> None:
-        """Log that no relevant samples were found.
-
-        Args:
-            minimum_relevant_timestamp: Minimum timestamp that was requested
-            timestamp: Timestamp that was requested
-        """
-        if not _logger.isEnabledFor(logging.WARNING):
-            return
-
-        if self._buffer:
-            buffer_info = (
-                f"{self._buffer[0][0]} - "
-                f"{self._buffer[-1][0]} ({len(self._buffer)} samples)"
-            )
-        else:
-            buffer_info = "Empty"
-
-        _logger.warning(
-            "No relevant samples found for: %s\n  Requested: %s - %s\n     Buffer: %s",
-            self._name,
-            minimum_relevant_timestamp,
-            timestamp,
-            buffer_info,
-        )
 
 
 class _StreamingHelper:
